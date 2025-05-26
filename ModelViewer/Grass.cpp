@@ -124,6 +124,7 @@ void Grass::Render()
 		m_pLandscape->GetHeightmapSRV()
 	);
 	m_GrassInstanceCounts = pApp->GetFrustumCuller()->GetInstanceCounts();
+	pApp->GetFrustumCuller()->SendInstanceCounts(m_ArgsBufferUAV, m_LODArgsBufferUAV);
 	
 	pGraphics->SetRasterStateBackFaceCull(false);
 
@@ -143,8 +144,6 @@ void Grass::Render()
 	// high LOD
 	if (m_GrassInstanceCounts[0] > 0u)
 	{
-		pApp->GetFrustumCuller()->SendInstanceCount(m_ArgsBufferUAV);
-
 		pContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 		pContext->IASetVertexBuffers(0u, 1u, m_VertexBuffer.GetAddressOf(), Strides, Offsets);
 
@@ -160,14 +159,12 @@ void Grass::Render()
 	// low LOD
 	if (m_GrassInstanceCounts[1] > 0u)
 	{
-		pApp->GetFrustumCuller()->SendGrassLODInstanceCount(m_ArgsBufferUAV);
-
 		pContext->IASetIndexBuffer(m_IndexBufferLOD.Get(), DXGI_FORMAT_R32_UINT, 0u);
 		pContext->IASetVertexBuffers(0u, 1u, m_VertexBufferLOD.GetAddressOf(), Strides, Offsets);
 
 		pContext->VSSetShaderResources(1u, 1u, pApp->GetFrustumCuller()->GetCulledGrassLODDataSRV().GetAddressOf());
 
-		pContext->DrawIndexedInstancedIndirect(m_ArgsBuffer.Get(), 0u);
+		pContext->DrawIndexedInstancedIndirect(m_LODArgsBuffer.Get(), 0u);
 		pApp->GetRenderStatsRef().DrawCalls++;
 
 		pApp->GetRenderStatsRef().TrianglesRendered.push_back(std::make_pair("Grass LOD", m_GrassInstanceCounts[1] * (_countof(GrassVerticesLOD) - 2)));
@@ -334,6 +331,9 @@ bool Grass::CreateBuffers()
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_ArgsBuffer));
 	NAME_D3D_RESOURCE(m_ArgsBuffer, "Grass args buffer");
 
+	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_LODArgsBuffer));
+	NAME_D3D_RESOURCE(m_LODArgsBuffer, "Grass LOD args buffer");
+
 	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -342,6 +342,9 @@ bool Grass::CreateBuffers()
 
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateUnorderedAccessView(m_ArgsBuffer.Get(), &uavDesc, &m_ArgsBufferUAV));
 	NAME_D3D_RESOURCE(m_ArgsBufferUAV, "Grass args buffer UAV");
+
+	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateUnorderedAccessView(m_LODArgsBuffer.Get(), &uavDesc, &m_LODArgsBufferUAV));
+	NAME_D3D_RESOURCE(m_LODArgsBufferUAV, "Grass LOD args buffer UAV");
 	
 	return true;
 }

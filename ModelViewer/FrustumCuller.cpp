@@ -14,6 +14,10 @@
 #include "ResourceManager.h"
 #include "Camera.h"
 
+bool FrustumCuller::ms_bStaticsInitialised = false;
+Microsoft::WRL::ComPtr<ID3D11Buffer> FrustumCuller::ms_DummyArgsBuffer;
+Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> FrustumCuller::ms_DummyArgsBufferUAV;
+
 FrustumCuller::~FrustumCuller()
 {
 	Shutdown();
@@ -30,11 +34,11 @@ bool FrustumCuller::Init()
 	m_GrassCullingShader					= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullGrass");
 	m_InstanceCountClearShader				= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "ClearInstanceCount");
 	m_InstanceCountTransferShader			= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "TransferInstanceCount");
-	m_GrassLODInstanceCountTransferShader	= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "TransferGrassLODInstanceCount");
 
 	bool Result;
 	FALSE_IF_FAILED(CreateBuffers());
 	FALSE_IF_FAILED(CreateBufferViews());
+	FALSE_IF_FAILED(InitialiseStatics());
 
 	return true;
 }
@@ -46,7 +50,6 @@ void FrustumCuller::Shutdown()
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullGrass");
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "ClearInstanceCount");
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "TransferInstanceCount");
-	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "TransferGrassLODInstanceCount");
 }
 
 std::array<UINT, 2> FrustumCuller::GetInstanceCounts()
@@ -164,28 +167,14 @@ void FrustumCuller::ClearInstanceCount()
 	m_bGotInstanceCount = false;
 }
 
-void FrustumCuller::SendInstanceCount(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> ArgsBufferUAV)
+void FrustumCuller::SendInstanceCounts(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> FirstArgsBufferUAV, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> SecondArgsBufferUAV)
 {
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	
+	ID3D11UnorderedAccessView* UAVs[] = { FirstArgsBufferUAV.Get(), SecondArgsBufferUAV.Get() };
 	DeviceContext->CSSetShader(m_InstanceCountTransferShader, nullptr, 0u);
 	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
-	DeviceContext->CSSetUnorderedAccessViews(5u, 1u, ArgsBufferUAV.GetAddressOf(), nullptr);
-
-	DeviceContext->Dispatch(1u, 1u, 1u);
-	Application::GetSingletonPtr()->GetRenderStatsRef().ComputeDispatches++;
-
-	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
-	DeviceContext->CSSetUnorderedAccessViews(0u, 8u, NullUAVs, nullptr);
-}
-
-void FrustumCuller::SendGrassLODInstanceCount(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> ArgsBufferUAV)
-{
-	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
-
-	DeviceContext->CSSetShader(m_GrassLODInstanceCountTransferShader, nullptr, 0u);
-	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
-	DeviceContext->CSSetUnorderedAccessViews(5u, 1u, ArgsBufferUAV.GetAddressOf(), nullptr);
+	DeviceContext->CSSetUnorderedAccessViews(5u, 2u, UAVs, nullptr);
 
 	DeviceContext->Dispatch(1u, 1u, 1u);
 	Application::GetSingletonPtr()->GetRenderStatsRef().ComputeDispatches++;
@@ -336,6 +325,34 @@ bool FrustumCuller::CreateBufferViews()
 
 	HFALSE_IF_FAILED(Device->CreateUnorderedAccessView(m_InstanceCountBuffer.Get(), &uavDesc, &m_InstanceCountBufferUAV));
 	NAME_D3D_RESOURCE(m_InstanceCountBufferUAV, "Frustum culler instance count buffer UAV");
+
+	return true;
+}
+
+bool FrustumCuller::InitialiseStatics()
+{
+	HRESULT hResult;
+
+	assert(!ms_bStaticsInitialised);
+	ms_bStaticsInitialised = true;
+
+	D3D11_BUFFER_DESC Desc = {};
+	Desc.ByteWidth = sizeof(D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS);
+	Desc.Usage = D3D11_USAGE_DEFAULT;
+	Desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+	Desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS | D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+
+	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, nullptr, &ms_DummyArgsBuffer));
+	NAME_D3D_RESOURCE(ms_DummyArgsBuffer, "Frustum culler dummy args buffer");
+
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+	uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	uavDesc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
+	uavDesc.Buffer.NumElements = sizeof(D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS) / 4;
+
+	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateUnorderedAccessView(ms_DummyArgsBuffer.Get(), &uavDesc, &ms_DummyArgsBufferUAV));
+	NAME_D3D_RESOURCE(ms_DummyArgsBufferUAV, "Frustum culler dummy args buffer UAV");
 
 	return true;
 }

@@ -12,7 +12,8 @@ AppendStructuredBuffer<float2> CulledOffsetsAppend : register(u1);
 AppendStructuredBuffer<GrassData> CulledGrassData : register(u2);
 AppendStructuredBuffer<GrassData> CulledGrassLODData : register(u3);
 RWStructuredBuffer<uint> InstanceCounts : register(u4);
-RWByteAddressBuffer ArgsBuffer : register(u5);
+RWByteAddressBuffer FirstArgsBuffer : register(u5);
+RWByteAddressBuffer SecondArgsBuffer : register(u6);
 
 cbuffer CullData : register(b0)
 {
@@ -150,11 +151,7 @@ void ClearInstanceCount(uint3 DTid : SV_DispatchThreadID)
 [numthreads(1, 1, 1)]
 void TransferInstanceCount(uint3 DTid : SV_DispatchThreadID)
 {
-	ArgsBuffer.Store(4u, InstanceCounts[0]);
+	FirstArgsBuffer.Store(4u, InstanceCounts[0]);
+	SecondArgsBuffer.Store(4u, InstanceCounts[1]);
 }
 
-[numthreads(1, 1, 1)]
-void TransferGrassLODInstanceCount(uint3 DTid : SV_DispatchThreadID)
-{
-	ArgsBuffer.Store(4u, InstanceCounts[1]);
-}

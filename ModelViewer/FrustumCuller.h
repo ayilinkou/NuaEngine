@@ -55,8 +55,7 @@ public:
 	void CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const std::vector<DirectX::XMFLOAT4>& Corners, const UINT GrassPerChunk, const UINT VisibleChunkCount,
 		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap);
 	void ClearInstanceCount();
-	void SendInstanceCount(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> ArgsBufferUAV);
-	void SendGrassLODInstanceCount(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> ArgsBufferUAV);
+	void SendInstanceCounts(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> FirstArgsBufferUAV, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> SecondArgsBufferUAV = ms_DummyArgsBufferUAV);
 	std::array<UINT, 2> GetInstanceCounts();
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetCulledTransformsBuffer() const { return m_CulledTransformsBuffer; }
@@ -69,6 +68,7 @@ public:
 private:
 	bool CreateBuffers();
 	bool CreateBufferViews();
+	bool InitialiseStatics();
 
 	void UpdateBuffers(const std::vector<DirectX::XMMATRIX>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners,const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
@@ -85,7 +85,6 @@ private:
 	ID3D11ComputeShader* m_GrassCullingShader;
 	ID3D11ComputeShader* m_InstanceCountClearShader;
 	ID3D11ComputeShader* m_InstanceCountTransferShader;
-	ID3D11ComputeShader* m_GrassLODInstanceCountTransferShader;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_TransformsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_OffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledTransformsBuffer;
@@ -106,6 +105,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledOffsetsUAV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledGrassDataUAV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledGrassLODDataUAV;
+
+	static Microsoft::WRL::ComPtr<ID3D11Buffer> ms_DummyArgsBuffer;
+	static Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> ms_DummyArgsBufferUAV;
+	static bool ms_bStaticsInitialised;
 
 	const char* m_csFilename;
 	bool m_bGotInstanceCount;

@@ -63,10 +63,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBufferLOD;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ArgsBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_LODArgsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_GrassOffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_GrassCBuffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_GrassOffsetsSRV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_ArgsBufferUAV;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_LODArgsBufferUAV;
 
 	Landscape* m_pLandscape;
 	AABB m_BBox;

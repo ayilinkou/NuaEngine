@@ -176,7 +176,7 @@ void ModelData::RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes)
 	for (const std::unique_ptr<Mesh>& m : Meshes)
 	{
 		// dispatch to copy instance count into args buffer
-		Application::GetSingletonPtr()->GetFrustumCuller()->SendInstanceCount(m->GetArgsBufferUAV());
+		Application::GetSingletonPtr()->GetFrustumCuller()->SendInstanceCounts(m->GetArgsBufferUAV());
 
 		std::shared_ptr<Material> Mat = m.get()->m_Material;
 

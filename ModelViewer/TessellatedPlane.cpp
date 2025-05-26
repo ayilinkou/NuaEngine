@@ -58,7 +58,7 @@ bool TessellatedPlane::Init(float TessellationScale, Landscape* pLandscape)
 void TessellatedPlane::Render()
 {
 	Application* pApp = Application::GetSingletonPtr();
-	pApp->GetFrustumCuller()->SendInstanceCount(m_ArgsBufferUAV);
+	pApp->GetFrustumCuller()->SendInstanceCounts(m_ArgsBufferUAV);
 
 	Graphics::GetSingletonPtr()->EnableDepthWrite();
 	Graphics::GetSingletonPtr()->DisableBlending();
