@@ -71,9 +71,15 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_Skybox->Init();
 	assert(bResult);
 
-	m_Landscape = std::make_shared<Landscape>(32u, 25.f, 0.f);
+	UINT NumChunks = 32u;
+	float ChunkSize = 25.f;
+	float HeightDisplacement = 0.f;
+	m_Landscape = std::make_shared<Landscape>(NumChunks, ChunkSize, HeightDisplacement);
 	m_GameObjects.push_back(m_Landscape);
-	bResult = m_Landscape->Init("Textures/perlin_noise.png", 256.f, 64u);
+
+	float TessellationScale = 10.f;
+	UINT GrassDimensionPerChunk = 64u;
+	bResult = m_Landscape->Init("Textures/perlin_noise.png", TessellationScale, GrassDimensionPerChunk);
 	assert(bResult);
 
 	m_Cameras.emplace_back(std::make_shared<Camera>(m_Graphics->GetProjectionMatrix()));
@@ -122,18 +128,38 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	m_TextureResourceView = static_cast<ID3D11ShaderResourceView*>(ResourceManager::GetSingletonPtr()->LoadTexture(m_QuadTexturePath));
 
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(0.8f, 0.8f, 0.8f, 0.007f, PostProcessFog::FogFormula::ExponentialSquared));
+	DirectX::XMFLOAT3 FogColor = { 0.8f, 0.8f, 0.8f };
+	float FogDensity = 0.007f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(FogColor.x, FogColor.y, FogColor.z, FogDensity, PostProcessFog::FogFormula::ExponentialSquared));
 	//m_PostProcesses.back()->Deactivate();
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessPixelation>(8.f));
+
+	float PixelSize = 8.f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessPixelation>(PixelSize));
 	m_PostProcesses.back()->Deactivate();
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessBoxBlur>(30));
+	
+	int BlurStrength = 30;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessBoxBlur>(BlurStrength));
 	m_PostProcesses.back()->Deactivate();
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessGaussianBlur>(30, 4.f));
+	
+	float Sigma = 4.f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessGaussianBlur>(BlurStrength, Sigma));
 	m_PostProcesses.back()->Deactivate();
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(0.9f, 16, 8.f));
+
+	float LuminanceThreshold = 0.9f;
+	int BloomBlurStrength = 16;
+	float BloomSigma = 8.f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(LuminanceThreshold, BloomBlurStrength, BloomSigma));
 	m_PostProcesses.back()->Deactivate();
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessToneMapper>(1.5f, 1.f, 1.f, PostProcessToneMapper::ToneMapperFormula::HillACES));
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessColorCorrection>(1.f, 0.f, 1.15f));
+
+	float WhiteLevel = 1.5f;
+	float Exposure = 1.f;
+	float Bias = 1.f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessToneMapper>(WhiteLevel, Exposure, Bias, PostProcessToneMapper::ToneMapperFormula::HillACES));
+	
+	float Contrast = 1.f;
+	float Brightness = 0.f;
+	float Saturation = 1.15f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessColorCorrection>(Contrast, Brightness, Saturation));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessGammaCorrection>(2.2f));
 
 	return true;
