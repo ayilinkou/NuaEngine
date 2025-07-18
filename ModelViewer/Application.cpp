@@ -82,7 +82,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_Landscape->Init("Textures/perlin_noise.png", TessellationScale, GrassDimensionPerChunk);
 	assert(bResult);
 
-	m_Cameras.emplace_back(std::make_shared<Camera>(m_Graphics->GetProjectionMatrix()));
+	m_Cameras.emplace_back(std::make_shared<Camera>(m_Graphics->GetDefaultProjMatrix()));
 	m_Cameras.back()->SetPosition(0.f, 2.5f, -7.f);
 	m_Cameras.back()->SetName("Main Camera");
 	m_ActiveCamera = m_Cameras.back();
@@ -141,14 +141,15 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessBoxBlur>(BlurStrength));
 	m_PostProcesses.back()->Deactivate();
 	
+	BlurStrength = 30;
 	float Sigma = 4.f;
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessGaussianBlur>(BlurStrength, Sigma));
 	m_PostProcesses.back()->Deactivate();
 
 	float LuminanceThreshold = 0.9f;
-	int BloomBlurStrength = 16;
-	float BloomSigma = 8.f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(LuminanceThreshold, BloomBlurStrength, BloomSigma));
+	BlurStrength = 16;
+	Sigma = 8.f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(LuminanceThreshold, BlurStrength, Sigma));
 	m_PostProcesses.back()->Deactivate();
 
 	float WhiteLevel = 1.5f;
@@ -160,7 +161,9 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	float Brightness = 0.f;
 	float Saturation = 1.15f;
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessColorCorrection>(Contrast, Brightness, Saturation));
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessGammaCorrection>(2.2f));
+
+	float Gamma = 2.2f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessGammaCorrection>(Gamma));
 
 	return true;
 }

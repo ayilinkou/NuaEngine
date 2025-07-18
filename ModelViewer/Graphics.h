@@ -66,13 +66,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SamplerState;
 	Microsoft::WRL::ComPtr<ID3D11Query> m_PipelineStatsQuery;
 
-	DirectX::XMMATRIX m_ProjectionMatrix;
-	DirectX::XMMATRIX m_OrthoMatrix;
 	D3D11_VIEWPORT m_Viewport;
 
 	std::pair<int, int> m_Dimensions;
 	float m_NearPlane;
 	float m_FarPlane;
+	float m_ScreenAspect;
 
 public:
 	ID3D11Device* GetDevice() const { return m_Device.Get(); }
@@ -86,9 +85,7 @@ public:
 	float GetNearPlane() const { return m_NearPlane; }
 	float GetFarPlane() const { return m_FarPlane; }
 
-	void GetProjectionMatrix(DirectX::XMMATRIX& ProjectionMatrix) { ProjectionMatrix = m_ProjectionMatrix; }
-	const DirectX::XMMATRIX& GetProjectionMatrix() const { return m_ProjectionMatrix; }
-	void GetOrthoMatrix(DirectX::XMMATRIX& OrthoMatrix) { OrthoMatrix = m_OrthoMatrix; }
+	DirectX::XMMATRIX GetDefaultProjMatrix() const;
 
 	Microsoft::WRL::ComPtr<ID3D11Query> GetPipelineStatsQuery() { return m_PipelineStatsQuery; }
 

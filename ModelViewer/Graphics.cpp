@@ -8,8 +8,6 @@ Graphics* Graphics::m_Instance = nullptr;
 
 Graphics::Graphics()
 {
-	m_OrthoMatrix = DirectX::XMMatrixIdentity();
-	m_ProjectionMatrix = DirectX::XMMatrixIdentity();
 	m_VSync_Enabled = true;
 	m_Viewport = {};
 	m_VideoCardMemory = -1;
@@ -49,12 +47,12 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	D3D11_SHADER_RESOURCE_VIEW_DESC DepthStencilSRVDesc = {};
 	D3D11_RASTERIZER_DESC RasterDesc = {};
 	D3D11_SAMPLER_DESC SamplerDesc = {};
-	float FieldOfView, ScreenAspect;
 
 	m_VSync_Enabled = VSync;
 	m_Dimensions = std::make_pair(ScreenWidth, ScreenHeight);
 	m_NearPlane = ScreenNear;
 	m_FarPlane = ScreenDepth;
+	m_ScreenAspect = (float)ScreenWidth / (float)ScreenHeight;
 
 	ASSERT_NOT_FAILED(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&Factory));
 	ASSERT_NOT_FAILED(Factory->EnumAdapters(0, &Adapter));
@@ -286,12 +284,6 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 
 	m_DeviceContext->RSSetViewports(1u, &m_Viewport);
 
-	FieldOfView = 3.141592654f / 4.f;
-	ScreenAspect = (float)ScreenWidth / (float)ScreenHeight;
-
-	m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(FieldOfView, ScreenAspect, ScreenNear, ScreenDepth);
-	m_OrthoMatrix = DirectX::XMMatrixOrthographicLH((float)ScreenWidth, (float)ScreenHeight, ScreenNear, ScreenDepth);
-
 	// setting up render target textures, views and shader resource view for post processing
 	PostProcessTextureDesc.Width = ScreenWidth;
 	PostProcessTextureDesc.Height = ScreenHeight;
@@ -458,4 +450,10 @@ void Graphics::SetRasterStateBackFaceCull(bool bShouldCull)
 void Graphics::SetWireframeRasterState()
 {
 	GetDeviceContext()->RSSetState(m_WireframeRasterState.Get());
+}
+
+DirectX::XMMATRIX Graphics::GetDefaultProjMatrix() const
+{
+	float FieldOfView = 3.141592654f / 4.f;
+	return DirectX::XMMatrixPerspectiveFovLH(FieldOfView, m_ScreenAspect, m_NearPlane, m_FarPlane);
 }

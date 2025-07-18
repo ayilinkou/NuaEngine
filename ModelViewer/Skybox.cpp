@@ -159,7 +159,7 @@ void Skybox::Render()
 
 	DirectX::XMMATRIX View, Proj, ViewProj;
 	Application::GetSingletonPtr()->GetActiveCamera()->GetViewMatrix(View);
-	Graphics::GetSingletonPtr()->GetProjectionMatrix(Proj);
+	Application::GetSingletonPtr()->GetActiveCamera()->GetProjMatrix(Proj);
 
 	View.r[3] = DirectX::XMVectorSet(0.f, 0.f, 0.f, 1.f); // removes translation from the view matrix
 	ViewProj = View * Proj;

@@ -109,7 +109,7 @@ void ImGuiManager::RenderCamerasWindow()
 
 	if (ImGui::Button("Add New Camera"))
 	{
-		Cameras.emplace_back(std::make_shared<Camera>(Graphics::GetSingletonPtr()->GetProjectionMatrix()));
+		Cameras.emplace_back(std::make_shared<Camera>(Graphics::GetSingletonPtr()->GetDefaultProjMatrix()));
 		GameObjects.push_back(Cameras.back());
 		Cameras.back()->SetTransform(pApp->GetActiveCamera()->GetTransform());
 		pApp->SetActiveCamera((int)Cameras.size() - 1);

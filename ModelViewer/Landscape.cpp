@@ -182,13 +182,12 @@ void Landscape::UpdateBuffers()
 
 	std::shared_ptr<Camera> pCamera = Application::GetSingletonPtr()->GetActiveCamera();
 	DirectX::XMFLOAT3 CameraPos = pCamera->GetPosition();
-	DirectX::XMMATRIX View, Proj;
-	pCamera->GetViewMatrix(View);
-	Graphics::GetSingletonPtr()->GetProjectionMatrix(Proj);
+	DirectX::XMMATRIX ViewProj;
+	pCamera->GetViewProjMatrix(ViewProj);
 
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_CameraCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
 	CameraCBufferPtr = (CameraCBuffer*)MappedResource.pData;
-	CameraCBufferPtr->ViewProj = DirectX::XMMatrixTranspose(View * Proj);
+	CameraCBufferPtr->ViewProj = DirectX::XMMatrixTranspose(ViewProj);
 	DeviceContext->Unmap(m_CameraCBuffer.Get(), 0u);
 
 	CullingCBuffer CullingBufferData = {};
