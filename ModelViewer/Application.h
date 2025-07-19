@@ -73,7 +73,7 @@ public:
 	RenderStats& GetRenderStatsRef() { return m_RenderStats; }
 	bool& GetShowBoundingBoxesRef() { return m_bShowBoundingBoxes; }
 
-	bool IsUsingTAA() const { return m_bUseTAA; }
+	bool IsUsingTAA() const;
 
 private:
 	bool Render();
@@ -110,6 +110,7 @@ private:
 	std::vector<std::shared_ptr<GameObject>> m_GameObjects;
 	std::vector<std::shared_ptr<Camera>> m_Cameras;
 	std::vector<std::unique_ptr<PostProcess>> m_PostProcesses;
+	PostProcess* m_pTAA;
 
 	std::chrono::steady_clock::time_point m_LastUpdate;
 	double m_AppTime;

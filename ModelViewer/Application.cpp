@@ -42,6 +42,7 @@ Application::Application()
 	m_CameraSpeedMin = 1.25f;
 	m_CameraSpeedMax = 200.f;
 
+	m_pTAA = nullptr;
 	EnableTAA(true);
 }
 
@@ -141,6 +142,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 		float Alpha = 0.9f;
 		m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(Alpha));
 		m_PostProcesses.back()->Deactivate();
+		m_pTAA = m_PostProcesses.back().get();
 	}
 
 	float PixelSize = 8.f;
@@ -240,6 +242,11 @@ void Application::SetActiveCamera(int ID)
 {
 	m_ActiveCameraID = ID;
 	m_ActiveCamera = m_Cameras[ID];
+}
+
+bool Application::IsUsingTAA() const
+{
+	return m_bUseTAA && m_pTAA && m_pTAA->IsActive();
 }
 
 bool Application::Render()

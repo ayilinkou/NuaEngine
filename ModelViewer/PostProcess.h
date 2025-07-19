@@ -104,6 +104,7 @@ public:
 
 	void Activate() { m_bActive = true; }
 	void Deactivate() { m_bActive = false; }
+	bool IsActive() const { return m_bActive; }
 	bool& GetIsActive() { return m_bActive; }
 	const std::string& GetName() const { return m_Name; }
 
