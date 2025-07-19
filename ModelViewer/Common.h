@@ -37,6 +37,7 @@ struct RenderStats
 };
 
 inline struct ID3D11Buffer* NullBuffers[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+inline struct ID3D11RenderTargetView* NullRTVs[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 inline struct ID3D11ShaderResourceView* NullSRVs[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 inline struct ID3D11UnorderedAccessView* NullUAVs[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 

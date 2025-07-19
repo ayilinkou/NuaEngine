@@ -69,8 +69,11 @@ public:
 
 	double GetDeltaTime() const { return m_DeltaTime; }
 	double GetAppTime() const { return m_AppTime; }
+	uint32_t GetFrameIndex() const { return m_FrameIndex; }
 	RenderStats& GetRenderStatsRef() { return m_RenderStats; }
 	bool& GetShowBoundingBoxesRef() { return m_bShowBoundingBoxes; }
+
+	bool IsUsingTAA() const { return m_bUseTAA; }
 
 private:
 	bool Render();
@@ -79,6 +82,8 @@ private:
 	bool RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView);
 
 	void RenderImGui();
+
+	void EnableTAA(bool bUseTAA) { m_bUseTAA = bUseTAA; }
 
 	void ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetView> CurrentRTV, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> SecondaryRTV,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CurrentSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SecondarySRV, bool& DrawingForward);
@@ -109,6 +114,7 @@ private:
 	std::chrono::steady_clock::time_point m_LastUpdate;
 	double m_AppTime;
 	double m_DeltaTime; // in seconds
+	uint32_t m_FrameIndex;
 	float m_CameraSpeed;
 	float m_CameraSpeedMin;
 	float m_CameraSpeedMax;
@@ -116,6 +122,7 @@ private:
 	bool m_bShowCursor = false;
 	bool m_bCursorToggleReleased = true;
 	bool m_bShowBoundingBoxes = false;
+	bool m_bUseTAA = false;
 
 	RenderStats m_RenderStats;
 

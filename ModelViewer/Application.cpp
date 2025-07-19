@@ -33,6 +33,7 @@ Application* Application::m_Instance = nullptr;
 Application::Application()
 {
 	m_LastUpdate = std::chrono::steady_clock::now();
+	m_FrameIndex = 0u;
 	m_AppTime = 0.0;
 	m_hWnd = {};
 	m_TextureResourceView = {};
@@ -40,6 +41,8 @@ Application::Application()
 	m_CameraSpeed = 20.f;
 	m_CameraSpeedMin = 1.25f;
 	m_CameraSpeedMax = 200.f;
+
+	EnableTAA(true);
 }
 
 bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
@@ -133,6 +136,13 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(FogColor.x, FogColor.y, FogColor.z, FogDensity, PostProcessFog::FogFormula::ExponentialSquared));
 	//m_PostProcesses.back()->Deactivate();
 
+	if (m_bUseTAA)
+	{
+		float Alpha = 0.9f;
+		m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(Alpha));
+		m_PostProcesses.back()->Deactivate();
+	}
+
 	float PixelSize = 8.f;
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessPixelation>(PixelSize));
 	m_PostProcesses.back()->Deactivate();
@@ -200,6 +210,7 @@ bool Application::Frame()
 	m_DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(Now - m_LastUpdate).count() / 1000000.0; // in seconds
 	m_LastUpdate = Now;
 	m_AppTime += m_DeltaTime;
+	m_FrameIndex++;
 
 	ClearRenderStats();
 	m_RenderStats.FrameTime = m_DeltaTime * 1000.0;

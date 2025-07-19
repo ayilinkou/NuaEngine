@@ -13,6 +13,7 @@
 #include "Application.h"
 #include "Camera.h"
 #include "ResourceManager.h"
+#include "Common.h"
 
 class PostProcessEmpty;
 
@@ -21,10 +22,8 @@ class PostProcess
 public:
 	void ApplyPostProcess(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV)
 	{
-		ID3D11RenderTargetView* NullRTVs[] = { nullptr };
-		Graphics::GetSingletonPtr()->GetDeviceContext()->OMSetRenderTargets(1u, NullRTVs, nullptr);
-		ID3D11ShaderResourceView* NullSRVs[] = { nullptr, nullptr };
-		Graphics::GetSingletonPtr()->GetDeviceContext()->PSSetShaderResources(0u, 2u, NullSRVs);
+		Graphics::GetSingletonPtr()->GetDeviceContext()->OMSetRenderTargets(8u, NullRTVs, nullptr);
+		Graphics::GetSingletonPtr()->GetDeviceContext()->PSSetShaderResources(0u, 8u, NullSRVs);
 		ApplyPostProcessImpl(DeviceContext, RTV, SRV);
 	}
 
@@ -1177,6 +1176,114 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ConstantBuffer;
 
 	ColorData m_ColorData;
+	const char* m_psFilename;
+
+};
+
+class PostProcessTemporalAA : public PostProcess
+{
+private:
+	struct AAData
+	{
+		float Alpha;
+		DirectX::XMFLOAT3 Padding = {};
+	};
+
+public:
+	PostProcessTemporalAA(float Alpha)
+	{
+		m_Name = "Temporal AA";
+		m_psFilename = "Shaders/TemporalAA_PS.hlsl";
+
+		HRESULT hResult;
+		D3D11_BUFFER_DESC BufferDesc = {};
+		BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		BufferDesc.ByteWidth = sizeof(AAData);
+		BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+		std::pair<int, int> Dimensions = Graphics::GetSingletonPtr()->GetRenderTargetDimensions();
+		m_AAData.Alpha = Alpha;
+		D3D11_SUBRESOURCE_DATA BufferData = {};
+		BufferData.pSysMem = &m_AAData;
+
+		ID3D11Device* pDevice = Graphics::GetSingletonPtr()->GetDevice();
+
+		ASSERT_NOT_FAILED(pDevice->CreateBuffer(&BufferDesc, &BufferData, &m_ConstantBuffer));
+		NAME_D3D_RESOURCE(m_ConstantBuffer, ("Post process " + m_Name + " constant buffer").c_str());
+
+		Microsoft::WRL::ComPtr<ID3D11Resource> TexResource;
+		Graphics::GetSingletonPtr()->m_PostProcessSRVFirst->GetResource(&TexResource);
+		assert(TexResource.Get());
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> PostProcessTexture;
+		ASSERT_NOT_FAILED(TexResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&PostProcessTexture));
+
+		D3D11_TEXTURE2D_DESC TextureDesc;
+		PostProcessTexture->GetDesc(&TextureDesc);
+
+		ASSERT_NOT_FAILED(pDevice->CreateTexture2D(&TextureDesc, nullptr, &m_LastComposedFrameTexture));
+		ASSERT_NOT_FAILED(pDevice->CreateShaderResourceView(m_LastComposedFrameTexture.Get(), nullptr, &m_LastComposedFrameSRV));
+
+		NAME_D3D_RESOURCE(m_LastComposedFrameTexture, "TAA last composed frame texture");
+		NAME_D3D_RESOURCE(m_LastComposedFrameSRV, "TAA last composed frame SRV");
+
+		SetupPixelShader(m_PixelShader, m_psFilename);
+	}
+
+	~PostProcessTemporalAA()
+	{
+		ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11PixelShader>(m_psFilename);
+	}
+
+	void RenderControls() override
+	{
+		bool bDirty = false;
+
+		if (ImGui::SliderFloat("Alpha", &m_AAData.Alpha, 0.f, 1.f, "%.2f", ImGuiSliderFlags_AlwaysClamp))
+			bDirty = true;
+
+		if (bDirty)
+			UpdateBuffer();
+	}
+
+private:
+	void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV) override
+	{
+		DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
+		ID3D11ShaderResourceView* SRVs[2] = { SRV.Get(), m_LastComposedFrameSRV.Get() };
+		DeviceContext->PSSetShaderResources(0u, 2u, SRVs);
+
+		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+
+		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
+
+		DeviceContext->DrawIndexed(6u, 0u, 0);
+		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+
+		// copy RTV's texture data into m_LastComposedFrameTexture
+		Microsoft::WRL::ComPtr<ID3D11Resource> TexResource;
+		RTV->GetResource(&TexResource);
+		assert(TexResource.Get());
+
+		DeviceContext->CopyResource(m_LastComposedFrameTexture.Get(), TexResource.Get());
+	}
+
+	void UpdateBuffer()
+	{
+		HRESULT hResult;
+		D3D11_MAPPED_SUBRESOURCE MappedSubresource = {};
+		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDeviceContext()->Map(m_ConstantBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedSubresource));
+		memcpy(MappedSubresource.pData, &m_AAData, sizeof(AAData));
+		Graphics::GetSingletonPtr()->GetDeviceContext()->Unmap(m_ConstantBuffer.Get(), 0u);
+	}
+
+private:
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_LastComposedFrameTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_LastComposedFrameSRV;
+
+	AAData m_AAData;
 	const char* m_psFilename;
 
 };

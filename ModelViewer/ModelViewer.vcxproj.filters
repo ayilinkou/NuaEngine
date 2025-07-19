@@ -268,5 +268,6 @@
     <None Include="Shaders\GrassPS.hlsl" />
     <None Include="Shaders\GrassVS.hlsl" />
     <None Include="Shaders\Common.hlsl" />
+    <None Include="Shaders\TemporalAA_PS.hlsl" />
   </ItemGroup>
 </Project>
