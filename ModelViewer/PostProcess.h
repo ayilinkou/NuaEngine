@@ -102,7 +102,7 @@ public:
 
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> GetPixelShader() const { return m_PixelShader; };
 
-	void Activate() { m_bActive = true; }
+	void Activate() { m_bActive = true; m_bRecentlyActivated = true; }
 	void Deactivate() { m_bActive = false; }
 	bool IsActive() const { return m_bActive; }
 	bool& GetIsActive() { return m_bActive; }
@@ -118,6 +118,7 @@ protected:
 	
 	ID3D11PixelShader* m_PixelShader = nullptr;
 	bool m_bActive = true;
+	bool m_bRecentlyActivated = true;
 	std::string m_Name = "";
 	
 	virtual void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV) = 0;
@@ -238,6 +239,8 @@ public:
 private:
 	void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV) override
 	{
+		
+		
 		DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 
@@ -1223,11 +1226,11 @@ public:
 		D3D11_TEXTURE2D_DESC TextureDesc;
 		PostProcessTexture->GetDesc(&TextureDesc);
 
-		ASSERT_NOT_FAILED(pDevice->CreateTexture2D(&TextureDesc, nullptr, &m_LastComposedFrameTexture));
-		ASSERT_NOT_FAILED(pDevice->CreateShaderResourceView(m_LastComposedFrameTexture.Get(), nullptr, &m_LastComposedFrameSRV));
+		ASSERT_NOT_FAILED(pDevice->CreateTexture2D(&TextureDesc, nullptr, &m_HistoryFrameTexture));
+		ASSERT_NOT_FAILED(pDevice->CreateShaderResourceView(m_HistoryFrameTexture.Get(), nullptr, &m_HistoryFrameSRV));
 
-		NAME_D3D_RESOURCE(m_LastComposedFrameTexture, "TAA last composed frame texture");
-		NAME_D3D_RESOURCE(m_LastComposedFrameSRV, "TAA last composed frame SRV");
+		NAME_D3D_RESOURCE(m_HistoryFrameTexture, "TAA history frame texture");
+		NAME_D3D_RESOURCE(m_HistoryFrameSRV, "TAA history frame SRV");
 
 		SetupPixelShader(m_PixelShader, m_psFilename);
 	}
@@ -1251,23 +1254,40 @@ public:
 private:
 	void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV) override
 	{
-		DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
-		ID3D11ShaderResourceView* SRVs[2] = { SRV.Get(), m_LastComposedFrameSRV.Get() };
-		DeviceContext->PSSetShaderResources(0u, 2u, SRVs);
+		if (m_bRecentlyActivated)
+		{
+			// reset the history frame texture since it's old/empty
+			// ideally we'd remove this draw call but since it would be just for a single frame it's not that important
 
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+			DeviceContext->PSSetShader(PostProcess::GetEmptyPostProcess()->GetPixelShader().Get(), nullptr, 0u);
+			DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 
-		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
+			DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
-		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+			DeviceContext->DrawIndexed(6u, 0u, 0);
+			Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+			m_bRecentlyActivated = false;
+		}
+		else
+		{
+			DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
+			ID3D11ShaderResourceView* SRVs[2] = { SRV.Get(), m_HistoryFrameSRV.Get() };
+			DeviceContext->PSSetShaderResources(0u, 2u, SRVs);
 
-		// copy RTV's texture data into m_LastComposedFrameTexture
+			DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+
+			DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
+
+			DeviceContext->DrawIndexed(6u, 0u, 0);
+			Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		}
+
+		// copy RTV's texture data into m_HistoryFrameTexture
 		Microsoft::WRL::ComPtr<ID3D11Resource> TexResource;
 		RTV->GetResource(&TexResource);
 		assert(TexResource.Get());
 
-		DeviceContext->CopyResource(m_LastComposedFrameTexture.Get(), TexResource.Get());
+		DeviceContext->CopyResource(m_HistoryFrameTexture.Get(), TexResource.Get());
 	}
 
 	void UpdateBuffer()
@@ -1281,8 +1301,8 @@ private:
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ConstantBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_LastComposedFrameTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_LastComposedFrameSRV;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_HistoryFrameTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_HistoryFrameSRV;
 
 	AAData m_AAData;
 	const char* m_psFilename;
