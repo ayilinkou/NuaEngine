@@ -55,6 +55,9 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_Graphics->Initialise(ScreenWidth, ScreenHeight, VSYNC_ENABLED, hWnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
 	assert(bResult);
 
+	bResult = SetupQueries();
+	assert(bResult);
+
 	m_Shader = std::make_unique<Shader>();
 	bResult = m_Shader->Initialise(m_Graphics->GetDevice());
 	assert(bResult);
@@ -75,7 +78,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_Skybox->Init();
 	assert(bResult);
 
-	UINT NumChunks = 32u;
+	UINT NumChunks = 2u;
 	float ChunkSize = 25.f;
 	float HeightDisplacement = 0.f;
 	m_Landscape = std::make_shared<Landscape>(NumChunks, ChunkSize, HeightDisplacement);
@@ -182,6 +185,10 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 void Application::Shutdown()
 {
+	m_DisjointQuery.Reset();
+	m_TimestampStart.Reset();
+	m_TimestampEnd.Reset();
+	
 	ResourceManager::GetSingletonPtr()->UnloadTexture(m_QuadTexturePath);
 	m_TextureResourceView = nullptr;
 	
@@ -468,7 +475,7 @@ void Application::RenderImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGuiManager::RenderPostProcessWindow();
+	ImGuiManager::RenderPostProcessWindow(m_RenderStats.PostProcessPipelineTime);
 	ImGuiManager::RenderWorldHierarchyWindow();
 	ImGuiManager::RenderCamerasWindow();
 	ImGuiManager::RenderStatsWindow(m_RenderStats);
@@ -481,6 +488,10 @@ void Application::RenderImGui()
 void Application::ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetView> CurrentRTV, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> SecondaryRTV,
 										Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CurrentSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SecondarySRV, bool& DrawingForward)
 {	
+	ID3D11DeviceContext* pContext = m_Graphics->GetDeviceContext();
+	pContext->Begin(m_DisjointQuery.Get());
+	pContext->End(m_TimestampStart.Get());
+	
 	for (int i = 0; i < m_PostProcesses.size(); i++)
 	{
 		if (!m_PostProcesses[i]->GetIsActive())
@@ -488,10 +499,26 @@ void Application::ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetVi
 			continue;
 		}
 
-		m_PostProcesses[i]->ApplyPostProcess(m_Graphics->GetDeviceContext(), DrawingForward ? SecondaryRTV : CurrentRTV,
+		m_PostProcesses[i]->ApplyPostProcess(pContext, DrawingForward ? SecondaryRTV : CurrentRTV,
 												DrawingForward ? CurrentSRV : SecondarySRV);
 
 		DrawingForward = !DrawingForward;
+	}
+
+	pContext->End(m_TimestampEnd.Get());
+	pContext->End(m_DisjointQuery.Get());
+
+	D3D11_QUERY_DATA_TIMESTAMP_DISJOINT DisjointData;
+	while (pContext->GetData(m_DisjointQuery.Get(), &DisjointData, sizeof(DisjointData), 0) != S_OK);
+
+	// only calculate if the GPU clock didn't change (eg. due to GPU frequency scaling event)
+	if (!DisjointData.Disjoint)
+	{
+		UINT64 StartTime = 0, EndTime = 0;
+		while (pContext->GetData(m_TimestampStart.Get(), &StartTime, sizeof(StartTime), 0) != S_OK);
+		while (pContext->GetData(m_TimestampEnd.Get(), &EndTime, sizeof(EndTime), 0) != S_OK);
+
+		m_RenderStats.PostProcessPipelineTime = (EndTime - StartTime) / double(DisjointData.Frequency) * 1000.0;
 	}
 }
 
@@ -579,6 +606,20 @@ void Application::ToggleShowCursor()
 		SystemClass::m_MouseDelta = { 0.f, 0.f };
 	}
 	m_bShowCursor = !m_bShowCursor;
+}
+
+bool Application::SetupQueries()
+{
+	HRESULT hResult;
+	D3D11_QUERY_DESC Desc = {};
+	Desc.Query = D3D11_QUERY_TIMESTAMP;
+	HFALSE_IF_FAILED(m_Graphics->GetDevice()->CreateQuery(&Desc, &m_TimestampStart));
+	HFALSE_IF_FAILED(m_Graphics->GetDevice()->CreateQuery(&Desc, &m_TimestampEnd));
+	
+	Desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
+	HFALSE_IF_FAILED(m_Graphics->GetDevice()->CreateQuery(&Desc, &m_DisjointQuery));
+	
+	return true;
 }
 
 void Application::ClearRenderStats()

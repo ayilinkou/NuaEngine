@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 
+#include "wrl.h"
+
 #include "Graphics.h"
 #include "Common.h"
 
@@ -91,6 +93,7 @@ private:
 	void ProcessInput();
 	void ToggleShowCursor();
 
+	bool SetupQueries();
 	void ClearRenderStats();
 
 private:	
@@ -126,6 +129,9 @@ private:
 	bool m_bUseTAA = false;
 
 	RenderStats m_RenderStats;
+	Microsoft::WRL::ComPtr<ID3D11Query> m_DisjointQuery;
+	Microsoft::WRL::ComPtr<ID3D11Query> m_TimestampStart;
+	Microsoft::WRL::ComPtr<ID3D11Query> m_TimestampEnd;
 
 	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
 	ID3D11ShaderResourceView* m_TextureResourceView;

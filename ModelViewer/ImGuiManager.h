@@ -13,7 +13,7 @@ public:
 	ImGuiManager();
 	~ImGuiManager();
 
-	static void RenderPostProcessWindow();
+	static void RenderPostProcessWindow(double PipelineTime);
 	static void RenderWorldHierarchyWindow();
 	static void RenderCamerasWindow();
 	static void RenderStatsWindow(const RenderStats& Stats);

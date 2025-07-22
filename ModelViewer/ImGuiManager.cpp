@@ -21,12 +21,13 @@ ImGuiManager::~ImGuiManager()
 	ImGui::DestroyContext();
 }
 
-void ImGuiManager::RenderPostProcessWindow()
+void ImGuiManager::RenderPostProcessWindow(double PipelineTime)
 {
 	Application* pApp = Application::GetSingletonPtr();
 	auto& PostProcesses = pApp->GetPostProcesses();
 	
-	if (ImGui::Begin("Post Processes") && !PostProcesses.empty())
+	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+	if (ImGui::Begin("Post Processes", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize) && !PostProcesses.empty())
 	{
 		for (int i = 0; i < PostProcesses.size(); i++)
 		{
@@ -45,6 +46,8 @@ void ImGuiManager::RenderPostProcessWindow()
 			ImGui::PopID();
 		}
 	}
+
+	ImGui::Text("Post process pipeline time: %.3f ms", PipelineTime);
 	ImGui::End();
 }
 
@@ -53,7 +56,7 @@ void ImGuiManager::RenderWorldHierarchyWindow()
 	Application* pApp = Application::GetSingletonPtr();
 	auto& GameObjects = pApp->GetGameObjects();
 	
-	ImGui::Begin("World Hierarchy");
+	ImGui::Begin("World Hierarchy", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 	ImGui::BeginChild("##", ImVec2(0, 250), ImGuiChildFlags_Border, ImGuiWindowFlags_HorizontalScrollbar);
 	for (int i = 0; i < GameObjects.size(); i++)
@@ -100,7 +103,7 @@ void ImGuiManager::RenderCamerasWindow()
 
 	int ID = pApp->GetActiveCameraID();
 
-	ImGui::Begin("Cameras");
+	ImGui::Begin("Cameras", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 	if (ImGui::Combo("Active Camera", &ID, CameraNames.data(), (int)Cameras.size()))
 	{
@@ -142,7 +145,7 @@ void ImGuiManager::RenderCamerasWindow()
 
 void ImGuiManager::RenderStatsWindow(const RenderStats& Stats)
 {
-	ImGui::Begin("Statistics");
+	ImGui::Begin("Statistics", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 	ImGui::Text("Frame Time: %.3f ms/frame", Stats.FrameTime);
 	ImGui::Text("FPS: %.1f", Stats.FPS);

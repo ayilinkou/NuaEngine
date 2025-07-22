@@ -32,6 +32,7 @@ struct RenderStats
 	std::vector<std::pair<std::string, UINT64>> InstancesRendered;
 	UINT64 DrawCalls;
 	UINT64 ComputeDispatches;
+	double PostProcessPipelineTime;
 	double FrameTime;
 	double FPS;
 };
