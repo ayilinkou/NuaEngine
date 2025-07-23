@@ -247,8 +247,13 @@ bool Application::Frame()
 
 void Application::SetActiveCamera(int ID)
 {
+	if (m_ActiveCameraID == ID)
+		return;
+	
 	m_ActiveCameraID = ID;
 	m_ActiveCamera = m_Cameras[ID];
+
+	m_OnActiveCameraChanged.Broadcast();
 }
 
 bool Application::IsUsingTAA() const

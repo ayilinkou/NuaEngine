@@ -1233,6 +1233,8 @@ public:
 		NAME_D3D_RESOURCE(m_HistoryFrameSRV, "TAA history frame SRV");
 
 		SetupPixelShader(m_PixelShader, m_psFilename);
+
+		Application::GetSingletonPtr()->BindOnActiveCameraChanged([this]() { this->m_bRecentlyActivated = true; });
 	}
 
 	~PostProcessTemporalAA()

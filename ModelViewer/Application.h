@@ -11,6 +11,7 @@
 
 #include "Graphics.h"
 #include "Common.h"
+#include "Delegate.h"
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
@@ -77,6 +78,8 @@ public:
 
 	bool IsUsingTAA() const;
 
+	void BindOnActiveCameraChanged(const std::function<void()>& Callback) { m_OnActiveCameraChanged.Bind(Callback); }
+
 private:
 	bool Render();
 	bool RenderScene();
@@ -135,6 +138,8 @@ private:
 
 	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
 	ID3D11ShaderResourceView* m_TextureResourceView;
+
+	Delegate<void()> m_OnActiveCameraChanged;
 };
 
 #endif
