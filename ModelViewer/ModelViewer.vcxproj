@@ -62,6 +62,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="Delegate.h" />
     <ClInclude Include="FrustumCuller.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Graphics.h" />
