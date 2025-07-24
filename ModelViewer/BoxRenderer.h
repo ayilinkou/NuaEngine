@@ -15,6 +15,7 @@
 #include "Common.h"
 
 class Camera;
+class CameraManager;
 struct AABB;
 
 class BoxRenderer
@@ -34,7 +35,7 @@ public:
 	BoxRenderer() {}
 	~BoxRenderer();
 
-	bool Init();
+	bool Init(std::shared_ptr<CameraManager> CamManager);
 	void Shutdown();
 	void ClearBoxes();
 
@@ -62,6 +63,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CornersSRV;
 
 	std::vector<std::array<DirectX::XMFLOAT4, 8>> m_Boxes;
+
+	std::shared_ptr<CameraManager> m_CameraManager;
 
 	const char* m_vsFilename;
 	const char* m_psFilename;

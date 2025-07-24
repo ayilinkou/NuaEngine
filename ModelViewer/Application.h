@@ -11,7 +11,6 @@
 
 #include "Graphics.h"
 #include "Common.h"
-#include "Delegate.h"
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
@@ -31,6 +30,7 @@ class Landscape;
 class FrustumRenderer;
 class BoxRenderer;
 class FrustumCuller;
+class CameraManager;
 
 class Application
 {
@@ -53,21 +53,14 @@ public:
 	void Shutdown();
 	bool Frame();
 
-	void SetActiveCamera(int ID);
-
 	HWND GetWindowHandle() const { return m_hWnd; }
 	Graphics* GetGraphics() const { return m_Graphics; }
-
-	std::shared_ptr<Camera> GetActiveCamera() { return m_ActiveCamera; }
-	std::shared_ptr<Camera> GetMainCamera() { return m_MainCamera; }
-	int GetActiveCameraID() { return m_ActiveCameraID; }
 
 	InstancedShader* GetInstancedShader() { return m_InstancedShader.get(); }
 	std::shared_ptr<FrustumCuller> GetFrustumCuller() { return m_FrustumCuller; }
 	std::shared_ptr<BoxRenderer> GetBoxRenderer() { return m_BoxRenderer; }
 
 	std::vector<std::shared_ptr<GameObject>>& GetGameObjects() { return m_GameObjects; }
-	std::vector<std::shared_ptr<Camera>>& GetCameras() { return m_Cameras; }
 	std::vector<std::unique_ptr<PostProcess>>& GetPostProcesses() { return m_PostProcesses; }
 
 	double GetDeltaTime() const { return m_DeltaTime; }
@@ -77,8 +70,6 @@ public:
 	bool& GetShowBoundingBoxesRef() { return m_bShowBoundingBoxes; }
 
 	bool IsUsingTAA() const;
-
-	void BindOnActiveCameraChanged(const std::function<void()>& Callback) { m_OnActiveCameraChanged.Bind(Callback); }
 
 private:
 	bool Render();
@@ -104,17 +95,16 @@ private:
 
 	Graphics* m_Graphics;
 
+	std::shared_ptr<CameraManager> m_CameraManager;
+
 	std::unique_ptr<Shader> m_Shader;
 	std::unique_ptr<InstancedShader> m_InstancedShader;
 	std::unique_ptr<Skybox> m_Skybox;
 	std::shared_ptr<BoxRenderer> m_BoxRenderer;
 	std::shared_ptr<FrustumCuller> m_FrustumCuller;
 	std::shared_ptr<Landscape> m_Landscape;
-	std::shared_ptr<Camera> m_ActiveCamera;
-	std::shared_ptr<Camera> m_MainCamera;
 
 	std::vector<std::shared_ptr<GameObject>> m_GameObjects;
-	std::vector<std::shared_ptr<Camera>> m_Cameras;
 	std::vector<std::unique_ptr<PostProcess>> m_PostProcesses;
 	PostProcess* m_pTAA;
 
@@ -122,10 +112,6 @@ private:
 	double m_AppTime;
 	double m_DeltaTime; // in seconds
 	uint32_t m_FrameIndex;
-	float m_CameraSpeed;
-	float m_CameraSpeedMin;
-	float m_CameraSpeedMax;
-	int m_ActiveCameraID;
 	bool m_bShowCursor = false;
 	bool m_bCursorToggleReleased = true;
 	bool m_bShowBoundingBoxes = false;
@@ -139,7 +125,6 @@ private:
 	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
 	ID3D11ShaderResourceView* m_TextureResourceView;
 
-	Delegate<void()> m_OnActiveCameraChanged;
 };
 
 #endif

@@ -14,6 +14,7 @@
 #include "Camera.h"
 #include "ResourceManager.h"
 #include "Common.h"
+#include "CameraManager.h"
 
 class PostProcessEmpty;
 
@@ -1194,7 +1195,7 @@ private:
 	};
 
 public:
-	PostProcessTemporalAA(float Alpha)
+	PostProcessTemporalAA(float Alpha, std::shared_ptr<CameraManager>& CamManager)
 	{
 		m_Name = "Temporal AA";
 		m_psFilename = "Shaders/TemporalAA_PS.hlsl";
@@ -1234,7 +1235,7 @@ public:
 
 		SetupPixelShader(m_PixelShader, m_psFilename);
 
-		Application::GetSingletonPtr()->BindOnActiveCameraChanged([this]() { this->m_bRecentlyActivated = true; });
+		CamManager->BindOnActiveCameraChanged([this]() { this->m_bRecentlyActivated = true; });
 	}
 
 	~PostProcessTemporalAA()

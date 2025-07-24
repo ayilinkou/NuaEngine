@@ -13,6 +13,7 @@
 #include "Common.h"
 #include "ResourceManager.h"
 #include "Camera.h"
+#include "CameraManager.h"
 
 bool FrustumCuller::ms_bStaticsInitialised = false;
 Microsoft::WRL::ComPtr<ID3D11Buffer> FrustumCuller::ms_DummyArgsBuffer;
@@ -23,11 +24,12 @@ FrustumCuller::~FrustumCuller()
 	Shutdown();
 }
 
-bool FrustumCuller::Init()
+bool FrustumCuller::Init(std::shared_ptr<CameraManager> CamManager)
 {
 	Microsoft::WRL::ComPtr<ID3D10Blob> csBuffer;
 	m_csFilename = "Shaders/FrustumCullingCS.hlsl";
 	m_bGotInstanceCount = false;
+	m_CameraManager = CamManager;
 
 	m_CullingShader							= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCull");
 	m_OffsetsCullingShader					= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullOffsets");
@@ -401,14 +403,14 @@ void FrustumCuller::UpdateCBuffer(const std::vector<DirectX::XMFLOAT4>& Corners,
 	CBufferDataPtr = (CBufferData*)MappedResource.pData;
 	memcpy(CBufferDataPtr->Corners, Corners.data(), sizeof(DirectX::XMFLOAT4) * 8);
 	memcpy(CBufferDataPtr->ThreadGroupCount, ThreadGroupCount, sizeof(UINT) * 3);
-	CBufferDataPtr->ViewProj = DirectX::XMMatrixTranspose(Application::GetSingletonPtr()->GetMainCamera()->GetViewProjMatrix());
+	CBufferDataPtr->ViewProj = DirectX::XMMatrixTranspose(m_CameraManager->GetMainCamera()->GetViewProjMatrix());
 	CBufferDataPtr->ScaleMatrix = DirectX::XMMatrixTranspose(ScaleMatrix);
 	CBufferDataPtr->SentInstanceCount = SentInstanceCount;
 	CBufferDataPtr->GrassPerChunk = GrassPerChunk;
 	CBufferDataPtr->PlaneDimension = PlaneDimension;
 	CBufferDataPtr->HeightDisplacement = HeightDisplacement;
 	CBufferDataPtr->LODDistanceThreshold = LODDistanceThreshold;
-	CBufferDataPtr->CameraPos = Application::GetSingletonPtr()->GetMainCamera()->GetPosition();
+	CBufferDataPtr->CameraPos = m_CameraManager->GetMainCamera()->GetPosition();
 	CBufferDataPtr->Padding = {};
 	DeviceContext->Unmap(m_CBuffer.Get(), 0u);
 }

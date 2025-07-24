@@ -11,6 +11,8 @@
 #include "GameObject.h"
 #include "AABB.h"
 
+class CameraManager;
+
 class Landscape : public GameObject
 {
 	friend class TessellatedPlane;
@@ -42,7 +44,7 @@ private:
 
 public:
 	Landscape() = delete;
-	Landscape(UINT NumChunks, float ChunkSize, float HeightDisplacement);
+	Landscape(UINT NumChunks, float ChunkSize, float HeightDisplacement, std::shared_ptr<CameraManager> CamManager);
 	~Landscape();
 
 	bool Init(const std::string& HeightMapFilepath, float TessellationScale, UINT GrassDimensionPerChunk);
@@ -107,6 +109,7 @@ private:
 	UINT m_NumChunks;
 	UINT m_ChunkInstanceCount;
 
+	std::shared_ptr<CameraManager> m_CameraManager;
 };
 
 #endif

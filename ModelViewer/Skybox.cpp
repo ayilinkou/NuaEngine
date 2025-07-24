@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 #include "Application.h"
 #include "Camera.h"
+#include "CameraManager.h"
 
 struct CubeVertex
 {
@@ -39,13 +40,14 @@ Skybox::~Skybox()
 	Shutdown();
 }
 
-bool Skybox::Init()
+bool Skybox::Init(std::shared_ptr<CameraManager> CamManager)
 {
 	HRESULT hResult;
 	D3D11_TEXTURE2D_DESC CubeDesc = {};
 	ID3D11Device* Device = Graphics::GetSingletonPtr()->GetDevice();
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 
+	m_CameraManager = CamManager;
 	m_vsFilename = "Shaders/SkyboxVS.hlsl";
 	m_psFilename = "Shaders/SkyboxPS.hlsl";
 
@@ -158,8 +160,8 @@ void Skybox::Render()
 	BufferData* DataPtr;
 
 	DirectX::XMMATRIX View, Proj, ViewProj;
-	Application::GetSingletonPtr()->GetActiveCamera()->GetViewMatrix(View);
-	Application::GetSingletonPtr()->GetActiveCamera()->GetProjMatrix(Proj);
+	m_CameraManager->GetActiveCamera()->GetViewMatrix(View);
+	m_CameraManager->GetActiveCamera()->GetProjMatrix(Proj);
 
 	View.r[3] = DirectX::XMVectorSet(0.f, 0.f, 0.f, 1.f); // removes translation from the view matrix
 	ViewProj = View * Proj;

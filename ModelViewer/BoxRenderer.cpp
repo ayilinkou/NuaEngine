@@ -9,6 +9,7 @@
 #include "Application.h"
 #include "AABB.h"
 #include "ResourceManager.h"
+#include "CameraManager.h"
 
 const UINT BoxIndices[12][2] = {
 	{0, 1}, {1, 3}, {3, 2}, {2, 0},
@@ -21,8 +22,10 @@ BoxRenderer::~BoxRenderer()
 	Shutdown();
 }
 
-bool BoxRenderer::Init()
+bool BoxRenderer::Init(std::shared_ptr<CameraManager> CamManager)
 {
+	m_CameraManager = CamManager;
+	
 	bool Result;
 	FALSE_IF_FAILED(CreateShaders());
 	FALSE_IF_FAILED(CreateBuffers());
@@ -181,7 +184,7 @@ void BoxRenderer::UpdateBuffers()
 
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_CameraCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
 	CameraBufferPtr = (CameraBuffer*)MappedResource.pData;
-	CameraBufferPtr->ViewProj = DirectX::XMMatrixTranspose(Application::GetSingletonPtr()->GetActiveCamera()->GetViewProjMatrix());
+	CameraBufferPtr->ViewProj = DirectX::XMMatrixTranspose(m_CameraManager->GetActiveCamera()->GetViewProjMatrix());
 	DeviceContext->Unmap(m_CameraCBuffer.Get(), 0u);
 }
 

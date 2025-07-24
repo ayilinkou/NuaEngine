@@ -27,6 +27,7 @@
 #include "FrustumCuller.h"
 #include "TessellatedPlane.h"
 #include "Grass.h"
+#include "CameraManager.h"
 
 Application* Application::m_Instance = nullptr;
 
@@ -37,10 +38,6 @@ Application::Application()
 	m_AppTime = 0.0;
 	m_hWnd = {};
 	m_TextureResourceView = {};
-	m_ActiveCameraID = 0;
-	m_CameraSpeed = 20.f;
-	m_CameraSpeedMin = 1.25f;
-	m_CameraSpeedMax = 200.f;
 
 	m_pTAA = nullptr;
 	EnableTAA(true);
@@ -58,6 +55,8 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = SetupQueries();
 	assert(bResult);
 
+	m_CameraManager = std::make_shared<CameraManager>();
+
 	m_Shader = std::make_unique<Shader>();
 	bResult = m_Shader->Initialise(m_Graphics->GetDevice());
 	assert(bResult);
@@ -67,21 +66,21 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	assert(bResult);
 
 	m_FrustumCuller = std::make_shared<FrustumCuller>();
-	bResult = m_FrustumCuller->Init();
+	bResult = m_FrustumCuller->Init(m_CameraManager);
 	assert(bResult);
 
 	m_BoxRenderer = std::make_unique<BoxRenderer>();
-	bResult = m_BoxRenderer->Init();
+	bResult = m_BoxRenderer->Init(m_CameraManager);
 	assert(bResult);
 
 	m_Skybox = std::make_unique<Skybox>();
-	bResult = m_Skybox->Init();
+	bResult = m_Skybox->Init(m_CameraManager);
 	assert(bResult);
 
-	UINT NumChunks = 2u;
+	UINT NumChunks = 8u;
 	float ChunkSize = 25.f;
 	float HeightDisplacement = 0.f;
-	m_Landscape = std::make_shared<Landscape>(NumChunks, ChunkSize, HeightDisplacement);
+	m_Landscape = std::make_shared<Landscape>(NumChunks, ChunkSize, HeightDisplacement, m_CameraManager);
 	m_GameObjects.push_back(m_Landscape);
 
 	float TessellationScale = 10.f;
@@ -89,12 +88,11 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_Landscape->Init("Textures/perlin_noise.png", TessellationScale, GrassDimensionPerChunk);
 	assert(bResult);
 
-	m_Cameras.emplace_back(std::make_shared<Camera>(m_Graphics->GetDefaultProjMatrix()));
-	m_Cameras.back()->SetPosition(0.f, 2.5f, -7.f);
-	m_Cameras.back()->SetName("Main Camera");
-	m_ActiveCamera = m_Cameras.back();
-	m_MainCamera = m_Cameras.back();
-	m_GameObjects.push_back(m_ActiveCamera);
+	std::shared_ptr<Camera>& Camera = m_CameraManager->CreateCamera(m_Graphics->GetDefaultProjMatrix());
+	m_CameraManager->SetMainCamera(Camera);
+	Camera->SetPosition(0.f, 2.5f, -7.f);
+	Camera->SetName("Main Camera");
+	m_GameObjects.push_back(Camera);
 
 	/*m_GameObjects.emplace_back(std::make_shared<GameObject>());
 	m_GameObjects.back()->SetPosition(0.f, 0.f, 0.f);
@@ -143,7 +141,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	if (m_bUseTAA)
 	{
 		float Alpha = 0.9f;
-		m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(Alpha));
+		m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(Alpha, m_CameraManager));
 		m_PostProcesses.back()->Deactivate();
 		m_pTAA = m_PostProcesses.back().get();
 	}
@@ -199,7 +197,6 @@ void Application::Shutdown()
 	m_Skybox.reset();
 	m_InstancedShader.reset();
 	m_Shader.reset();
-	m_ActiveCamera.reset();
 	m_Landscape.reset();
 	m_FrustumCuller.reset();
 	m_BoxRenderer.reset();
@@ -243,17 +240,6 @@ bool Application::Frame()
 	}
 	
 	return true;
-}
-
-void Application::SetActiveCamera(int ID)
-{
-	if (m_ActiveCameraID == ID)
-		return;
-	
-	m_ActiveCameraID = ID;
-	m_ActiveCamera = m_Cameras[ID];
-
-	m_OnActiveCameraChanged.Broadcast();
 }
 
 bool Application::IsUsingTAA() const
@@ -301,9 +287,9 @@ bool Application::Render()
 	m_Graphics->GetDeviceContext()->DrawIndexed(6u, 0u, 0);
 	m_RenderStats.DrawCalls++;
 
-	for (const std::shared_ptr<Camera>& c : m_Cameras)
+	for (const std::shared_ptr<Camera>& c : m_CameraManager->GetCameras())
 	{
-		if (c->ShouldVisualiseFrustum() && c.get() != m_ActiveCamera.get())
+		if (c->ShouldVisualiseFrustum() && c.get() != m_CameraManager->GetActiveCamera().get())
 		{
 			m_BoxRenderer->LoadFrustumCorners(c);
 		}
@@ -355,7 +341,7 @@ bool Application::Render()
 
 bool Application::RenderScene()
 {
-	for (const std::shared_ptr<Camera>& c : m_Cameras)
+	for (const std::shared_ptr<Camera>& c : m_CameraManager->GetCameras())
 	{
 		c->CalcViewMatrix();
 	}
@@ -381,9 +367,10 @@ bool Application::RenderScene()
 void Application::RenderModels()
 {	
 	DirectX::XMMATRIX View, Proj, ViewProj;
-	m_ActiveCamera->GetViewMatrix(View);
-	m_ActiveCamera->GetProjMatrix(Proj);
-	m_ActiveCamera->GetViewProjMatrix(ViewProj);
+	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
+	ActiveCamera->GetViewMatrix(View);
+	ActiveCamera->GetProjMatrix(Proj);
+	ActiveCamera->GetViewProjMatrix(ViewProj);
 
 	std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
 
@@ -443,7 +430,7 @@ void Application::RenderModels()
 			m_Graphics->GetDeviceContext(),
 			View,
 			Proj,
-			m_ActiveCamera->GetPosition(),
+			ActiveCamera->GetPosition(),
 			PointLights,
 			DirLights,
 			m_Skybox->GetAverageSkyColor()
@@ -482,7 +469,7 @@ void Application::RenderImGui()
 
 	ImGuiManager::RenderPostProcessWindow(m_RenderStats.PostProcessPipelineTime);
 	ImGuiManager::RenderWorldHierarchyWindow();
-	ImGuiManager::RenderCamerasWindow();
+	ImGuiManager::RenderCamerasWindow(m_CameraManager);
 	ImGuiManager::RenderStatsWindow(m_RenderStats);
 
 	ImGui::EndFrame();
@@ -547,45 +534,47 @@ void Application::ProcessInput()
 		return;
 	}
 	
-	DirectX::XMFLOAT3 LookDir = m_ActiveCamera->GetRotatedLookDir();
-	DirectX::XMFLOAT3 LookRight = m_ActiveCamera->GetRotatedLookRight();
-	float EffectiveCameraSpeed = m_CameraSpeed * (float)m_DeltaTime;
+	const CameraSettings& CameraSettings = m_CameraManager->GetCameraSettings();
+	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
+	DirectX::XMFLOAT3 LookDir = ActiveCamera->GetRotatedLookDir();
+	DirectX::XMFLOAT3 LookRight = ActiveCamera->GetRotatedLookRight();
+	float EffectiveCameraSpeed = CameraSettings.CameraSpeed * (float)m_DeltaTime;
 	
 	if (GetAsyncKeyState('W') & 0x8000)
 	{
-		m_ActiveCamera->SetPosition(m_ActiveCamera->GetPosition().x + LookDir.x * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().y + LookDir.y * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().z + LookDir.z * EffectiveCameraSpeed);
+		ActiveCamera->SetPosition(ActiveCamera->GetPosition().x + LookDir.x * EffectiveCameraSpeed, ActiveCamera->GetPosition().y + LookDir.y * EffectiveCameraSpeed, ActiveCamera->GetPosition().z + LookDir.z * EffectiveCameraSpeed);
 	}
 	if (GetAsyncKeyState('S') & 0x8000)
 	{
-		m_ActiveCamera->SetPosition(m_ActiveCamera->GetPosition().x - LookDir.x * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().y - LookDir.y * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().z - LookDir.z * EffectiveCameraSpeed);
+		ActiveCamera->SetPosition(ActiveCamera->GetPosition().x - LookDir.x * EffectiveCameraSpeed, ActiveCamera->GetPosition().y - LookDir.y * EffectiveCameraSpeed, ActiveCamera->GetPosition().z - LookDir.z * EffectiveCameraSpeed);
 	}
 	if (GetAsyncKeyState('A') & 0x8000)
 	{
-		m_ActiveCamera->SetPosition(m_ActiveCamera->GetPosition().x + LookRight.x * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().y, m_ActiveCamera->GetPosition().z + LookRight.z * EffectiveCameraSpeed);
+		ActiveCamera->SetPosition(ActiveCamera->GetPosition().x + LookRight.x * EffectiveCameraSpeed, ActiveCamera->GetPosition().y, ActiveCamera->GetPosition().z + LookRight.z * EffectiveCameraSpeed);
 	}
 	if (GetAsyncKeyState('D') & 0x8000)
 	{
-		m_ActiveCamera->SetPosition(m_ActiveCamera->GetPosition().x - LookRight.x * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().y, m_ActiveCamera->GetPosition().z - LookRight.z * EffectiveCameraSpeed);
+		ActiveCamera->SetPosition(ActiveCamera->GetPosition().x - LookRight.x * EffectiveCameraSpeed, ActiveCamera->GetPosition().y, ActiveCamera->GetPosition().z - LookRight.z * EffectiveCameraSpeed);
 	}
 	if (GetAsyncKeyState('Q') & 0x8000)
 	{
-		m_ActiveCamera->SetPosition(m_ActiveCamera->GetPosition().x, m_ActiveCamera->GetPosition().y - 1.f * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().z);
+		ActiveCamera->SetPosition(ActiveCamera->GetPosition().x, ActiveCamera->GetPosition().y - 1.f * EffectiveCameraSpeed, ActiveCamera->GetPosition().z);
 	}
 	if (GetAsyncKeyState('E') & 0x8000)
 	{
-		m_ActiveCamera->SetPosition(m_ActiveCamera->GetPosition().x, m_ActiveCamera->GetPosition().y + 1.f * EffectiveCameraSpeed, m_ActiveCamera->GetPosition().z);
+		ActiveCamera->SetPosition(ActiveCamera->GetPosition().x, ActiveCamera->GetPosition().y + 1.f * EffectiveCameraSpeed, ActiveCamera->GetPosition().z);
 	}
 
-	m_ActiveCamera->SetRotation(m_ActiveCamera->GetRotation().x + SystemClass::m_MouseDelta.y * 0.1f, m_ActiveCamera->GetRotation().y + SystemClass::m_MouseDelta.x * 0.1f, 0.f);
+	ActiveCamera->SetRotation(ActiveCamera->GetRotation().x + SystemClass::m_MouseDelta.y * 0.1f, ActiveCamera->GetRotation().y + SystemClass::m_MouseDelta.x * 0.1f, 0.f);
 
 	short Delta = InputClass::GetSingletonPtr()->GetMouseWheelDelta();
 	if (Delta > 0)
 	{
-		m_CameraSpeed = std::fmin(m_CameraSpeed * (float)(Delta / 60), m_CameraSpeedMax);
+		m_CameraManager->SetCameraSpeed(std::fmin(CameraSettings.CameraSpeed * (float)(Delta / 60), CameraSettings.CameraSpeedMax));
 	}
 	else if (Delta < 0)
 	{
-		m_CameraSpeed = std::fmax(m_CameraSpeed * (1.f / (float)(Delta / 60)), m_CameraSpeedMin);
+		m_CameraManager->SetCameraSpeed(std::fmax(CameraSettings.CameraSpeed * (1.f / (float)(Delta / 60)), CameraSettings.CameraSpeedMin));
 	}
 }
 

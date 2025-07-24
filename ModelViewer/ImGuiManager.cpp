@@ -6,6 +6,7 @@
 #include "PostProcess.h"
 #include "GameObject.h"
 #include "Graphics.h"
+#include "CameraManager.h"
 
 static int s_SelectedId = -1;
 
@@ -27,7 +28,7 @@ void ImGuiManager::RenderPostProcessWindow(double PipelineTime)
 	auto& PostProcesses = pApp->GetPostProcesses();
 	
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-	if (ImGui::Begin("Post Processes", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize) && !PostProcesses.empty())
+	if (ImGui::Begin("Post Processes", nullptr, ImGuiWindowFlags_NoMove) && !PostProcesses.empty())
 	{
 		for (int i = 0; i < PostProcesses.size(); i++)
 		{
@@ -56,7 +57,7 @@ void ImGuiManager::RenderWorldHierarchyWindow()
 	Application* pApp = Application::GetSingletonPtr();
 	auto& GameObjects = pApp->GetGameObjects();
 	
-	ImGui::Begin("World Hierarchy", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	ImGui::Begin("World Hierarchy", nullptr, ImGuiWindowFlags_NoMove);
 
 	ImGui::BeginChild("##", ImVec2(0, 250), ImGuiChildFlags_Border, ImGuiWindowFlags_HorizontalScrollbar);
 	for (int i = 0; i < GameObjects.size(); i++)
@@ -89,11 +90,10 @@ void ImGuiManager::RenderWorldHierarchyWindow()
 	ImGui::End();
 }
 
-void ImGuiManager::RenderCamerasWindow()
+void ImGuiManager::RenderCamerasWindow(std::shared_ptr<CameraManager>& CamManager)
 {
-	Application* pApp = Application::GetSingletonPtr();
-	auto& Cameras = pApp->GetCameras();
-	auto& GameObjects = pApp->GetGameObjects();
+	auto& Cameras = CamManager->GetCameras();
+	auto& GameObjects = Application::GetSingletonPtr()->GetGameObjects();
 
 	std::vector<const char*> CameraNames;
 	for (const auto& Camera : Cameras)
@@ -101,28 +101,28 @@ void ImGuiManager::RenderCamerasWindow()
 		CameraNames.push_back(Camera->GetName().c_str());
 	}
 
-	int ID = pApp->GetActiveCameraID();
+	int ID = CamManager->GetActiveCameraID();
 
-	ImGui::Begin("Cameras", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	ImGui::Begin("Cameras", nullptr, ImGuiWindowFlags_NoMove);
 
 	if (ImGui::Combo("Active Camera", &ID, CameraNames.data(), (int)Cameras.size()))
 	{
-		pApp->SetActiveCamera(ID);
+		CamManager->SetActiveCamera(ID);
 	}
 
 	if (ImGui::Button("Add New Camera"))
 	{
 		Cameras.emplace_back(std::make_shared<Camera>(Graphics::GetSingletonPtr()->GetDefaultProjMatrix()));
 		GameObjects.push_back(Cameras.back());
-		Cameras.back()->SetTransform(pApp->GetActiveCamera()->GetTransform());
-		pApp->SetActiveCamera((int)Cameras.size() - 1);
+		Cameras.back()->SetTransform(CamManager->GetActiveCamera()->GetTransform());
+		CamManager->SetActiveCamera((int)Cameras.size() - 1);
 	}
 
 	if (ID != 0)
 	{
 		if (ImGui::Button("Delete Camera"))
 		{
-			auto c = pApp->GetActiveCamera();
+			auto c = CamManager->GetActiveCamera();
 
 			Cameras.erase(Cameras.begin() + ID);
 
@@ -132,20 +132,20 @@ void ImGuiManager::RenderCamerasWindow()
 				GameObjects.erase(it);
 			}
 
-			pApp->SetActiveCamera(0);
+			CamManager->SetActiveCamera(0);
 		}
 	}
 
 	ImGui::Dummy(ImVec2(0.f, 10.f));
 
-	pApp->GetActiveCamera()->RenderControls();
+	CamManager->GetActiveCamera()->RenderControls();
 
 	ImGui::End();
 }
 
 void ImGuiManager::RenderStatsWindow(const RenderStats& Stats)
 {
-	ImGui::Begin("Statistics", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	ImGui::Begin("Statistics", nullptr, ImGuiWindowFlags_NoMove);
 
 	ImGui::Text("Frame Time: %.3f ms/frame", Stats.FrameTime);
 	ImGui::Text("FPS: %.1f", Stats.FPS);

@@ -3,12 +3,16 @@
 #ifndef TESSELLATED_PLANE_H
 #define TESSELLATED_PLANE_H
 
+#include <memory>
+
 #include "d3d11.h"
 #include "DirectXMath.h"
 
 #include "wrl.h"
 
 #include "GameObject.h"
+
+class CameraManager;
 
 class TessellatedPlane : public GameObject
 {
@@ -26,7 +30,7 @@ public:
 	~TessellatedPlane();
 
 	bool Init(float TessellationScale, Landscape* pLandscape);
-	void Render();
+	void Render(const std::shared_ptr<CameraManager>& CamManager);
 	void Shutdown();
 
 	virtual void RenderControls() override;
@@ -38,7 +42,7 @@ private:
 	bool CreateShaders();
 	bool CreateBuffers();
 
-	void UpdateBuffers();
+	void UpdateBuffers(const std::shared_ptr<CameraManager>& CamManager);
 
 private:
 	ID3D11VertexShader* m_VertexShader;

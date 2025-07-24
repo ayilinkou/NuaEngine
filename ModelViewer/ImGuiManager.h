@@ -3,9 +3,13 @@
 #ifndef IMGUIMANAGER_H
 #define IMGUIMANAGER_H
 
+#include <memory>
+
 #include "Common.h"
 
 #include "ImGui/imgui.h"
+
+class CameraManager;
 
 class ImGuiManager
 {
@@ -15,7 +19,7 @@ public:
 
 	static void RenderPostProcessWindow(double PipelineTime);
 	static void RenderWorldHierarchyWindow();
-	static void RenderCamerasWindow();
+	static void RenderCamerasWindow(std::shared_ptr<CameraManager>& CamManager);
 	static void RenderStatsWindow(const RenderStats& Stats);
 };
 

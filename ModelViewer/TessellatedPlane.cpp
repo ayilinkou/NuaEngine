@@ -13,6 +13,7 @@
 #include "Landscape.h"
 #include "FrustumCuller.h"
 #include "BoxRenderer.h"
+#include "CameraManager.h"
 
 struct PlaneVertex
 {
@@ -55,14 +56,14 @@ bool TessellatedPlane::Init(float TessellationScale, Landscape* pLandscape)
 	return true;
 }
 
-void TessellatedPlane::Render()
+void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 {
 	Application* pApp = Application::GetSingletonPtr();
 	pApp->GetFrustumCuller()->SendInstanceCounts(m_ArgsBufferUAV);
 
 	Graphics::GetSingletonPtr()->EnableDepthWrite();
 	Graphics::GetSingletonPtr()->DisableBlending();
-	UpdateBuffers();
+	UpdateBuffers(CamManager);
 
 	Graphics* pGraphics = Graphics::GetSingletonPtr();
 	ID3D11DeviceContext* DeviceContext = pGraphics->GetDeviceContext();
@@ -233,18 +234,16 @@ bool TessellatedPlane::CreateBuffers()
 	return true;
 }
 
-void TessellatedPlane::UpdateBuffers()
+void TessellatedPlane::UpdateBuffers(const std::shared_ptr<CameraManager>& CamManager)
 {	
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	HullCBuffer* HullCBufferPtr;
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
-	
-	DirectX::XMFLOAT3 CameraPos = Application::GetSingletonPtr()->GetMainCamera()->GetPosition();
-	
+		
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_HullCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
 	HullCBufferPtr = (HullCBuffer*)MappedResource.pData;
-	HullCBufferPtr->CameraPos = CameraPos;
+	HullCBufferPtr->CameraPos = CamManager->GetMainCamera()->GetPosition();
 	HullCBufferPtr->TessellationScale = m_TessellationScale;
 	DeviceContext->Unmap(m_HullCBuffer.Get(), 0u);
 }

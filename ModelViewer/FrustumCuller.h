@@ -4,11 +4,14 @@
 #define FRUSTUM_CULLER_H
 
 #include <vector>
+#include <memory>
 
 #include "DirectXMath.h"
 #include "d3d11.h"
 
 #include "wrl.h"
+
+class CameraManager;
 
 class FrustumCuller
 {
@@ -45,7 +48,7 @@ public:
 	FrustumCuller() = default;
 	~FrustumCuller();
 
-	bool Init();
+	bool Init(std::shared_ptr<CameraManager> CamManager);
 	void Shutdown();
 
 	void DispatchShader(const std::vector<DirectX::XMMATRIX>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
@@ -112,6 +115,8 @@ private:
 
 	const char* m_csFilename;
 	bool m_bGotInstanceCount;
+
+	std::shared_ptr<CameraManager> m_CameraManager;
 };
 
 #endif

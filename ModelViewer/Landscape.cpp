@@ -12,9 +12,11 @@
 #include "Common.h"
 #include "Grass.h"
 #include "FrustumCuller.h"
+#include "CameraManager.h"
 
-Landscape::Landscape(UINT ChunkDimension, float ChunkSize, float HeightDisplacement)
-	: m_ChunkDimension(ChunkDimension), m_ChunkSize(ChunkSize), m_NumChunks(ChunkDimension * ChunkDimension), m_HeightDisplacement(HeightDisplacement)
+Landscape::Landscape(UINT ChunkDimension, float ChunkSize, float HeightDisplacement, std::shared_ptr<CameraManager> CamManager)
+	: m_ChunkDimension(ChunkDimension), m_ChunkSize(ChunkSize), m_NumChunks(ChunkDimension * ChunkDimension),
+	m_HeightDisplacement(HeightDisplacement), m_CameraManager(CamManager)
 {
 	SetName("Landscape");
 	SetScale(ChunkSize);
@@ -76,7 +78,7 @@ void Landscape::Render()
 
 	if (m_Plane->ShouldRender())
 	{
-		m_Plane->Render();
+		m_Plane->Render(m_CameraManager);
 	}
 
 	if (m_Grass->ShouldRender())
@@ -180,7 +182,7 @@ void Landscape::UpdateBuffers()
 	LandscapeInfoCBuffer* LandscapeInfoCBufferPtr;
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 
-	std::shared_ptr<Camera> pCamera = Application::GetSingletonPtr()->GetActiveCamera();
+	std::shared_ptr<Camera> pCamera = m_CameraManager->GetActiveCamera();
 	DirectX::XMFLOAT3 CameraPos = pCamera->GetPosition();
 	DirectX::XMMATRIX ViewProj;
 	pCamera->GetViewProjMatrix(ViewProj);
@@ -267,7 +269,7 @@ void Landscape::GenerateGrassOffsets(UINT GrassCount)
 
 void Landscape::PrepCullingBuffer(CullingCBuffer& CullingBufferData, bool bNormalise)
 {
-	CullingBufferData.FrustumCameraViewProj = DirectX::XMMatrixTranspose(Application::GetSingletonPtr()->GetMainCamera()->GetViewProjMatrix()); // Row-major access
+	CullingBufferData.FrustumCameraViewProj = DirectX::XMMatrixTranspose(m_CameraManager->GetMainCamera()->GetViewProjMatrix()); // Row-major access
 
 	// Each row of the matrix
 	DirectX::XMVECTOR row0 = CullingBufferData.FrustumCameraViewProj.r[0];

@@ -5,11 +5,14 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "wrl.h"
 
 #include "d3d11.h"
 #include "DirectXMath.h"
+
+class CameraManager;
 
 class Skybox
 {
@@ -17,7 +20,7 @@ public:
 	Skybox() {}
 	~Skybox();
 
-	bool Init();
+	bool Init(std::shared_ptr<CameraManager> CamManager);
 	void Render();
 	void Shutdown();
 
@@ -48,6 +51,7 @@ private:
 	const char* m_vsFilename;
 	const char* m_psFilename;
 
+	std::shared_ptr<CameraManager> m_CameraManager;
 };
 
 #endif
