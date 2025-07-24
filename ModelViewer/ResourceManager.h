@@ -22,7 +22,7 @@ class ModelData;
 class ResourceManager
 {
 private:
-	ResourceManager() {}
+	ResourceManager() : m_hWnd(0) {}
 
 	static ResourceManager* ms_Instance;
 

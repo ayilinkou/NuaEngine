@@ -1190,7 +1190,7 @@ class PostProcessTemporalAA : public PostProcess
 private:
 	struct AAData
 	{
-		float Alpha;
+		float Alpha = 0.8f;
 		DirectX::XMFLOAT3 Padding = {};
 	};
 

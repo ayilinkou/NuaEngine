@@ -39,8 +39,8 @@ private:
 
 	DirectX::XMFLOAT3 m_AverageSkyColor = { 1.f, 1.f, 1.f };
 
-	ID3D11VertexShader* m_VertexShader;
-	ID3D11PixelShader* m_PixelShader;
+	ID3D11VertexShader* m_VertexShader	= nullptr;
+	ID3D11PixelShader* m_PixelShader	= nullptr;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SRV;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_CubeTexture;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
@@ -48,8 +48,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ConstantBuffer;
 
-	const char* m_vsFilename;
-	const char* m_psFilename;
+	const char* m_vsFilename = "";
+	const char* m_psFilename = "";
 
 	std::shared_ptr<CameraManager> m_CameraManager;
 };

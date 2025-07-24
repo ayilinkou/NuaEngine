@@ -30,8 +30,8 @@ struct RenderStats
 {
 	std::vector<std::pair<std::string, UINT64>> TrianglesRendered;
 	std::vector<std::pair<std::string, UINT64>> InstancesRendered;
-	UINT64 DrawCalls;
-	UINT64 ComputeDispatches;
+	UINT64 DrawCalls = 0u;
+	UINT64 ComputeDispatches = 0u;
 	double PostProcessPipelineTime;
 	double FrameTime;
 	double FPS;

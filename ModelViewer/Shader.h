@@ -45,14 +45,14 @@ private:
 	bool InitialiseShader(ID3D11Device* Device, const char* vsFilename, const char* psFilename);
 
 private:
-	ID3D11VertexShader* m_VertexShader;
-	ID3D11PixelShader* m_PixelShader;
+	ID3D11VertexShader* m_VertexShader	= nullptr;
+	ID3D11PixelShader* m_PixelShader	= nullptr;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_MatrixBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_LightingBuffer;
 
-	const char* m_vsFilename;
-	const char* m_psFilename;
+	const char* m_vsFilename = "";
+	const char* m_psFilename = "";
 };
 
 #endif

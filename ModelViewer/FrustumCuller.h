@@ -83,11 +83,11 @@ private:
 	void DispatchShaderImpl(UINT* ThreadGroupCount);
 
 private:
-	ID3D11ComputeShader* m_CullingShader;
-	ID3D11ComputeShader* m_OffsetsCullingShader;
-	ID3D11ComputeShader* m_GrassCullingShader;
-	ID3D11ComputeShader* m_InstanceCountClearShader;
-	ID3D11ComputeShader* m_InstanceCountTransferShader;
+	ID3D11ComputeShader* m_CullingShader					= nullptr;
+	ID3D11ComputeShader* m_OffsetsCullingShader				= nullptr;
+	ID3D11ComputeShader* m_GrassCullingShader				= nullptr;
+	ID3D11ComputeShader* m_InstanceCountClearShader			= nullptr;
+	ID3D11ComputeShader* m_InstanceCountTransferShader		= nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_TransformsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_OffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledTransformsBuffer;

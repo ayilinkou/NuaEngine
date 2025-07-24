@@ -32,7 +32,7 @@ private:
 	};
 
 public:
-	BoxRenderer() {}
+	BoxRenderer();
 	~BoxRenderer();
 
 	bool Init(std::shared_ptr<CameraManager> CamManager);
