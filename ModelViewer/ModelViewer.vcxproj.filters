@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shader Files">
+      <UniqueIdentifier>{75e5fbe2-02ae-4c3d-9e77-d4eebde2c5b1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -43,27 +46,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImGuiManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_demo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_draw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_win32.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_tables.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PostProcess.cpp">
@@ -155,30 +137,6 @@
     <ClInclude Include="ImGuiManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imconfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_dx11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_win32.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_rectpack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_textedit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_truetype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PostProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -250,33 +208,89 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BoxBlurPS.hlsl" />
-    <None Include="Shaders\PhongPS.hlsl" />
-    <None Include="Shaders\PhongVS.hlsl" />
-    <None Include="Shaders\PixelationPS.hlsl" />
-    <None Include="Shaders\QuadPS.hlsl" />
-    <None Include="Shaders\QuadVS.hlsl" />
-    <None Include="Shaders\BloomPS.hlsl" />
-    <None Include="Shaders\ToneMapperPS.hlsl" />
-    <None Include="Shaders\GammaCorrectionPS.hlsl" />
-    <None Include="Shaders\GaussianBlurPS.hlsl" />
-    <None Include="Shaders\BasicPS.hlsl" />
-    <None Include="Shaders\InstancedPhongVS.hlsl" />
-    <None Include="Shaders\SkyboxPS.hlsl" />
-    <None Include="Shaders\SkyboxVS.hlsl" />
-    <None Include="Shaders\ColorCorrectionPS.hlsl" />
-    <None Include="Shaders\FogPS.hlsl" />
-    <None Include="Shaders\TessellatedPlaneDS.hlsl" />
-    <None Include="Shaders\TessellatedPlaneHS.hlsl" />
-    <None Include="Shaders\TessellatedPlanePS.hlsl" />
-    <None Include="Shaders\TessellatedPlaneVS.hlsl" />
-    <None Include="Shaders\BoxRendererPS.hlsl" />
-    <None Include="Shaders\BoxRendererVS.hlsl" />
-    <None Include="Shaders\TessellatedPlaneGS.hlsl" />
-    <None Include="Shaders\FrustumCullingCS.hlsl" />
-    <None Include="Shaders\GrassPS.hlsl" />
-    <None Include="Shaders\GrassVS.hlsl" />
-    <None Include="Shaders\Common.hlsl" />
-    <None Include="Shaders\TemporalAA_PS.hlsl" />
+    <None Include="Shaders\BasicPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\BloomPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\BoxBlurPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\BoxRendererPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\BoxRendererVS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\ColorCorrectionPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\Common.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\FogPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\FrustumCullingCS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\GammaCorrectionPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\GaussianBlurPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\GrassPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\GrassVS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\InstancedPhongVS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\PhongPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\PhongVS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\PixelationPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\QuadPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\QuadVS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\SkyboxPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\SkyboxVS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\TemporalAA_PS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\TessellatedPlaneDS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\TessellatedPlaneGS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\TessellatedPlaneHS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\TessellatedPlanePS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\TessellatedPlaneVS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\ToneMapperPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

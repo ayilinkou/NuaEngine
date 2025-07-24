@@ -4,6 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.11.35303.130
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelViewer", "ModelViewer\ModelViewer.vcxproj", "{ADA89F40-1F4E-4E7B-B030-F8C16776B8D9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D} = {57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImGui", "ImGui\ImGui.vcxproj", "{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +26,14 @@ Global
 		{ADA89F40-1F4E-4E7B-B030-F8C16776B8D9}.Release|x64.Build.0 = Release|x64
 		{ADA89F40-1F4E-4E7B-B030-F8C16776B8D9}.Release|x86.ActiveCfg = Release|Win32
 		{ADA89F40-1F4E-4E7B-B030-F8C16776B8D9}.Release|x86.Build.0 = Release|Win32
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Debug|x64.ActiveCfg = Debug|x64
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Debug|x64.Build.0 = Debug|x64
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Debug|x86.ActiveCfg = Debug|Win32
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Debug|x86.Build.0 = Debug|Win32
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Release|x64.ActiveCfg = Release|x64
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Release|x64.Build.0 = Release|x64
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Release|x86.ActiveCfg = Release|Win32
+		{57F9D887-4148-4AF3-BA6B-DE18FF4BCB9D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
