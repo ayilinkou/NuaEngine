@@ -12,6 +12,10 @@ Graphics::Graphics()
 	m_Viewport = {};
 	m_VideoCardMemory = -1;
 	memset(m_VideoCardDescription, 0, sizeof(m_VideoCardDescription));
+
+	m_FarPlane = 1000.f;
+	m_NearPlane = 0.1f;
+	m_ScreenAspect = 0.f;
 }
 
 Graphics* Graphics::GetSingletonPtr()

@@ -38,8 +38,8 @@ private:
 	void ShutdownWindows();
 
 private:
-	LPCWSTR m_ApplicationName;
-	HINSTANCE m_hInstance;
+	LPCWSTR m_ApplicationName = {};
+	HINSTANCE m_hInstance = {};
 
 	ImGuiManager ImGui;
 

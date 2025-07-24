@@ -35,8 +35,8 @@ public:
 	void CreateConstantBuffer();
 
 private:
-	DirectX::XMFLOAT3 m_DiffuseColor;
-	DirectX::XMFLOAT3 m_Specular;
+	DirectX::XMFLOAT3 m_DiffuseColor = {};
+	DirectX::XMFLOAT3 m_Specular = {};
 	int m_DiffuseSRV = -1;
 	int m_SpecularSRV = -1;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ConstantBuffer;

@@ -33,10 +33,10 @@ private:
 	void UpdateBoundingBox(DirectX::XMFLOAT3 Pos);
 
 private:
-	unsigned int m_VerticesOffset;
-	unsigned int m_IndicesOffset;
-	unsigned int m_VertexCount;
-	unsigned int m_IndexCount;
+	UINT m_VerticesOffset = 0u;
+	UINT m_IndicesOffset = 0u;
+	UINT m_VertexCount = 0u;
+	UINT m_IndexCount = 0u;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ArgsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_ArgsBufferUAV;

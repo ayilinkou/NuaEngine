@@ -113,8 +113,8 @@ private:
 	static Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> ms_DummyArgsBufferUAV;
 	static bool ms_bStaticsInitialised;
 
-	const char* m_csFilename;
-	bool m_bGotInstanceCount;
+	const char* m_csFilename = "";
+	bool m_bGotInstanceCount = false;
 
 	std::shared_ptr<CameraManager> m_CameraManager;
 };

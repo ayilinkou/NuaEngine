@@ -37,6 +37,7 @@ TessellatedPlane::TessellatedPlane()
 {
 	SetName("Tessellated Plane");
 	m_bShouldRender = true;
+	m_TessellationScale = 1.f;
 }
 
 TessellatedPlane::~TessellatedPlane()

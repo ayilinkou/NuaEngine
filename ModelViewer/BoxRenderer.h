@@ -32,7 +32,7 @@ private:
 	};
 
 public:
-	BoxRenderer();
+	BoxRenderer() {}
 	~BoxRenderer();
 
 	bool Init(std::shared_ptr<CameraManager> CamManager);
@@ -53,8 +53,8 @@ private:
 	void UpdateCornersBuffer(const UINT StartInstance);
 
 private:
-	ID3D11VertexShader* m_VertexShader;
-	ID3D11PixelShader* m_PixelShader;
+	ID3D11VertexShader* m_VertexShader	= nullptr;
+	ID3D11PixelShader* m_PixelShader	= nullptr;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
@@ -66,8 +66,8 @@ private:
 
 	std::shared_ptr<CameraManager> m_CameraManager;
 
-	const char* m_vsFilename;
-	const char* m_psFilename;
+	const char* m_vsFilename = "";
+	const char* m_psFilename = "";
 
 };
 

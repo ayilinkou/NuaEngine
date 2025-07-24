@@ -32,9 +32,9 @@ struct RenderStats
 	std::vector<std::pair<std::string, UINT64>> InstancesRendered;
 	UINT64 DrawCalls = 0u;
 	UINT64 ComputeDispatches = 0u;
-	double PostProcessPipelineTime;
-	double FrameTime;
-	double FPS;
+	double PostProcessPipelineTime = 0.0;
+	double FrameTime = 0.0;
+	double FPS = 0.0;
 };
 
 inline struct ID3D11Buffer* NullBuffers[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };

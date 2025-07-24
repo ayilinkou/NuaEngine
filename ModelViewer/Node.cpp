@@ -8,6 +8,8 @@
 
 Node::Node(ModelData* pModel, Node* pOwner) : m_pModel(pModel), m_pOwner(pOwner)
 {
+	m_LocalTransform = DirectX::XMMatrixIdentity();
+	m_AccumulatedTransform = DirectX::XMMatrixIdentity();
 }
 
 void Node::ProcessNode(aiNode* ModelNode, const aiScene* Scene, const DirectX::XMMATRIX& AccumulatedTransform)
