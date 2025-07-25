@@ -13,6 +13,7 @@
 #include "DirectXMath.h"
 
 class CameraManager;
+class Profiler;
 
 class Skybox
 {
@@ -20,7 +21,7 @@ public:
 	Skybox() {}
 	~Skybox();
 
-	bool Init(std::shared_ptr<CameraManager> CamManager);
+	bool Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler);
 	void Render();
 	void Shutdown();
 
@@ -52,6 +53,7 @@ private:
 	const char* m_psFilename = "";
 
 	std::shared_ptr<CameraManager> m_CameraManager;
+	std::shared_ptr<Profiler> m_Profiler;
 };
 
 #endif

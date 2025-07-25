@@ -4,6 +4,7 @@
 #define GRASS_H
 
 #include <array>
+#include <memory>
 
 #include "d3d11.h"
 #include "DirectXMath.h"
@@ -14,6 +15,8 @@
 #include "AABB.h"
 
 class Landscape;
+class FrustumCuller;
+class Profiler;
 
 class Grass : public GameObject
 {
@@ -36,7 +39,8 @@ public:
 	Grass();
 	~Grass();
 
-	bool Init(Landscape* pLandscape, UINT GrassDimensionPerChunk);
+	bool Init(Landscape* pLandscape, UINT GrassDimensionPerChunk, std::shared_ptr<FrustumCuller> pFrustumCuller,
+		std::shared_ptr<Profiler> pProfiler);
 
 	void Shutdown();
 
@@ -88,6 +92,9 @@ private:
 
 	const char* m_vsFilepath;
 	const char* m_psFilepath;
+
+	std::shared_ptr<FrustumCuller> m_FrustumCuller;
+	std::shared_ptr<Profiler> m_Profiler;
 
 };
 

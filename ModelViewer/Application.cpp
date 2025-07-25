@@ -28,6 +28,7 @@
 #include "TessellatedPlane.h"
 #include "Grass.h"
 #include "CameraManager.h"
+#include "Profiler.h"
 
 Application* Application::m_Instance = nullptr;
 
@@ -52,10 +53,14 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_Graphics->Initialise(ScreenWidth, ScreenHeight, VSYNC_ENABLED, hWnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
 	assert(bResult);
 
-	bResult = SetupQueries();
+	m_CameraManager = std::make_shared<CameraManager>();
+	m_Profiler = std::make_shared<Profiler>(m_Graphics->GetDevice(), m_Graphics->GetDeviceContext());
+	
+	m_FrustumCuller = std::make_shared<FrustumCuller>();
+	bResult = m_FrustumCuller->Init(m_CameraManager, m_Profiler);
 	assert(bResult);
 
-	m_CameraManager = std::make_shared<CameraManager>();
+	ResourceManager::GetSingletonPtr()->Init(hWnd, m_FrustumCuller.get(), m_Profiler);
 
 	m_Shader = std::make_unique<Shader>();
 	bResult = m_Shader->Initialise(m_Graphics->GetDevice());
@@ -65,16 +70,12 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_InstancedShader->Initialise(m_Graphics->GetDevice());
 	assert(bResult);
 
-	m_FrustumCuller = std::make_shared<FrustumCuller>();
-	bResult = m_FrustumCuller->Init(m_CameraManager);
-	assert(bResult);
-
 	m_BoxRenderer = std::make_unique<BoxRenderer>();
-	bResult = m_BoxRenderer->Init(m_CameraManager);
+	bResult = m_BoxRenderer->Init(m_CameraManager, m_Profiler);
 	assert(bResult);
 
 	m_Skybox = std::make_unique<Skybox>();
-	bResult = m_Skybox->Init(m_CameraManager);
+	bResult = m_Skybox->Init(m_CameraManager, m_Profiler);
 	assert(bResult);
 
 	UINT NumChunks = 8u;
@@ -133,6 +134,8 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	m_TextureResourceView = static_cast<ID3D11ShaderResourceView*>(ResourceManager::GetSingletonPtr()->LoadTexture(m_QuadTexturePath));
 
+	PostProcess::InitStatics(m_Profiler);
+
 	DirectX::XMFLOAT3 FogColor = { 0.8f, 0.8f, 0.8f };
 	float FogDensity = 0.007f;
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(FogColor.x, FogColor.y, FogColor.z, FogDensity, PostProcessFog::FogFormula::ExponentialSquared));
@@ -182,11 +185,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 }
 
 void Application::Shutdown()
-{
-	m_DisjointQuery.Reset();
-	m_TimestampStart.Reset();
-	m_TimestampEnd.Reset();
-	
+{		
 	ResourceManager::GetSingletonPtr()->UnloadTexture(m_QuadTexturePath);
 	m_TextureResourceView = nullptr;
 	
@@ -218,9 +217,9 @@ bool Application::Frame()
 	m_AppTime += m_DeltaTime;
 	m_FrameIndex++;
 
-	ClearRenderStats();
-	m_RenderStats.FrameTime = m_DeltaTime * 1000.0;
-	m_RenderStats.FPS = 1.0 / m_DeltaTime;
+	m_Profiler->ClearRenderStats();
+	m_Profiler->SetFrameTime(m_DeltaTime * 1000.0);
+	m_Profiler->SetFPS(1.0 / m_DeltaTime);
 
 	//float RotationAngle = (float)fmod(m_AppTime, 360.f);
 	//m_GameObjects[1]->SetRotation(0.f, RotationAngle * 30.f, 0.f);
@@ -285,7 +284,7 @@ bool Application::Render()
 	m_Graphics->GetDeviceContext()->PSSetShader(PostProcess::GetEmptyPostProcess()->GetPixelShader().Get(), NULL, 0u);
 	m_Graphics->GetDeviceContext()->PSSetShaderResources(0u, 1u, DrawingForward ? CurrentSRV.GetAddressOf() : SecondarySRV.GetAddressOf());
 	m_Graphics->GetDeviceContext()->DrawIndexed(6u, 0u, 0);
-	m_RenderStats.DrawCalls++;
+	m_Profiler->AddDrawCall();
 
 	for (const std::shared_ptr<Camera>& c : m_CameraManager->GetCameras())
 	{
@@ -423,7 +422,7 @@ void Application::RenderModels()
 		if (InstanceCount == 0)
 			continue;
 
-		m_RenderStats.InstancesRendered.push_back(std::make_pair(pModelData->GetModelPath(), InstanceCount));
+		m_Profiler->AddInstancesRendered(pModelData->GetModelPath(), InstanceCount);
 		
 		m_InstancedShader->ActivateShader(m_Graphics->GetDeviceContext());
 		m_InstancedShader->SetShaderParameters(
@@ -456,7 +455,7 @@ bool Application::RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>
 	m_Graphics->GetDeviceContext()->PSSetShaderResources(0, 1, TextureView.GetAddressOf());
 
 	m_Graphics->GetDeviceContext()->DrawIndexed(6u, 0u, 0);
-	m_RenderStats.DrawCalls++;
+	m_Profiler->AddDrawCall();
 
 	return true;
 }
@@ -467,10 +466,10 @@ void Application::RenderImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGuiManager::RenderPostProcessWindow(m_RenderStats.PostProcessPipelineTime);
+	ImGuiManager::RenderPostProcessWindow(m_Profiler->GetRenderStats().PostProcessPipelineTime);
 	ImGuiManager::RenderWorldHierarchyWindow();
 	ImGuiManager::RenderCamerasWindow(m_CameraManager);
-	ImGuiManager::RenderStatsWindow(m_RenderStats);
+	ImGuiManager::RenderStatsWindow(m_Profiler->GetRenderStats());
 
 	ImGui::EndFrame();
 	ImGui::Render();
@@ -481,8 +480,7 @@ void Application::ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetVi
 										Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CurrentSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SecondarySRV, bool& DrawingForward)
 {	
 	ID3D11DeviceContext* pContext = m_Graphics->GetDeviceContext();
-	pContext->Begin(m_DisjointQuery.Get());
-	pContext->End(m_TimestampStart.Get());
+	m_Profiler->StartGPUTimer();
 	
 	for (int i = 0; i < m_PostProcesses.size(); i++)
 	{
@@ -497,21 +495,8 @@ void Application::ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetVi
 		DrawingForward = !DrawingForward;
 	}
 
-	pContext->End(m_TimestampEnd.Get());
-	pContext->End(m_DisjointQuery.Get());
-
-	D3D11_QUERY_DATA_TIMESTAMP_DISJOINT DisjointData;
-	while (pContext->GetData(m_DisjointQuery.Get(), &DisjointData, sizeof(DisjointData), 0) != S_OK);
-
-	// only calculate if the GPU clock didn't change (eg. due to GPU frequency scaling event)
-	if (!DisjointData.Disjoint)
-	{
-		UINT64 StartTime = 0, EndTime = 0;
-		while (pContext->GetData(m_TimestampStart.Get(), &StartTime, sizeof(StartTime), 0) != S_OK);
-		while (pContext->GetData(m_TimestampEnd.Get(), &EndTime, sizeof(EndTime), 0) != S_OK);
-
-		m_RenderStats.PostProcessPipelineTime = (EndTime - StartTime) / double(DisjointData.Frequency) * 1000.0;
-	}
+	m_Profiler->EndGPUTimer();
+	m_Profiler->SetPostProcessPipelineTime(m_Profiler->GetGPUTime());
 }
 
 void Application::ProcessInput()
@@ -600,25 +585,4 @@ void Application::ToggleShowCursor()
 		SystemClass::m_MouseDelta = { 0.f, 0.f };
 	}
 	m_bShowCursor = !m_bShowCursor;
-}
-
-bool Application::SetupQueries()
-{
-	HRESULT hResult;
-	D3D11_QUERY_DESC Desc = {};
-	Desc.Query = D3D11_QUERY_TIMESTAMP;
-	HFALSE_IF_FAILED(m_Graphics->GetDevice()->CreateQuery(&Desc, &m_TimestampStart));
-	HFALSE_IF_FAILED(m_Graphics->GetDevice()->CreateQuery(&Desc, &m_TimestampEnd));
-	
-	Desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
-	HFALSE_IF_FAILED(m_Graphics->GetDevice()->CreateQuery(&Desc, &m_DisjointQuery));
-	
-	return true;
-}
-
-void Application::ClearRenderStats()
-{
-	m_RenderStats.TrianglesRendered.clear();
-	m_RenderStats.InstancesRendered.clear();
-	m_RenderStats = {};
 }

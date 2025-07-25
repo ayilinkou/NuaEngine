@@ -18,6 +18,8 @@
 #include "Graphics.h"
 
 class ModelData;
+class FrustumCuller;
+class Profiler;
 
 class ResourceManager
 {
@@ -29,7 +31,7 @@ private:
 public:
 	static ResourceManager* GetSingletonPtr();
 
-	bool Init(HWND hWnd);
+	bool Init(HWND hWnd, FrustumCuller* pFrustumCuller, std::shared_ptr<Profiler> pProfiler);
 
 	void Shutdown();
 
@@ -67,6 +69,8 @@ private:
 	std::unordered_map<std::string, std::unordered_map<std::string, std::unique_ptr<ShaderResource>>> m_ShadersMap;
 
 	HWND m_hWnd;
+	FrustumCuller* m_FrustumCuller = nullptr;
+	std::shared_ptr<Profiler> m_Profiler;
 
 };
 

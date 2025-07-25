@@ -37,6 +37,7 @@ Landscape::~Landscape()
 bool Landscape::Init(const std::string& HeightMapFilepath, float TessellationScale, UINT GrassDimensionPerChunk)
 {
 	bool Result;
+	Application* pApp = Application::GetSingletonPtr();
 
 	SetupAABB();
 	GenerateChunkOffsets();
@@ -45,10 +46,10 @@ bool Landscape::Init(const std::string& HeightMapFilepath, float TessellationSca
 	FALSE_IF_FAILED(CreateBuffers());
 
 	m_Plane = std::make_shared<TessellatedPlane>();
-	FALSE_IF_FAILED(m_Plane->Init(TessellationScale, this));
+	FALSE_IF_FAILED(m_Plane->Init(TessellationScale, this, pApp->GetFrustumCuller(), pApp->GetProfiler()));
 
 	m_Grass = std::make_shared<Grass>();
-	FALSE_IF_FAILED(m_Grass->Init(this, GrassDimensionPerChunk));
+	FALSE_IF_FAILED(m_Grass->Init(this, GrassDimensionPerChunk, pApp->GetFrustumCuller(), pApp->GetProfiler()));
 
 	m_HeightmapSRV = ResourceManager::GetSingletonPtr()->LoadTexture(HeightMapFilepath);
 	assert(m_HeightmapSRV);

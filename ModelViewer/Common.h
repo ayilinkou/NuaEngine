@@ -11,10 +11,6 @@
 #define MAX_INSTANCE_COUNT 1024
 #define MAX_GRASS_COUNT (MAX_PLANE_CHUNKS * MAX_GRASS_PER_CHUNK)
 
-#include <vector>
-#include <utility>
-#include <string>
-
 #include "DirectXMath.h"
 
 struct Vertex
@@ -22,19 +18,6 @@ struct Vertex
 	DirectX::XMFLOAT3 Pos;
 	DirectX::XMFLOAT3 Normal;
 	DirectX::XMFLOAT2 TexCoord;
-};
-
-typedef unsigned long long UINT64;
-
-struct RenderStats
-{
-	std::vector<std::pair<std::string, UINT64>> TrianglesRendered;
-	std::vector<std::pair<std::string, UINT64>> InstancesRendered;
-	UINT64 DrawCalls = 0u;
-	UINT64 ComputeDispatches = 0u;
-	double PostProcessPipelineTime = 0.0;
-	double FrameTime = 0.0;
-	double FPS = 0.0;
 };
 
 inline struct ID3D11Buffer* NullBuffers[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };

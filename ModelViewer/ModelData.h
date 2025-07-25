@@ -19,13 +19,16 @@
 class Mesh;
 class Material;
 class Node;
+class FrustumCuller;
+class Profiler;
 struct aiScene;
 
 class ModelData
 {
 public:
 	ModelData() = delete;
-	ModelData(const std::string& ModelPath, const std::string& TexturesPath = "");
+	ModelData(const std::string& ModelPath, FrustumCuller* pFrustumCuller, std::shared_ptr<Profiler> pProfiler,
+		const std::string& TexturesPath = "");
 	ModelData(const ModelData& Other) = delete;
 	~ModelData();
 
@@ -80,6 +83,9 @@ private:
 	
 	std::string m_ModelPath;
 	std::string m_TexturesPath;
+
+	FrustumCuller* m_FrustumCuller;
+	std::shared_ptr<Profiler> m_Profiler;
 
 };
 

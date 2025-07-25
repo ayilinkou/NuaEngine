@@ -7,7 +7,6 @@
 #include "assimp/postprocess.h"
 
 #include "MyMacros.h"
-#include "Application.h"
 #include "Graphics.h"
 #include "ResourceManager.h"
 #include "InstancedShader.h"
@@ -15,8 +14,10 @@
 #include "Material.h"
 #include "Common.h"
 #include "FrustumCuller.h"
+#include "Profiler.h"
 
-ModelData::ModelData(const std::string& ModelPath, const std::string& TexturesPath)
+ModelData::ModelData(const std::string& ModelPath, FrustumCuller* pFrustumCuller, std::shared_ptr<Profiler> pProfiler,
+	const std::string& TexturesPath) : m_FrustumCuller(pFrustumCuller), m_Profiler(pProfiler)
 {
 	assert(Initialise(Graphics::GetSingletonPtr()->GetDevice(), Graphics::GetSingletonPtr()->GetDeviceContext(), ModelPath, TexturesPath));
 }
@@ -52,7 +53,7 @@ void ModelData::Render()
 	DeviceContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 	DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	DeviceContext->VSSetShaderResources(0u, 1u, Application::GetSingletonPtr()->GetFrustumCuller()->GetCulledTransformsSRV().GetAddressOf());
+	DeviceContext->VSSetShaderResources(0u, 1u, m_FrustumCuller->GetCulledTransformsSRV().GetAddressOf());
 
 	Graphics::GetSingletonPtr()->EnableDepthWrite();
 	Graphics::GetSingletonPtr()->DisableBlending();
@@ -176,7 +177,7 @@ void ModelData::RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes)
 	for (const std::unique_ptr<Mesh>& m : Meshes)
 	{
 		// dispatch to copy instance count into args buffer
-		Application::GetSingletonPtr()->GetFrustumCuller()->SendInstanceCounts(m->GetArgsBufferUAV());
+		m_FrustumCuller->SendInstanceCounts(m->GetArgsBufferUAV());
 
 		std::shared_ptr<Material> Mat = m.get()->m_Material;
 
@@ -200,6 +201,6 @@ void ModelData::RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes)
 		// ensure the dispatch is finished before drawing
 
 		DeviceContext->DrawIndexedInstancedIndirect(m->GetArgsBuffer().Get(), 0u);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		m_Profiler->AddDrawCall();
 	}
 }

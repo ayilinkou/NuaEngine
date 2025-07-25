@@ -10,6 +10,7 @@
 #include "ImGui/imgui.h"
 
 class CameraManager;
+struct RenderStats;
 
 class ImGuiManager
 {

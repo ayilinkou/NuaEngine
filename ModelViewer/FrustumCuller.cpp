@@ -7,13 +7,13 @@
 #include "d3dcompiler.h"
 
 #include "FrustumCuller.h"
-#include "Application.h"
 #include "Graphics.h"
 #include "MyMacros.h"
 #include "Common.h"
 #include "ResourceManager.h"
 #include "Camera.h"
 #include "CameraManager.h"
+#include "Profiler.h"
 
 bool FrustumCuller::ms_bStaticsInitialised = false;
 Microsoft::WRL::ComPtr<ID3D11Buffer> FrustumCuller::ms_DummyArgsBuffer;
@@ -24,12 +24,13 @@ FrustumCuller::~FrustumCuller()
 	Shutdown();
 }
 
-bool FrustumCuller::Init(std::shared_ptr<CameraManager> CamManager)
+bool FrustumCuller::Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler)
 {
 	Microsoft::WRL::ComPtr<ID3D10Blob> csBuffer;
 	m_csFilename = "Shaders/FrustumCullingCS.hlsl";
 	m_bGotInstanceCount = false;
 	m_CameraManager = CamManager;
+	m_Profiler = pProfiler;
 
 	m_CullingShader							= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCull");
 	m_OffsetsCullingShader					= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullOffsets");
@@ -118,7 +119,7 @@ void FrustumCuller::CullLandscape(ID3D11ShaderResourceView* ChunksOffsetsSRV, co
 	DeviceContext->CSSetConstantBuffers(0u, 1u, m_CBuffer.GetAddressOf());
 
 	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
-	Application::GetSingletonPtr()->GetRenderStatsRef().ComputeDispatches++;
+	m_Profiler->AddComputeDispatch();
 
 	DeviceContext->CSSetConstantBuffers(0u, 8u, NullBuffers);
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);
@@ -152,7 +153,7 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const s
 	DeviceContext->CSSetConstantBuffers(0u, 1u, m_CBuffer.GetAddressOf());
 
 	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
-	Application::GetSingletonPtr()->GetRenderStatsRef().ComputeDispatches++;
+	m_Profiler->AddComputeDispatch();
 
 	DeviceContext->CSSetConstantBuffers(0u, 8u, NullBuffers);
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);
@@ -165,7 +166,7 @@ void FrustumCuller::ClearInstanceCount()
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_InstanceCountClearShader, nullptr, 0u);
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
 	Graphics::GetSingletonPtr()->GetDeviceContext()->Dispatch(1u, 1u, 1u);
-	Application::GetSingletonPtr()->GetRenderStatsRef().ComputeDispatches++;
+	m_Profiler->AddComputeDispatch();
 	m_bGotInstanceCount = false;
 }
 
@@ -179,7 +180,7 @@ void FrustumCuller::SendInstanceCounts(Microsoft::WRL::ComPtr<ID3D11UnorderedAcc
 	DeviceContext->CSSetUnorderedAccessViews(5u, 2u, UAVs, nullptr);
 
 	DeviceContext->Dispatch(1u, 1u, 1u);
-	Application::GetSingletonPtr()->GetRenderStatsRef().ComputeDispatches++;
+	m_Profiler->AddComputeDispatch();
 
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
 	DeviceContext->CSSetUnorderedAccessViews(0u, 8u, NullUAVs, nullptr);
@@ -428,7 +429,7 @@ void FrustumCuller::DispatchShaderImpl(UINT* ThreadGroupCount)
 	DeviceContext->CSSetConstantBuffers(0u, 1u, m_CBuffer.GetAddressOf());
 	
 	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
-	Application::GetSingletonPtr()->GetRenderStatsRef().ComputeDispatches++;
+	m_Profiler->AddComputeDispatch();
 
 	DeviceContext->CSSetConstantBuffers(0u, 8u, NullBuffers);
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);

@@ -10,11 +10,11 @@
 
 #include "MyMacros.h"
 #include "Graphics.h"
-#include "Application.h"
 #include "Camera.h"
 #include "ResourceManager.h"
 #include "Common.h"
 #include "CameraManager.h"
+#include "Profiler.h"
 
 class PostProcessEmpty;
 
@@ -35,6 +35,84 @@ public:
 		ImGui::Text("Controls not set up for this post process!");
 	}
 
+	static void InitStatics(std::shared_ptr<Profiler> Profiler)
+	{
+		HRESULT hResult;
+		Microsoft::WRL::ComPtr<ID3D10Blob> vsBuffer;
+		D3D11_INPUT_ELEMENT_DESC VertexLayout[3] = {};
+		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
+		unsigned int NumElements;
+		GetProfiler() = Profiler;
+
+		ms_QuadVertexShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11VertexShader>(ms_vsFilename, "main", vsBuffer);
+
+		VertexLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		VertexLayout[0].SemanticName = "POSITION";
+		VertexLayout[0].SemanticIndex = 0;
+		VertexLayout[0].InputSlot = 0;
+		VertexLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		VertexLayout[0].AlignedByteOffset = 0;
+		VertexLayout[0].InstanceDataStepRate = 0;
+
+		VertexLayout[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		VertexLayout[1].SemanticName = "NORMAL";
+		VertexLayout[1].SemanticIndex = 0;
+		VertexLayout[1].InputSlot = 0;
+		VertexLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		VertexLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		VertexLayout[1].InstanceDataStepRate = 0;
+
+		VertexLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
+		VertexLayout[2].SemanticName = "TEXCOORD";
+		VertexLayout[2].SemanticIndex = 0;
+		VertexLayout[2].InputSlot = 0;
+		VertexLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		VertexLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		VertexLayout[2].InstanceDataStepRate = 0;
+
+		NumElements = sizeof(VertexLayout) / sizeof(VertexLayout[0]);
+		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateInputLayout(VertexLayout, NumElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &ms_QuadInputLayout));
+		NAME_D3D_RESOURCE(ms_QuadInputLayout, "Post process quad input layout");
+
+		Vertex QuadVertices[] = {
+			{ DirectX::XMFLOAT3(-1.0f,  1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), },
+			{ DirectX::XMFLOAT3(1.0f,  1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), },
+			{ DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), },
+			{ DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), },
+		};
+
+		D3D11_BUFFER_DESC BufferDesc = {};
+		BufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		BufferDesc.ByteWidth = sizeof(QuadVertices);
+		BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		BufferDesc.CPUAccessFlags = 0;
+
+		D3D11_SUBRESOURCE_DATA InitData = {};
+		InitData.pSysMem = QuadVertices;
+
+		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&BufferDesc, &InitData, &ms_QuadVertexBuffer));
+		NAME_D3D_RESOURCE(ms_QuadVertexBuffer, "Post process quad vertex buffer");
+
+		unsigned int QuadIndices[] = {
+			1, 2, 0,
+			3, 2, 1
+		};
+
+		BufferDesc = {};
+		BufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		BufferDesc.ByteWidth = sizeof(QuadIndices);
+		BufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		BufferDesc.CPUAccessFlags = 0;
+
+		InitData = {};
+		InitData.pSysMem = QuadIndices;
+
+		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&BufferDesc, &InitData, &ms_QuadIndexBuffer));
+		NAME_D3D_RESOURCE(ms_QuadIndexBuffer, "Post process quad index buffer");
+
+		ms_bInitialised = true;
+	}
+
 	static void ShutdownStatics()
 	{
 		ms_QuadInputLayout.Reset();
@@ -48,46 +126,27 @@ public:
 
 	static ID3D11VertexShader* GetQuadVertexShader()
 	{
-		if (ms_bInitialised)
-		{
-			return PostProcess::ms_QuadVertexShader;
-		}
-
-		InitialiseShaderResources();
 		return PostProcess::ms_QuadVertexShader;
 	}
 
 	static Microsoft::WRL::ComPtr<ID3D11Buffer> GetQuadVertexBuffer()
 	{
-		if (ms_bInitialised)
-		{
-			return PostProcess::ms_QuadVertexBuffer;
-		}
-
-		InitialiseShaderResources();
 		return PostProcess::ms_QuadVertexBuffer;
 	}
 
 	static Microsoft::WRL::ComPtr<ID3D11Buffer> GetQuadIndexBuffer()
 	{
-		if (ms_bInitialised)
-		{
-			return PostProcess::ms_QuadIndexBuffer;
-		}
-
-		InitialiseShaderResources();
 		return PostProcess::ms_QuadIndexBuffer;
 	}
 
 	static Microsoft::WRL::ComPtr<ID3D11InputLayout> GetQuadInputLayout()
 	{
-		if (ms_bInitialised)
-		{
-			return PostProcess::ms_QuadInputLayout;
-		}
-
-		InitialiseShaderResources();
 		return PostProcess::ms_QuadInputLayout;
+	}
+
+	static std::shared_ptr<Profiler>& GetProfiler()
+	{
+		return PostProcess::ms_Profiler;
 	}
 
 	static std::shared_ptr<PostProcessEmpty> GetEmptyPostProcess()
@@ -133,88 +192,12 @@ protected:
 	}
 
 private:
-	static void InitialiseShaderResources()
-	{
-		HRESULT hResult;
-		Microsoft::WRL::ComPtr<ID3D10Blob> vsBuffer;
-		D3D11_INPUT_ELEMENT_DESC VertexLayout[3] = {};
-		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
-		unsigned int NumElements;
-
-		ms_QuadVertexShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11VertexShader>(ms_vsFilename, "main", vsBuffer);
-
-		VertexLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		VertexLayout[0].SemanticName = "POSITION";
-		VertexLayout[0].SemanticIndex = 0;
-		VertexLayout[0].InputSlot = 0;
-		VertexLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		VertexLayout[0].AlignedByteOffset = 0;
-		VertexLayout[0].InstanceDataStepRate = 0;
-
-		VertexLayout[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		VertexLayout[1].SemanticName = "NORMAL";
-		VertexLayout[1].SemanticIndex = 0;
-		VertexLayout[1].InputSlot = 0;
-		VertexLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		VertexLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		VertexLayout[1].InstanceDataStepRate = 0;
-
-		VertexLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
-		VertexLayout[2].SemanticName = "TEXCOORD";
-		VertexLayout[2].SemanticIndex = 0;
-		VertexLayout[2].InputSlot = 0;
-		VertexLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		VertexLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		VertexLayout[2].InstanceDataStepRate = 0;
-
-		NumElements = sizeof(VertexLayout) / sizeof(VertexLayout[0]);
-		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateInputLayout(VertexLayout, NumElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &ms_QuadInputLayout));
-		NAME_D3D_RESOURCE(ms_QuadInputLayout, "Post process quad input layout");
-
-		Vertex QuadVertices[] = {
-			{ DirectX::XMFLOAT3(-1.0f,  1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), },
-			{ DirectX::XMFLOAT3( 1.0f,  1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), },
-			{ DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), },
-			{ DirectX::XMFLOAT3( 1.0f, -1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), },
-		};
-
-		D3D11_BUFFER_DESC BufferDesc = {};
-		BufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-		BufferDesc.ByteWidth = sizeof(QuadVertices);
-		BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		BufferDesc.CPUAccessFlags = 0;
-
-		D3D11_SUBRESOURCE_DATA InitData = {};
-		InitData.pSysMem = QuadVertices;
-
-		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&BufferDesc, &InitData, &ms_QuadVertexBuffer));
-		NAME_D3D_RESOURCE(ms_QuadVertexBuffer, "Post process quad vertex buffer");
-
-		unsigned int QuadIndices[] = {
-			1, 2, 0,
-			3, 2, 1
-		};
-
-		BufferDesc = {};
-		BufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-		BufferDesc.ByteWidth = sizeof(QuadIndices);
-		BufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		BufferDesc.CPUAccessFlags = 0;
-
-		InitData = {};
-		InitData.pSysMem = QuadIndices;
-
-		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&BufferDesc, &InitData, &ms_QuadIndexBuffer));
-		NAME_D3D_RESOURCE(ms_QuadIndexBuffer, "Post process quad index buffer");
-
-		ms_bInitialised = true;
-	}
-
 	static ID3D11VertexShader* ms_QuadVertexShader;
 	static Microsoft::WRL::ComPtr<ID3D11InputLayout> ms_QuadInputLayout;
 	static Microsoft::WRL::ComPtr<ID3D11Buffer> ms_QuadVertexBuffer;
 	static Microsoft::WRL::ComPtr<ID3D11Buffer> ms_QuadIndexBuffer;
 	static std::shared_ptr<PostProcessEmpty> ms_EmptyPostProcess;
+	static std::shared_ptr<Profiler> ms_Profiler;
 	static const char* ms_vsFilename;
 	static bool ms_bInitialised;
 };
@@ -248,7 +231,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 private:
@@ -356,7 +339,7 @@ private:
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffer()
@@ -470,7 +453,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, m_IntermediateRTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 
 		// vertical
 		ID3D11RenderTargetView* NullRTVs[] = { nullptr };
@@ -482,7 +465,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffer()
@@ -630,7 +613,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, m_IntermediateRTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 
 		// vertical
 		ID3D11RenderTargetView* NullRTVs[] = { nullptr };
@@ -642,7 +625,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffers()
@@ -752,7 +735,7 @@ private:
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffer()
@@ -864,7 +847,7 @@ private:
 
 		DeviceContext->OMSetRenderTargets(1u, m_LuminousRTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 
 		// blur luminous pixels
 		m_BlurPostProcess->ApplyPostProcess(DeviceContext, m_BlurredRTV, m_LuminousSRV);
@@ -880,7 +863,7 @@ private:
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffer()
@@ -1002,7 +985,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffer()
@@ -1076,7 +1059,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffer()
@@ -1165,7 +1148,7 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 		DeviceContext->DrawIndexed(6u, 0u, 0);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		GetProfiler()->AddDrawCall();
 	}
 
 	void UpdateBuffer()
@@ -1268,7 +1251,7 @@ private:
 			DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 			DeviceContext->DrawIndexed(6u, 0u, 0);
-			Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+			GetProfiler()->AddDrawCall();
 			m_bRecentlyActivated = false;
 		}
 		else
@@ -1282,7 +1265,7 @@ private:
 			DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
 			DeviceContext->DrawIndexed(6u, 0u, 0);
-			Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+			GetProfiler()->AddDrawCall();
 		}
 
 		// copy RTV's texture data into m_HistoryFrameTexture

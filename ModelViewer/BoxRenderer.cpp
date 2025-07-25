@@ -6,10 +6,10 @@
 #include "Graphics.h"
 #include "MyMacros.h"
 #include "Camera.h"
-#include "Application.h"
 #include "AABB.h"
 #include "ResourceManager.h"
 #include "CameraManager.h"
+#include "Profiler.h"
 
 const UINT BoxIndices[12][2] = {
 	{0, 1}, {1, 3}, {3, 2}, {2, 0},
@@ -22,9 +22,10 @@ BoxRenderer::~BoxRenderer()
 	Shutdown();
 }
 
-bool BoxRenderer::Init(std::shared_ptr<CameraManager> CamManager)
+bool BoxRenderer::Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler)
 {
 	m_CameraManager = CamManager;
+	m_Profiler = pProfiler;
 	
 	bool Result;
 	FALSE_IF_FAILED(CreateShaders());
@@ -83,7 +84,7 @@ void BoxRenderer::Render()
 
 		UpdateCornersBuffer(InstanceOffset);
 		DeviceContext->DrawIndexedInstanced(24u, InstanceCount, 0u, 0u, 0u);
-		Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+		m_Profiler->AddDrawCall();
 
 		InstanceOffset += InstanceCount;
 		InstancesLeft -= InstanceCount;

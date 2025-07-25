@@ -16,6 +16,7 @@
 
 class Camera;
 class CameraManager;
+class Profiler;
 struct AABB;
 
 class BoxRenderer
@@ -35,7 +36,7 @@ public:
 	BoxRenderer() {}
 	~BoxRenderer();
 
-	bool Init(std::shared_ptr<CameraManager> CamManager);
+	bool Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler);
 	void Shutdown();
 	void ClearBoxes();
 
@@ -65,6 +66,7 @@ private:
 	std::vector<std::array<DirectX::XMFLOAT4, 8>> m_Boxes;
 
 	std::shared_ptr<CameraManager> m_CameraManager;
+	std::shared_ptr<Profiler> m_Profiler;
 
 	const char* m_vsFilename = "";
 	const char* m_psFilename = "";

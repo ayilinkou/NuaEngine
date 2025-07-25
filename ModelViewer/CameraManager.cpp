@@ -6,15 +6,6 @@ CameraManager::CameraManager() : m_ActiveCameraID(0)
 {
 }
 
-CameraManager::~CameraManager()
-{
-	Shutdown();
-}
-
-void CameraManager::Shutdown()
-{
-}
-
 std::shared_ptr<Camera>& CameraManager::CreateCamera(DirectX::XMMATRIX ProjMatrix, bool bSetActiveCamera)
 {
 	m_Cameras.emplace_back(std::make_shared<Camera>(ProjMatrix));

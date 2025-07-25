@@ -27,9 +27,11 @@ ResourceManager* ResourceManager::GetSingletonPtr()
 	return ResourceManager::ms_Instance;
 }
 
-bool ResourceManager::Init(HWND hWnd)
+bool ResourceManager::Init(HWND hWnd, FrustumCuller* pFrustumCuller, std::shared_ptr<Profiler> pProfiler)
 {
 	m_hWnd = hWnd;
+	m_FrustumCuller = pFrustumCuller;
+	m_Profiler = pProfiler;
 	return true;
 }
 
@@ -194,7 +196,7 @@ ID3D11ShaderResourceView* ResourceManager::Internal_LoadTexture(const char* File
 
 ModelData* ResourceManager::Internal_LoadModel(const char* ModelPath, const char* TexturesPath)
 {
-	ModelData* pData = new ModelData(ModelPath, TexturesPath);
+	ModelData* pData = new ModelData(ModelPath, m_FrustumCuller, m_Profiler, TexturesPath);
 	
 	return pData;
 }

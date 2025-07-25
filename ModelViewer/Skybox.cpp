@@ -4,9 +4,9 @@
 #include "Graphics.h"
 #include "MyMacros.h"
 #include "ResourceManager.h"
-#include "Application.h"
 #include "Camera.h"
 #include "CameraManager.h"
+#include "Profiler.h"
 
 struct CubeVertex
 {
@@ -40,7 +40,7 @@ Skybox::~Skybox()
 	Shutdown();
 }
 
-bool Skybox::Init(std::shared_ptr<CameraManager> CamManager)
+bool Skybox::Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler)
 {
 	HRESULT hResult;
 	D3D11_TEXTURE2D_DESC CubeDesc = {};
@@ -48,6 +48,7 @@ bool Skybox::Init(std::shared_ptr<CameraManager> CamManager)
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 
 	m_CameraManager = CamManager;
+	m_Profiler = pProfiler;
 	m_vsFilename = "Shaders/SkyboxVS.hlsl";
 	m_psFilename = "Shaders/SkyboxPS.hlsl";
 
@@ -175,7 +176,7 @@ void Skybox::Render()
 	DeviceContext->Unmap(m_ConstantBuffer.Get(), 0u);
 
 	DeviceContext->DrawIndexed(sizeof(CubeIndices) / sizeof(UINT), 0u, 0);
-	Application::GetSingletonPtr()->GetRenderStatsRef().DrawCalls++;
+	m_Profiler->AddDrawCall();
 
 	ID3D11ShaderResourceView* NullSRVs[] = { nullptr };
 	DeviceContext->PSSetShaderResources(0u, 1u, NullSRVs);

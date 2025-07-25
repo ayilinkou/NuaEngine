@@ -12,6 +12,7 @@
 #include "wrl.h"
 
 class CameraManager;
+class Profiler;
 
 class FrustumCuller
 {
@@ -48,7 +49,7 @@ public:
 	FrustumCuller() = default;
 	~FrustumCuller();
 
-	bool Init(std::shared_ptr<CameraManager> CamManager);
+	bool Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler);
 	void Shutdown();
 
 	void DispatchShader(const std::vector<DirectX::XMMATRIX>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
@@ -117,6 +118,7 @@ private:
 	bool m_bGotInstanceCount = false;
 
 	std::shared_ptr<CameraManager> m_CameraManager;
+	std::shared_ptr<Profiler> m_Profiler;
 };
 
 #endif

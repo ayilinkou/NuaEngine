@@ -31,6 +31,7 @@ class FrustumRenderer;
 class BoxRenderer;
 class FrustumCuller;
 class CameraManager;
+class Profiler;
 
 class Application
 {
@@ -59,6 +60,7 @@ public:
 	InstancedShader* GetInstancedShader() { return m_InstancedShader.get(); }
 	std::shared_ptr<FrustumCuller> GetFrustumCuller() { return m_FrustumCuller; }
 	std::shared_ptr<BoxRenderer> GetBoxRenderer() { return m_BoxRenderer; }
+	std::shared_ptr<Profiler> GetProfiler() { return m_Profiler; }
 
 	std::vector<std::shared_ptr<GameObject>>& GetGameObjects() { return m_GameObjects; }
 	std::vector<std::unique_ptr<PostProcess>>& GetPostProcesses() { return m_PostProcesses; }
@@ -66,7 +68,6 @@ public:
 	double GetDeltaTime() const { return m_DeltaTime; }
 	double GetAppTime() const { return m_AppTime; }
 	uint32_t GetFrameIndex() const { return m_FrameIndex; }
-	RenderStats& GetRenderStatsRef() { return m_RenderStats; }
 	bool& GetShowBoundingBoxesRef() { return m_bShowBoundingBoxes; }
 
 	bool IsUsingTAA() const;
@@ -87,15 +88,13 @@ private:
 	void ProcessInput();
 	void ToggleShowCursor();
 
-	bool SetupQueries();
-	void ClearRenderStats();
-
 private:	
 	HWND m_hWnd;
 
 	Graphics* m_Graphics;
 
 	std::shared_ptr<CameraManager> m_CameraManager;
+	std::shared_ptr<Profiler> m_Profiler;
 
 	std::unique_ptr<Shader> m_Shader;
 	std::unique_ptr<InstancedShader> m_InstancedShader;
@@ -116,11 +115,6 @@ private:
 	bool m_bCursorToggleReleased = true;
 	bool m_bShowBoundingBoxes = false;
 	bool m_bUseTAA = false;
-
-	RenderStats m_RenderStats;
-	Microsoft::WRL::ComPtr<ID3D11Query> m_DisjointQuery;
-	Microsoft::WRL::ComPtr<ID3D11Query> m_TimestampStart;
-	Microsoft::WRL::ComPtr<ID3D11Query> m_TimestampEnd;
 
 	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
 	ID3D11ShaderResourceView* m_TextureResourceView;

@@ -41,6 +41,7 @@
     <ClCompile Include="ModelData.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="PostProcess.cpp" />
+    <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -74,6 +75,7 @@
     <ClInclude Include="MyMacros.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="PostProcess.h" />
+    <ClInclude Include="Profiler.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Shader.h" />

@@ -23,9 +23,6 @@ class CameraManager
 {
 public:
 	CameraManager();
-	~CameraManager();
-
-	void Shutdown();
 
 	std::shared_ptr<Camera>& CreateCamera(DirectX::XMMATRIX ProjMatrix, bool bSetActiveCamera = true);
 	void SetActiveCamera(int ID);

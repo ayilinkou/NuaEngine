@@ -13,6 +13,8 @@
 #include "GameObject.h"
 
 class CameraManager;
+class FrustumCuller;
+class Profiler;
 
 class TessellatedPlane : public GameObject
 {
@@ -29,7 +31,8 @@ public:
 	TessellatedPlane();
 	~TessellatedPlane();
 
-	bool Init(float TessellationScale, Landscape* pLandscape);
+	bool Init(float TessellationScale, Landscape* pLandscape, std::shared_ptr<FrustumCuller> pFrustumCuller,
+		std::shared_ptr<Profiler> pProfiler);
 	void Render(const std::shared_ptr<CameraManager>& CamManager);
 	void Shutdown();
 
@@ -67,6 +70,8 @@ private:
 	const char* m_gsFilename = "";
 	const char* m_psFilename = "";
 
+	std::shared_ptr<FrustumCuller> m_FrustumCuller;
+	std::shared_ptr<Profiler> m_Profiler;
 };
 
 #endif

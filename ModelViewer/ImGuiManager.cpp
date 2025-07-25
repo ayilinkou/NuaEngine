@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "Graphics.h"
 #include "CameraManager.h"
+#include "Profiler.h"
 
 static int s_SelectedId = -1;
 
