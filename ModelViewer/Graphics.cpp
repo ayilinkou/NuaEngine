@@ -407,6 +407,7 @@ void Graphics::BeginScene(float Red, float Green, float Blue, float Alpha)
 	Color[2] = Blue;
 	Color[3] = Alpha;
 
+	m_DeviceContext->ClearRenderTargetView(m_VelocityRTV.Get(), Color);
 	m_DeviceContext->ClearRenderTargetView(m_BackBufferRTV.Get(), Color);
 	m_DeviceContext->ClearRenderTargetView(m_PostProcessRTVFirst.Get(), Color);
 	m_DeviceContext->ClearRenderTargetView(m_PostProcessRTVSecond.Get(), Color);
