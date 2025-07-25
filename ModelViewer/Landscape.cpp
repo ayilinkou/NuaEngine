@@ -206,7 +206,7 @@ void Landscape::UpdateBuffers()
 	LandscapeInfoCBufferPtr->bVisualiseChunks = m_bVisualiseChunks;
 	LandscapeInfoCBufferPtr->ChunkInstanceCount = m_ChunkInstanceCount;
 	LandscapeInfoCBufferPtr->GrassPerChunk = m_Grass->GetGrassPerChunk();
-	LandscapeInfoCBufferPtr->Time = (float)Application::GetSingletonPtr()->GetAppTime();
+	LandscapeInfoCBufferPtr->CurrentTime = (float)Application::GetSingletonPtr()->GetAppTime();
 	LandscapeInfoCBufferPtr->Padding = {};
 	LandscapeInfoCBufferPtr->ChunkScaleMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixScaling(m_ChunkSize, m_ChunkSize, m_ChunkSize));
 

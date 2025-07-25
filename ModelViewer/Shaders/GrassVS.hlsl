@@ -13,7 +13,7 @@ cbuffer PlaneInfoBuffer : register(b0)
 	bool bVisualiseChunks;
 	float4x4 ChunkScaleMatrix;
 	uint GrassPerChunk;
-	float Time;
+	float CurrentTime;
 	float2 Padding;
 };
 
@@ -52,6 +52,22 @@ struct VS_Out
 	uint LOD : TEXCOORD3;
 };
 
+float3 Animate(VS_Out o, float2 GrassPos, float Time)
+{
+	float2 Noise = PerlinNoise2D(GrassPos * 0.1f) * 8.f;
+    float Input = dot(GrassPos + Noise, WindDir) - CurrentTime * TimeScale;
+    float2 WindOffset = SumOfSines(Input, WindDir, FreqMultiplier, AmpMultiplier, WaveCount, Hash((float)o.ChunkID));
+    WindOffset += PerlinNoise2D(GrassPos * Freq) * Amp;
+    WindOffset *= pow(o.HeightAlongBlade, SwayExponent) * WindDir * WindStrength;
+    o.WorldPos.xz += WindOffset;
+	
+    float WindAmount = length(WindOffset);
+    float BendFactor = 0.3f;
+    o.WorldPos.y -= min(WindAmount * BendFactor, 0.8f);
+	
+    return o.WorldPos;
+}
+
 VS_Out main(VS_In v)
 {
 	VS_Out o;
@@ -76,17 +92,8 @@ VS_Out main(VS_In v)
 	// apply wind if not root vertex
 	if (v.Pos.y != 0.f)
 	{		
-		float2 Noise = PerlinNoise2D(GrassPos * 0.1f) * 8.f;
-		float Input = dot(GrassPos + Noise, WindDir) - Time * TimeScale;
-		float2 WindOffset = SumOfSines(Input, WindDir, FreqMultiplier, AmpMultiplier, WaveCount, Hash((float) o.ChunkID));
-		WindOffset += PerlinNoise2D(GrassPos * Freq) * Amp;
-		WindOffset *= pow(RotatedPos.y, SwayExponent) * WindDir * WindStrength;
-		o.WorldPos.xz += WindOffset;
-	
-		float WindAmount = length(WindOffset);
-		float BendFactor = 0.3f;
-		o.WorldPos.y -= min(WindAmount * BendFactor, 0.8f);
-	}
+        o.WorldPos = Animate(o, GrassPos, CurrentTime);
+    }
 	
 	o.Pos = mul(float4(o.WorldPos, 1.f), ViewProj);
 	

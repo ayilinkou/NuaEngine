@@ -38,7 +38,7 @@ private:
 		BOOL bVisualiseChunks;
 		DirectX::XMMATRIX ChunkScaleMatrix;
 		UINT GrassPerChunk;
-		float Time;
+		float CurrentTime;
 		DirectX::XMFLOAT2 Padding;
 	};
 
