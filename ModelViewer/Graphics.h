@@ -52,12 +52,15 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_Device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_DeviceContext;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_BackBufferRTV;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_VelocityRTV;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthStencilBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_VelocityBuffer;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilStateWriteEnabled;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilStateWriteDisabled;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilStateWriteDisabledAlwaysPass;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_DepthStencilSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_VelocitySRV;
 	Microsoft::WRL::ComPtr<ID3D11BlendState> m_BlendStateOpaque;
 	Microsoft::WRL::ComPtr<ID3D11BlendState> m_BlendStateTransparent;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterStateBackFaceCullOn;
@@ -79,6 +82,8 @@ public:
 
 	ID3D11DepthStencilView* GetDepthStencilView() const { return m_DepthStencilView.Get(); }
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetDepthStencilSRV() const { return m_DepthStencilSRV; }
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetVelocitySRV() const { return m_VelocitySRV; }
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GetVelocityRTV() const { return m_VelocityRTV; }
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> GetSamplerState() const { return m_SamplerState; }
 
 	std::pair<int, int> GetRenderTargetDimensions() const { return m_Dimensions; }

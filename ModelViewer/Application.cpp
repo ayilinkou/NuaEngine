@@ -351,7 +351,8 @@ bool Application::RenderScene()
 	}
 
 	m_Graphics->EnableDepthWrite();
-	m_Graphics->GetDeviceContext()->OMSetRenderTargets(1u, m_Graphics->m_PostProcessRTVFirst.GetAddressOf(), m_Graphics->GetDepthStencilView());
+	ID3D11RenderTargetView* RTVs[2] = { m_Graphics->m_PostProcessRTVFirst.Get(), m_Graphics->GetVelocityRTV().Get() };
+	m_Graphics->GetDeviceContext()->OMSetRenderTargets(2u, RTVs, m_Graphics->GetDepthStencilView());
 
 	RenderModels();
 

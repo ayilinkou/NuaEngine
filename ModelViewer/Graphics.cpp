@@ -44,8 +44,10 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	ID3D11Texture2D* BackBufferPtr;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> PostProcessRTTFirst;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> PostProcessRTTSecond;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> VelocityBufferTexture;
 	D3D11_TEXTURE2D_DESC PostProcessTextureDesc = {};
 	D3D11_TEXTURE2D_DESC DepthBufferDesc = {};
+	D3D11_TEXTURE2D_DESC VelocityBufferDesc = {};
 	D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
 	D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
 	D3D11_SHADER_RESOURCE_VIEW_DESC DepthStencilSRVDesc = {};
@@ -300,6 +302,8 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 
 	ASSERT_NOT_FAILED(m_Device->CreateTexture2D(&PostProcessTextureDesc, NULL, &PostProcessRTTFirst));
 	ASSERT_NOT_FAILED(m_Device->CreateTexture2D(&PostProcessTextureDesc, NULL, &PostProcessRTTSecond));
+	NAME_D3D_RESOURCE(PostProcessRTTFirst, "Post process RTT 1");
+	NAME_D3D_RESOURCE(PostProcessRTTSecond, "Post process RTT 2");
 
 	ASSERT_NOT_FAILED(m_Device->CreateRenderTargetView(PostProcessRTTFirst.Get(), NULL, &m_PostProcessRTVFirst));
 	ASSERT_NOT_FAILED(m_Device->CreateRenderTargetView(PostProcessRTTSecond.Get(), NULL, &m_PostProcessRTVSecond));
@@ -327,6 +331,22 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	QueryDesc.Query = D3D11_QUERY_PIPELINE_STATISTICS;
 	ASSERT_NOT_FAILED(m_Device->CreateQuery(&QueryDesc, &m_PipelineStatsQuery));
 	NAME_D3D_RESOURCE(m_PipelineStatsQuery, "Pipeline stats query");
+
+	VelocityBufferDesc.Width = ScreenWidth;
+	VelocityBufferDesc.Height = ScreenHeight;
+	VelocityBufferDesc.MipLevels = 1;
+	VelocityBufferDesc.ArraySize = 1;
+	VelocityBufferDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	VelocityBufferDesc.SampleDesc.Count = 1;
+	VelocityBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	VelocityBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+	ASSERT_NOT_FAILED(m_Device->CreateTexture2D(&VelocityBufferDesc, NULL, &VelocityBufferTexture));
+	ASSERT_NOT_FAILED(m_Device->CreateRenderTargetView(VelocityBufferTexture.Get(), NULL, &m_VelocityRTV));
+	ASSERT_NOT_FAILED(m_Device->CreateShaderResourceView(VelocityBufferTexture.Get(), NULL, &m_VelocitySRV));
+	NAME_D3D_RESOURCE(VelocityBufferTexture, "Velocity buffer texture");
+	NAME_D3D_RESOURCE(m_VelocityRTV, "Velocity buffer RTV");
+	NAME_D3D_RESOURCE(m_VelocitySRV, "Velocity buffer SRV");
 
 	ImGui_ImplDX11_Init(m_Device.Get(), m_DeviceContext.Get());
 
