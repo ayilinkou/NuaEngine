@@ -298,5 +298,6 @@
     <None Include="Shaders\ToneMapperPS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="config.json" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,14 @@
+{
+  "postProcesses": [
+    {
+      "type": "Bloom",
+      "LuminanceThreshold": 0.9,
+      "BlurStrength": 16,
+      "Sigma": 8.0
+    },
+    {
+      "type": "TAA",
+      "Alpha": 0.8
+    }
+  ]
+}

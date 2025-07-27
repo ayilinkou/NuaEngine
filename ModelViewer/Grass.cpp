@@ -57,10 +57,10 @@ Grass::Grass()
 	SetName("Grass");
 	SetWindDirection({ 1.f, 1.f });
 	m_bShouldRender = true;
-	m_LODDistanceThreshold = 25.f;
+	m_LODDistanceThreshold = 100.f;
 	m_Freq = 2.f;
 	m_Amp = 1.5f;
-	m_TimeScale = 6.f;
+	m_TimeScale = 4.f;
 	m_FreqMultiplier = 1.4f;
 	m_AmpMultiplier = 0.5f;
 	m_WaveCount = 32u;

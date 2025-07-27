@@ -1,12 +1,14 @@
 #include "Application.h"
 
-#include <iostream>
+#include <fstream>
 
 #include "Windows.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
+
+#include "nlohmann/json.hpp"
 
 #include "MyMacros.h"
 #include "Common.h"
@@ -136,18 +138,37 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	PostProcess::InitStatics(m_Profiler);
 
-	DirectX::XMFLOAT3 FogColor = { 0.8f, 0.8f, 0.8f };
-	float FogDensity = 0.007f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(FogColor.x, FogColor.y, FogColor.z, FogDensity, PostProcessFog::FogFormula::ExponentialSquared));
-	//m_PostProcesses.back()->Deactivate();
-
 	if (m_bUseTAA)
 	{
 		float Alpha = 0.9f;
+
+		std::ifstream File("config.json");
+		if (!File)
+		{
+			throw std::runtime_error("config.json not found!");
+		}
+
+		nlohmann::json Config;
+		File >> Config;
+
+		for (const auto& PPConfig : Config["postProcesses"])
+		{
+			const std::string Type = PPConfig["type"];
+			if (Type == "TAA")
+			{
+				Alpha = PPConfig.value("Alpha", 0.5f);
+			}
+		}
+
 		m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(Alpha, m_CameraManager));
 		m_PostProcesses.back()->Deactivate();
 		m_pTAA = m_PostProcesses.back().get();
 	}
+
+	DirectX::XMFLOAT3 FogColor = { 0.8f, 0.8f, 0.8f };
+	float FogDensity = 0.007f;
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(FogColor.x, FogColor.y, FogColor.z, FogDensity, PostProcessFog::FogFormula::ExponentialSquared));
+	//m_PostProcesses.back()->Deactivate();
 
 	float PixelSize = 8.f;
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessPixelation>(PixelSize));
