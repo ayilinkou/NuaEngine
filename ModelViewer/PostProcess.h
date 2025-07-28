@@ -748,17 +748,15 @@ namespace PostProcessData
 	struct BloomData
 	{
 		float LuminanceThreshold;
-		int BlurStrength;
-		float Sigma;
-		float Padding;
+		DirectX::XMFLOAT3 Padding;
 	};
 }
 
 class PostProcessBloom : public PostProcess<PostProcessData::BloomData>
 {
 public:
-	PostProcessBloom(bool bActive, const PostProcessData::BloomData& Data, const std::pair<int, int>& Dimensions)
-		: PostProcess(bActive, Data, "Bloom", false), m_psFilename("Shaders/BloomPS.hlsl")
+	PostProcessBloom(bool bActive, const PostProcessData::BloomData& Data, const PostProcessData::GaussianBlurData& GaussianData,
+		const std::pair<int, int>& Dimensions) : PostProcess(bActive, Data, "Bloom", false), m_psFilename("Shaders/BloomPS.hlsl")
 	{
 		m_LuminanceEntry = "LuminancePS";
 		m_BloomEntry = "BloomPS";
@@ -809,10 +807,6 @@ public:
 		LuminousTexture->Release();
 		BlurredTexture->Release();
 
-		PostProcessData::GaussianBlurData GaussianData = {};
-		GaussianData.TexelSize = DirectX::XMFLOAT2(1.f / (float)Dimensions.first, 1.f / (float)Dimensions.second);
-		GaussianData.BlurStrength = Data.BlurStrength;
-		GaussianData.Sigma = Data.Sigma;
 		m_BlurPostProcess = std::make_unique<PostProcessGaussianBlur>(true, GaussianData, Dimensions);
 		m_BlurPostProcess->SetOwner(this);
 		m_OwnedPostProcesses.push_back(m_BlurPostProcess.get());

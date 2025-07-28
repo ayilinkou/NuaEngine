@@ -31,6 +31,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	DirectX::XMFLOAT2 PixelSize = DirectX::XMFLOAT2(1.f / (float)Dimensions.first, 1.f / (float)Dimensions.second);
 
 	PostProcessData::BloomData BloomData = {};
+	PostProcessData::GaussianBlurData BloomGaussianData = {};
 	PostProcessData::BoxBlurData BoxBlurData = {};
 	PostProcessData::ColorCorrectionData ColorData = {};
 	PostProcessData::FogData FogData = {};
@@ -55,8 +56,9 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 		if (Type == "Bloom")
 		{
 			BloomData.LuminanceThreshold = PPConfig.value("luminanceThreshold", 0.9f);
-			BloomData.BlurStrength = PPConfig.value("blurStrength", 16);
-			BloomData.Sigma = PPConfig.value("sigma", 8.f);
+			BloomGaussianData.TexelSize = PixelSize;
+			BloomGaussianData.BlurStrength = PPConfig.value("blurStrength", 16);
+			BloomGaussianData.Sigma = PPConfig.value("sigma", 8.f);
 			bBloomActive = PPConfig.value("active", false);
 		}
 		else if (Type == "BoxBlur")
@@ -124,7 +126,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessPixelation>(bPixelationActive, PixelationData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessBoxBlur>(bBoxBlurActive, BoxBlurData, Dimensions));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessGaussianBlur>(bGaussianBlurActive, GaussianBlurData, Dimensions));
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(bBloomActive, BloomData, Dimensions));
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(bBloomActive, BloomData, BloomGaussianData, Dimensions));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessToneMapper>(bToneMapperActive, ToneMapperData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessColorCorrection>(bColorActive, ColorData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessGammaCorrection>(bGammaActive, GammaData));
