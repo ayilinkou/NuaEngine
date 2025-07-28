@@ -23,7 +23,6 @@ class Model;
 class ModelData;
 class Light;
 class Camera;
-class PostProcess;
 class GameObject;
 class Skybox;
 class Landscape;
@@ -32,6 +31,7 @@ class BoxRenderer;
 class FrustumCuller;
 class CameraManager;
 class Profiler;
+class PostProcessManager;
 
 class Application
 {
@@ -57,20 +57,18 @@ public:
 	HWND GetWindowHandle() const { return m_hWnd; }
 	Graphics* GetGraphics() const { return m_Graphics; }
 
-	InstancedShader* GetInstancedShader() { return m_InstancedShader.get(); }
-	std::shared_ptr<FrustumCuller> GetFrustumCuller() { return m_FrustumCuller; }
-	std::shared_ptr<BoxRenderer> GetBoxRenderer() { return m_BoxRenderer; }
-	std::shared_ptr<Profiler> GetProfiler() { return m_Profiler; }
+	InstancedShader* GetInstancedShader() const { return m_InstancedShader.get(); }
+	std::shared_ptr<FrustumCuller> GetFrustumCuller() const { return m_FrustumCuller; }
+	std::shared_ptr<PostProcessManager> GetPostProcessManager() const { return m_PostProcessManager; }
+	std::shared_ptr<BoxRenderer> GetBoxRenderer() const { return m_BoxRenderer; }
+	std::shared_ptr<Profiler> GetProfiler() const { return m_Profiler; }
 
 	std::vector<std::shared_ptr<GameObject>>& GetGameObjects() { return m_GameObjects; }
-	std::vector<std::unique_ptr<PostProcess>>& GetPostProcesses() { return m_PostProcesses; }
 
 	double GetDeltaTime() const { return m_DeltaTime; }
 	double GetAppTime() const { return m_AppTime; }
 	uint32_t GetFrameIndex() const { return m_FrameIndex; }
 	bool& GetShowBoundingBoxesRef() { return m_bShowBoundingBoxes; }
-
-	bool IsUsingTAA() const;
 
 private:
 	bool Render();
@@ -79,8 +77,6 @@ private:
 	bool RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView);
 
 	void RenderImGui();
-
-	void EnableTAA(bool bUseTAA) { m_bUseTAA = bUseTAA; }
 
 	void ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetView> CurrentRTV, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> SecondaryRTV,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CurrentSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SecondarySRV, bool& DrawingForward);
@@ -93,6 +89,7 @@ private:
 
 	Graphics* m_Graphics;
 
+	std::shared_ptr<PostProcessManager> m_PostProcessManager;
 	std::shared_ptr<CameraManager> m_CameraManager;
 	std::shared_ptr<Profiler> m_Profiler;
 
@@ -104,8 +101,6 @@ private:
 	std::shared_ptr<Landscape> m_Landscape;
 
 	std::vector<std::shared_ptr<GameObject>> m_GameObjects;
-	std::vector<std::unique_ptr<PostProcess>> m_PostProcesses;
-	PostProcess* m_pTAA;
 
 	std::chrono::steady_clock::time_point m_LastUpdate;
 	double m_AppTime;
@@ -114,7 +109,7 @@ private:
 	bool m_bShowCursor = false;
 	bool m_bCursorToggleReleased = true;
 	bool m_bShowBoundingBoxes = false;
-	bool m_bUseTAA = false;
+	//bool m_bUseTAA = false;
 
 	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
 	ID3D11ShaderResourceView* m_TextureResourceView;

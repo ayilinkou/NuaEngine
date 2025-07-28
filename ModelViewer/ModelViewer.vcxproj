@@ -32,6 +32,7 @@
     <ClCompile Include="ImGuiManager.cpp" />
     <ClCompile Include="InputClass.cpp" />
     <ClCompile Include="InstancedShader.cpp" />
+    <ClCompile Include="JsonParser.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -41,6 +42,7 @@
     <ClCompile Include="ModelData.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="PostProcess.cpp" />
+    <ClCompile Include="PostProcessManager.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
@@ -66,6 +68,7 @@
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="InputClass.h" />
     <ClInclude Include="InstancedShader.h" />
+    <ClInclude Include="JsonParser.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Material.h" />
@@ -75,6 +78,7 @@
     <ClInclude Include="MyMacros.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="PostProcess.h" />
+    <ClInclude Include="PostProcessManager.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />

@@ -1,14 +1,10 @@
 #include "Application.h"
 
-#include <fstream>
-
 #include "Windows.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
-
-#include "nlohmann/json.hpp"
 
 #include "MyMacros.h"
 #include "Common.h"
@@ -31,6 +27,7 @@
 #include "Grass.h"
 #include "CameraManager.h"
 #include "Profiler.h"
+#include "PostProcessManager.h"
 
 Application* Application::m_Instance = nullptr;
 
@@ -41,9 +38,6 @@ Application::Application()
 	m_AppTime = 0.0;
 	m_hWnd = {};
 	m_TextureResourceView = {};
-
-	m_pTAA = nullptr;
-	EnableTAA(true);
 }
 
 bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
@@ -57,6 +51,10 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	m_CameraManager = std::make_shared<CameraManager>();
 	m_Profiler = std::make_shared<Profiler>(m_Graphics->GetDevice(), m_Graphics->GetDeviceContext());
+
+	m_PostProcessManager = std::make_shared<PostProcessManager>();
+	bResult = m_PostProcessManager->Init(m_Profiler, m_CameraManager);
+	assert(bResult);
 	
 	m_FrustumCuller = std::make_shared<FrustumCuller>();
 	bResult = m_FrustumCuller->Init(m_CameraManager, m_Profiler);
@@ -80,7 +78,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bResult = m_Skybox->Init(m_CameraManager, m_Profiler);
 	assert(bResult);
 
-	UINT NumChunks = 8u;
+	UINT NumChunks = 16u;
 	float ChunkSize = 25.f;
 	float HeightDisplacement = 0.f;
 	m_Landscape = std::make_shared<Landscape>(NumChunks, ChunkSize, HeightDisplacement, m_CameraManager);
@@ -136,72 +134,6 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	m_TextureResourceView = static_cast<ID3D11ShaderResourceView*>(ResourceManager::GetSingletonPtr()->LoadTexture(m_QuadTexturePath));
 
-	PostProcess::InitStatics(m_Profiler);
-
-	if (m_bUseTAA)
-	{
-		float Alpha = 0.9f;
-
-		std::ifstream File("config.json");
-		if (!File)
-		{
-			throw std::runtime_error("config.json not found!");
-		}
-
-		nlohmann::json Config;
-		File >> Config;
-
-		for (const auto& PPConfig : Config["postProcesses"])
-		{
-			const std::string Type = PPConfig["type"];
-			if (Type == "TAA")
-			{
-				Alpha = PPConfig.value("Alpha", 0.5f);
-			}
-		}
-
-		m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(Alpha, m_CameraManager));
-		m_PostProcesses.back()->Deactivate();
-		m_pTAA = m_PostProcesses.back().get();
-	}
-
-	DirectX::XMFLOAT3 FogColor = { 0.8f, 0.8f, 0.8f };
-	float FogDensity = 0.007f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(FogColor.x, FogColor.y, FogColor.z, FogDensity, PostProcessFog::FogFormula::ExponentialSquared));
-	//m_PostProcesses.back()->Deactivate();
-
-	float PixelSize = 8.f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessPixelation>(PixelSize));
-	m_PostProcesses.back()->Deactivate();
-	
-	int BlurStrength = 30;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessBoxBlur>(BlurStrength));
-	m_PostProcesses.back()->Deactivate();
-	
-	BlurStrength = 30;
-	float Sigma = 4.f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessGaussianBlur>(BlurStrength, Sigma));
-	m_PostProcesses.back()->Deactivate();
-
-	float LuminanceThreshold = 0.9f;
-	BlurStrength = 16;
-	Sigma = 8.f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(LuminanceThreshold, BlurStrength, Sigma));
-	m_PostProcesses.back()->Deactivate();
-
-	float WhiteLevel = 1.5f;
-	float Exposure = 1.f;
-	float Bias = 1.f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessToneMapper>(WhiteLevel, Exposure, Bias, PostProcessToneMapper::ToneMapperFormula::HillACES));
-	
-	float Contrast = 1.f;
-	float Brightness = 0.f;
-	float Saturation = 1.15f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessColorCorrection>(Contrast, Brightness, Saturation));
-
-	float Gamma = 2.2f;
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessGammaCorrection>(Gamma));
-
 	return true;
 }
 
@@ -210,8 +142,6 @@ void Application::Shutdown()
 	ResourceManager::GetSingletonPtr()->UnloadTexture(m_QuadTexturePath);
 	m_TextureResourceView = nullptr;
 	
-	PostProcess::ShutdownStatics();
-	m_PostProcesses.clear();
 	m_GameObjects.clear();
 
 	m_Skybox.reset();
@@ -220,6 +150,7 @@ void Application::Shutdown()
 	m_Landscape.reset();
 	m_FrustumCuller.reset();
 	m_BoxRenderer.reset();
+	m_PostProcessManager.reset();
 
 	ResourceManager::GetSingletonPtr()->Shutdown();
 
@@ -262,11 +193,6 @@ bool Application::Frame()
 	return true;
 }
 
-bool Application::IsUsingTAA() const
-{
-	return m_bUseTAA && m_pTAA && m_pTAA->IsActive();
-}
-
 bool Application::Render()
 {			
 	bool Result;
@@ -289,11 +215,11 @@ bool Application::Render()
 	unsigned int Stride, Offset;
 	Stride = sizeof(Vertex);
 	Offset = 0u;
-	m_Graphics->GetDeviceContext()->IASetVertexBuffers(0u, 1u, PostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
+	m_Graphics->GetDeviceContext()->IASetVertexBuffers(0u, 1u, IPostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
 	m_Graphics->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_Graphics->GetDeviceContext()->IASetInputLayout(PostProcess::GetQuadInputLayout().Get());
-	m_Graphics->GetDeviceContext()->IASetIndexBuffer(PostProcess::GetQuadIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0u);
-	m_Graphics->GetDeviceContext()->VSSetShader(PostProcess::GetQuadVertexShader(), nullptr, 0u);
+	m_Graphics->GetDeviceContext()->IASetInputLayout(IPostProcess::GetQuadInputLayout().Get());
+	m_Graphics->GetDeviceContext()->IASetIndexBuffer(IPostProcess::GetQuadIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0u);
+	m_Graphics->GetDeviceContext()->VSSetShader(IPostProcess::GetQuadVertexShader(), nullptr, 0u);
 	m_Graphics->DisableDepthWriteAlwaysPass(); // simpler for now but might need to refactor when wanting to use depth data in post processes
 	ApplyPostProcesses(CurrentRTV, SecondaryRTV, CurrentSRV, SecondarySRV, DrawingForward);
 
@@ -302,7 +228,7 @@ bool Application::Render()
 
 	// use last used post process texture to draw a full screen quad
 	m_Graphics->SetRasterStateBackFaceCull(true);
-	m_Graphics->GetDeviceContext()->PSSetShader(PostProcess::GetEmptyPostProcess()->GetPixelShader().Get(), NULL, 0u);
+	m_Graphics->GetDeviceContext()->PSSetShader(IPostProcess::GetEmptyPostProcess()->GetPixelShader().Get(), NULL, 0u);
 	m_Graphics->GetDeviceContext()->PSSetShaderResources(0u, 1u, DrawingForward ? CurrentSRV.GetAddressOf() : SecondarySRV.GetAddressOf());
 	m_Graphics->GetDeviceContext()->DrawIndexed(6u, 0u, 0);
 	m_Profiler->AddDrawCall();
@@ -467,13 +393,13 @@ bool Application::RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>
 	Stride = sizeof(Vertex);
 	Offset = 0u;
 
-	m_Graphics->GetDeviceContext()->IASetVertexBuffers(0u, 1u, PostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
-	m_Graphics->GetDeviceContext()->IASetIndexBuffer(PostProcess::GetQuadIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0u);
-	m_Graphics->GetDeviceContext()->VSSetShader(PostProcess::GetQuadVertexShader(), nullptr, 0u);
+	m_Graphics->GetDeviceContext()->IASetVertexBuffers(0u, 1u, IPostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
+	m_Graphics->GetDeviceContext()->IASetIndexBuffer(IPostProcess::GetQuadIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0u);
+	m_Graphics->GetDeviceContext()->VSSetShader(IPostProcess::GetQuadVertexShader(), nullptr, 0u);
 	
 	m_Graphics->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_Graphics->GetDeviceContext()->IASetInputLayout(m_Shader->GetInputLayout().Get());
-	m_Graphics->GetDeviceContext()->PSSetShader(PostProcess::GetEmptyPostProcess()->GetPixelShader().Get(), nullptr, 0u);
+	m_Graphics->GetDeviceContext()->PSSetShader(IPostProcess::GetEmptyPostProcess()->GetPixelShader().Get(), nullptr, 0u);
 	m_Graphics->GetDeviceContext()->PSSetShaderResources(0, 1, TextureView.GetAddressOf());
 
 	m_Graphics->GetDeviceContext()->DrawIndexed(6u, 0u, 0);
@@ -488,7 +414,7 @@ void Application::RenderImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGuiManager::RenderPostProcessWindow(m_Profiler->GetRenderStats().PostProcessPipelineTime);
+	ImGuiManager::RenderPostProcessWindow(m_Profiler->GetRenderStats().PostProcessPipelineTime, m_PostProcessManager->GetPostProcesses());
 	ImGuiManager::RenderWorldHierarchyWindow();
 	ImGuiManager::RenderCamerasWindow(m_CameraManager);
 	ImGuiManager::RenderStatsWindow(m_Profiler->GetRenderStats());
@@ -504,14 +430,15 @@ void Application::ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetVi
 	ID3D11DeviceContext* pContext = m_Graphics->GetDeviceContext();
 	m_Profiler->StartGPUTimer();
 	
-	for (int i = 0; i < m_PostProcesses.size(); i++)
+	auto& PostProcesses = m_PostProcessManager->GetPostProcesses();
+	for (int i = 0; i < PostProcesses.size(); i++)
 	{
-		if (!m_PostProcesses[i]->GetIsActive())
+		if (!PostProcesses[i]->GetIsActive())
 		{
 			continue;
 		}
 
-		m_PostProcesses[i]->ApplyPostProcess(pContext, DrawingForward ? SecondaryRTV : CurrentRTV,
+		PostProcesses[i]->ApplyPostProcess(pContext, DrawingForward ? SecondaryRTV : CurrentRTV,
 												DrawingForward ? CurrentSRV : SecondarySRV);
 
 		DrawingForward = !DrawingForward;

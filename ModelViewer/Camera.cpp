@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "Application.h"
 #include "Graphics.h"
+#include "PostProcessManager.h"
 
 Camera::Camera(const DirectX::XMMATRIX& Proj) : m_ProjMatrix(Proj)
 {
@@ -114,7 +115,7 @@ DirectX::XMFLOAT3 Camera::GetRotatedLookRight() const
 
 void Camera::GetProjMatrix(DirectX::XMMATRIX& ProjMatrix)
 {
-	if (!Application::GetSingletonPtr()->IsUsingTAA())
+	if (!Application::GetSingletonPtr()->GetPostProcessManager()->IsUsingTAA())
 	{
 		ProjMatrix = m_ProjMatrix;
 		return;
@@ -131,7 +132,7 @@ void Camera::GetProjMatrix(DirectX::XMMATRIX& ProjMatrix)
 
 DirectX::XMMATRIX Camera::GetProjMatrix()
 {
-	if (!Application::GetSingletonPtr()->IsUsingTAA())
+	if (!Application::GetSingletonPtr()->GetPostProcessManager()->IsUsingTAA())
 	{
 		return m_ProjMatrix;
 	}

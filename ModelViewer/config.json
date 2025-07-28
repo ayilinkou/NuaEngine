@@ -2,13 +2,58 @@
   "postProcesses": [
     {
       "type": "Bloom",
-      "LuminanceThreshold": 0.9,
+      "active": false,
+      "luminanceThreshold": 0.8,
       "BlurStrength": 16,
-      "Sigma": 8.0
+      "sigma": 8.0
+    },
+    {
+      "type": "BoxBlur",
+      "active": false,
+      "blurStrength": 30
+    },
+    {
+      "type": "ColorCorrection",
+      "active": true,
+      "contrast": 1.0,
+      "brightness": 0.0,
+      "saturation": 1.15
+    },
+    {
+      "type": "Fog",
+      "active": true,
+      "color": [ 0.8, 0.8, 0.8 ],
+      "formula": "ExponentialSquared",
+      "density": 0.0007
+    },
+    {
+      "type": "GammaCorrection",
+      "active": true,
+      "gamma": 2.2
+    },
+    {
+      "type": "GaussianBlur",
+      "active": false,
+      "blurStrength": 30,
+      "sigma": 4.0
+    },
+    {
+      "type": "Pixelation",
+      "active": false,
+      "pixelSize": 8.0
     },
     {
       "type": "TAA",
-      "Alpha": 0.8
+      "active": true,
+      "alpha": 0.8
+    },
+    {
+      "type": "ToneMapper",
+      "active": true,
+      "whiteLevel": 1.5,
+      "exposure": 1.0,
+      "bias": 1.0,
+      "formula": "HillACES"
     }
   ]
 }

@@ -23,10 +23,9 @@ ImGuiManager::~ImGuiManager()
 	ImGui::DestroyContext();
 }
 
-void ImGuiManager::RenderPostProcessWindow(double PipelineTime)
+void ImGuiManager::RenderPostProcessWindow(double PipelineTime, std::vector<std::unique_ptr<IPostProcess>>& PostProcesses)
 {
 	Application* pApp = Application::GetSingletonPtr();
-	auto& PostProcesses = pApp->GetPostProcesses();
 	
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 	if (ImGui::Begin("Post Processes", nullptr, ImGuiWindowFlags_NoMove) && !PostProcesses.empty())
@@ -46,6 +45,16 @@ void ImGuiManager::RenderPostProcessWindow(double PipelineTime)
 				PostProcesses[i]->RenderControls();
 			}
 			ImGui::PopID();
+		}
+	}
+
+	ImGui::Dummy(ImVec2(0.f, 10.f));
+	if (ImGui::Button("Reset ALL to defaults"))
+	{
+		for (const std::unique_ptr<IPostProcess>& pp : PostProcesses)
+		{
+			pp->ResetToDefaults();
+			pp->ResetToInitialActive();
 		}
 	}
 
