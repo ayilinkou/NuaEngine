@@ -95,39 +95,6 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	Camera->SetName("Main Camera");
 	m_GameObjects.push_back(Camera);
 
-	/*m_GameObjects.emplace_back(std::make_shared<GameObject>());
-	m_GameObjects.back()->SetPosition(0.f, 0.f, 0.f);
-	m_GameObjects.back()->SetName("Car_1");
-	m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/american_fullsize_73/scene.gltf", "Models/american_fullsize_73/"));
-
-	m_GameObjects.emplace_back(std::make_shared<GameObject>());
-	m_GameObjects.back()->SetPosition(1.f, 1.f, 0.f);
-	m_GameObjects.back()->SetName("Car_2");
-	m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/american_fullsize_73/scene.gltf", "Models/american_fullsize_73/"));*/
-
-	/*for (int i = 0; i < 16; i++)
-	{
-		for (int j = 0; j < 16; j++)
-		{
-			m_GameObjects.emplace_back(std::make_shared<GameObject>());
-			m_GameObjects.back()->SetPosition((float)i * 2.f, 15.f, (float)j * 2.f);
-			m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/fantasy_sword_stylized/scene.gltf", "Models/fantasy_sword_stylized/"));
-		}
-	}*/
-
-	/*m_GameObjects.emplace_back(std::make_shared<GameObject>());
-	m_GameObjects.back()->SetPosition(1.7f, 2.5f, -1.7f);
-	m_GameObjects.back()->SetScale(0.1f, 0.1f, 0.1f);
-	m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/sphere.obj"));
-	m_GameObjects.back()->AddComponent(std::make_shared<PointLight>());*/
-
-	/*m_GameObjects.emplace_back(std::make_shared<GameObject>());
-	m_GameObjects.back()->SetName("Point Light");
-	m_GameObjects.back()->SetPosition(-2.f, 3.f, 0.f);
-	m_GameObjects.back()->SetScale(0.1f);
-	m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/sphere.obj"));
-	m_GameObjects.back()->AddComponent(std::make_shared<PointLight>());*/
-
 	m_GameObjects.emplace_back(std::make_shared<GameObject>());
 	m_GameObjects.back()->SetName("Directional Light");
 	m_GameObjects.back()->AddComponent(std::make_shared<DirectionalLight>());
@@ -169,13 +136,7 @@ bool Application::Frame()
 	m_AppTime += m_DeltaTime;
 	m_FrameIndex++;
 
-	m_Profiler->ClearRenderStats();
-	m_Profiler->SetFrameTime(m_DeltaTime * 1000.0);
-	m_Profiler->SetFPS(1.0 / m_DeltaTime);
-
-	//float RotationAngle = (float)fmod(m_AppTime, 360.f);
-	//m_GameObjects[1]->SetRotation(0.f, RotationAngle * 30.f, 0.f);
-	//m_GameObjects[2]->SetRotation(0.f, -RotationAngle * 20.f, 0.f);
+	m_Profiler->Tick(m_DeltaTime);
 
 	if (GetForegroundWindow() == m_hWnd)
 	{

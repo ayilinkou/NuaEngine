@@ -29,9 +29,8 @@ class Profiler
 public:
 	Profiler(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
-	void ClearRenderStats();
-	void SetFPS(double FPS) { m_RenderStats.FPS = FPS; }
-	void SetFrameTime(double FrameTime) { m_RenderStats.FrameTime = FrameTime; }
+	void Tick(double DeltaTime);
+
 	void SetPostProcessPipelineTime(double PostProcessPipelineTime) { m_RenderStats.PostProcessPipelineTime = PostProcessPipelineTime; }
 	void AddTrianglesRendered(const std::string& Name, UINT64 TriangleCount) { m_RenderStats.TrianglesRendered.push_back({ Name, TriangleCount }); }
 	void AddInstancesRendered(const std::string& Name, UINT64 InstanceCount) { m_RenderStats.InstancesRendered.push_back({ Name, InstanceCount }); }
@@ -46,6 +45,7 @@ public:
 
 private:
 	bool SetupQueries();
+	void ClearRenderStats();
 
 private:
 	RenderStats m_RenderStats;

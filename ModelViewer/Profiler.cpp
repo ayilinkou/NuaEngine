@@ -7,6 +7,13 @@ Profiler::Profiler(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) : m_Dev
 	assert(Result);
 }
 
+void Profiler::Tick(double DeltaTime)
+{
+	ClearRenderStats();
+	m_RenderStats.FrameTime = (DeltaTime * 1000.0);
+	m_RenderStats.FPS = (1.0 / DeltaTime);
+}
+
 void Profiler::ClearRenderStats()
 {
 	m_RenderStats.TrianglesRendered.clear();
