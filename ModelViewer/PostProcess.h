@@ -52,8 +52,8 @@ public:
 		D3D11_INPUT_ELEMENT_DESC VertexLayout[3] = {};
 		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
 		unsigned int NumElements;
-		GetProfiler() = Profiler;
-
+		
+		ms_Profiler = Profiler;
 		ms_QuadVertexShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11VertexShader>(ms_vsFilename, "main", vsBuffer);
 
 		VertexLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -828,7 +828,7 @@ public:
 			bDirty = true;
 
 		if (bDirty)
-			UpdateBuffer();
+			UpdateConstantBuffer();
 
 		m_BlurPostProcess->RenderControls();
 		IPostProcess::RenderControls();
@@ -861,16 +861,6 @@ private:
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
 		GetProfiler()->AddDrawCall();
-	}
-
-	void UpdateBuffer()
-	{
-		HRESULT hResult;
-		DirectX::XMFLOAT4 Data = DirectX::XMFLOAT4(m_CurrentSettings.LuminanceThreshold, 0.f, 0.f, 0.f);
-		D3D11_MAPPED_SUBRESOURCE MappedSubresource = {};
-		ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDeviceContext()->Map(m_ConstantBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedSubresource));
-		memcpy(MappedSubresource.pData, &Data, sizeof(DirectX::XMFLOAT4));
-		Graphics::GetSingletonPtr()->GetDeviceContext()->Unmap(m_ConstantBuffer.Get(), 0u);
 	}
 
 private:

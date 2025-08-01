@@ -6,6 +6,24 @@
 #define MAX_GRASS_PER_CHUNK 10000
 #define MAX_INSTANCE_COUNT 1024
 
+struct FrameCBuffer
+{
+    float4x4 CurrView;
+    float4x4 CurrProj;
+    float4x4 CurrViewProj;
+    float4x4 CurrProjJittered;
+    float4x4 CurrViewProjJittered;
+    float4x4 PrevView;
+    float4x4 PrevProj;
+    float4x4 PrevViewProj;
+    float4x4 PrevProjJittered;
+    float4x4 PrevViewProjJittered;
+    float3 CameraPos;
+    float CurrTime;
+    float PrevTime;
+    float3 Padding;
+};
+
 struct GrassData
 {
 	float2 Offset;

@@ -52,7 +52,7 @@ public:
 	
 	bool Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd);
 	void Shutdown();
-	bool Frame();
+	bool Tick();
 
 	HWND GetWindowHandle() const { return m_hWnd; }
 	Graphics* GetGraphics() const { return m_Graphics; }

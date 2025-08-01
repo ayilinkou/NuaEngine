@@ -86,7 +86,7 @@ bool SystemClass::Frame()
 		return false;
 	}
 
-	Result = Application::GetSingletonPtr()->Frame();
+	Result = Application::GetSingletonPtr()->Tick();
 	if (!Result)
 	{
 		return false;

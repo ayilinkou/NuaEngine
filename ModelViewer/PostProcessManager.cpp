@@ -13,6 +13,7 @@ void PostProcessManager::Shutdown()
 {
 	IPostProcess::ShutdownStatics();
 	m_PostProcesses.clear();
+	m_pTAA = nullptr;
 }
 
 bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_ptr<CameraManager> pCameraManager)
@@ -120,9 +121,9 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 		}
 	}
 
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(bFogActive, FogData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(bTAAActive, TAAData, pCameraManager));
 	m_pTAA = m_PostProcesses.back().get();
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(bFogActive, FogData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessPixelation>(bPixelationActive, PixelationData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessBoxBlur>(bBoxBlurActive, BoxBlurData, Dimensions));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessGaussianBlur>(bGaussianBlurActive, GaussianBlurData, Dimensions));

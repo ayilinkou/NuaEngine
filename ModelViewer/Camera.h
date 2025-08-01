@@ -26,24 +26,17 @@ public:
 
 	void GetViewMatrix(DirectX::XMMATRIX& ViewMatrix) { ViewMatrix = m_ViewMatrix; }
 	DirectX::XMMATRIX GetViewMatrix() const { return m_ViewMatrix; }
-	void GetProjMatrix(DirectX::XMMATRIX& ProjMatrix);
-	DirectX::XMMATRIX GetProjMatrix();
-	void GetProjMatrixJitterFree(DirectX::XMMATRIX& ProjMatrix) { ProjMatrix = m_ProjMatrix; }
-	DirectX::XMMATRIX GetProjMatrixJitterFree() const { return m_ProjMatrix; }
+	void GetProjMatrix(DirectX::XMMATRIX& ProjMatrix) { ProjMatrix = m_ProjMatrix; }
+	DirectX::XMMATRIX GetProjMatrix() { return m_ProjMatrix; }
 	void GetViewProjMatrix(DirectX::XMMATRIX& ViewProj) { ViewProj = m_ViewMatrix * GetProjMatrix(); }
 	DirectX::XMMATRIX GetViewProjMatrix() { return m_ViewMatrix * GetProjMatrix(); }
 
 	bool ShouldVisualiseFrustum() const { return m_bVisualiseFrustum; }
 
 private:
-	float Halton(int index, int base) const;
-	void CalculateJitteredProjMatrix(uint32_t FrameIndex);
-
-private:
 	DirectX::XMFLOAT3 m_LookDir;
 	DirectX::XMMATRIX m_ViewMatrix;
 	DirectX::XMMATRIX m_ProjMatrix;
-	DirectX::XMMATRIX m_ProjMatrixJittered;
 
 	bool m_bVisualiseFrustum;
 	uint32_t m_LastCalculatedFrame = 0;

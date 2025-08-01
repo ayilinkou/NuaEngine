@@ -16,6 +16,24 @@
 
 #include <utility>
 
+struct FrameCBuffer
+{
+	DirectX::XMMATRIX CurrView;
+	DirectX::XMMATRIX CurrProj;
+	DirectX::XMMATRIX CurrViewProj;
+	DirectX::XMMATRIX CurrProjJittered;
+	DirectX::XMMATRIX CurrViewProjJittered;
+	DirectX::XMMATRIX PrevView;
+	DirectX::XMMATRIX PrevProj;
+	DirectX::XMMATRIX PrevViewProj;
+	DirectX::XMMATRIX PrevProjJittered;
+	DirectX::XMMATRIX PrevViewProjJittered;
+	DirectX::XMFLOAT3 CameraPos;
+	float CurrTime;
+	float PrevTime;
+	DirectX::XMFLOAT3 Padding;
+};
+
 class Graphics
 {
 private:
@@ -44,6 +62,9 @@ public:
 	void SetRasterStateBackFaceCull(bool bShouldCull);
 	void SetWireframeRasterState();
 
+	bool CreateFrameConstantBuffer();
+	void UpdateFrameConstantBuffer(const FrameCBuffer& NewFrameCBufferData);
+
 private:
 	bool m_VSync_Enabled;
 	int m_VideoCardMemory;
@@ -68,6 +89,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_WireframeRasterState;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SamplerState;
 	Microsoft::WRL::ComPtr<ID3D11Query> m_PipelineStatsQuery;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_FrameCBuffer;
 
 	D3D11_VIEWPORT m_Viewport;
 
@@ -75,6 +97,7 @@ private:
 	float m_NearPlane;
 	float m_FarPlane;
 	float m_ScreenAspect;
+	FrameCBuffer m_FrameCBufferData;
 
 public:
 	ID3D11Device* GetDevice() const { return m_Device.Get(); }

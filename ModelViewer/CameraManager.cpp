@@ -1,9 +1,25 @@
 #include "CameraManager.h"
-
 #include "Camera.h"
+#include "PostProcessManager.h"
 
 CameraManager::CameraManager() : m_ActiveCameraID(0)
 {
+}
+
+CameraManager::~CameraManager()
+{
+	m_PostProcessManager.reset();
+}
+
+void CameraManager::Tick(uint32_t FrameIndex, const std::pair<int, int>& Dimensions)
+{
+	for (const std::shared_ptr<Camera>& c : m_Cameras)
+	{
+		c->CalcViewMatrix();
+	}
+
+	m_PrevJitteredProjMatrix = m_CurrJitteredProjMatrix;
+	CalcJitteredMatrices(FrameIndex, Dimensions);
 }
 
 std::shared_ptr<Camera>& CameraManager::CreateCamera(DirectX::XMMATRIX ProjMatrix, bool bSetActiveCamera)
@@ -30,4 +46,44 @@ void CameraManager::SetActiveCamera(int ID)
 	{
 		m_OnActiveCameraChanged.Broadcast();
 	}
+}
+
+float CameraManager::Halton(int index, int base) const
+{
+	float f = 1.f;
+	float result = 0.f;
+	while (index > 0)
+	{
+		f /= base;
+		result += f * (index % base);
+		index = index / base;
+	}
+	return result;
+}
+
+void CameraManager::CalcJitteredMatrices(uint32_t FrameIndex, const std::pair<int, int>& Dimensions)
+{
+	if (!m_PostProcessManager->IsUsingTAA())
+	{
+		m_ActiveCamera->GetProjMatrix(m_CurrJitteredProjMatrix);
+		m_ActiveCamera->GetViewProjMatrix(m_CurrJitteredViewProjMatrix);
+		return;
+	}
+	
+	const int NumSamples = 16;
+
+	float JitterX = Halton(FrameIndex % NumSamples, 2) - 0.5f;
+	float JitterY = Halton(FrameIndex % NumSamples, 3) - 0.5f;
+
+	JitterX *= (2.f / (float)Dimensions.first);
+	JitterY *= (2.f / (float)Dimensions.second);
+
+	DirectX::XMFLOAT4X4 TempMatrix;
+	DirectX::XMStoreFloat4x4(&TempMatrix, m_ActiveCamera->GetProjMatrix());
+
+	TempMatrix._31 += JitterX;
+	TempMatrix._32 += JitterY;
+
+	m_CurrJitteredProjMatrix = DirectX::XMLoadFloat4x4(&TempMatrix);
+	m_CurrJitteredViewProjMatrix = m_ActiveCamera->GetViewMatrix() * m_CurrJitteredProjMatrix;
 }

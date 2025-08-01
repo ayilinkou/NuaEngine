@@ -30,6 +30,7 @@ Graphics* Graphics::GetSingletonPtr()
 bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hwnd, bool Fullscreen, float ScreenDepth, float ScreenNear)
 {
 	HRESULT hResult;
+	bool Result;
 	IDXGIFactory* Factory;
 	IDXGIAdapter* Adapter;
 	IDXGIOutput* AdapterOutput;
@@ -348,6 +349,16 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	NAME_D3D_RESOURCE(m_VelocityRTV, "Velocity buffer RTV");
 	NAME_D3D_RESOURCE(m_VelocitySRV, "Velocity buffer SRV");
 
+	Result = CreateFrameConstantBuffer();
+	assert(Result);
+
+	m_DeviceContext->VSSetConstantBuffers(0u, 1u, m_FrameCBuffer.GetAddressOf());
+	m_DeviceContext->HSSetConstantBuffers(0u, 1u, m_FrameCBuffer.GetAddressOf());
+	m_DeviceContext->DSSetConstantBuffers(0u, 1u, m_FrameCBuffer.GetAddressOf());
+	m_DeviceContext->GSSetConstantBuffers(0u, 1u, m_FrameCBuffer.GetAddressOf());
+	m_DeviceContext->PSSetConstantBuffers(0u, 1u, m_FrameCBuffer.GetAddressOf());
+	m_DeviceContext->CSSetConstantBuffers(0u, 1u, m_FrameCBuffer.GetAddressOf());
+
 	ImGui_ImplDX11_Init(m_Device.Get(), m_DeviceContext.Get());
 
 	return true;
@@ -475,6 +486,41 @@ void Graphics::SetRasterStateBackFaceCull(bool bShouldCull)
 void Graphics::SetWireframeRasterState()
 {
 	GetDeviceContext()->RSSetState(m_WireframeRasterState.Get());
+}
+
+bool Graphics::CreateFrameConstantBuffer()
+{
+	D3D11_BUFFER_DESC Desc = {};
+	Desc.ByteWidth = sizeof(FrameCBuffer);
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	
+	return SUCCEEDED(m_Device->CreateBuffer(&Desc, nullptr, &m_FrameCBuffer));
+}
+
+void Graphics::UpdateFrameConstantBuffer(const FrameCBuffer& NewFrameCBufferData)
+{
+	m_FrameCBufferData.PrevView = m_FrameCBufferData.CurrView;
+	m_FrameCBufferData.PrevProj = m_FrameCBufferData.CurrProj;
+	m_FrameCBufferData.PrevViewProj = m_FrameCBufferData.CurrViewProj;
+	m_FrameCBufferData.PrevProjJittered = m_FrameCBufferData.CurrProjJittered;
+	m_FrameCBufferData.PrevViewProjJittered = m_FrameCBufferData.CurrViewProjJittered;
+	m_FrameCBufferData.PrevTime = m_FrameCBufferData.CurrTime;
+
+	m_FrameCBufferData.CurrView = NewFrameCBufferData.CurrView;
+	m_FrameCBufferData.CurrProj = NewFrameCBufferData.CurrProj;
+	m_FrameCBufferData.CurrViewProj = NewFrameCBufferData.CurrViewProj;
+	m_FrameCBufferData.CurrProjJittered = NewFrameCBufferData.CurrProjJittered;
+	m_FrameCBufferData.CurrViewProjJittered = NewFrameCBufferData.CurrViewProjJittered;
+	m_FrameCBufferData.CameraPos = NewFrameCBufferData.CameraPos;
+	m_FrameCBufferData.CurrTime = NewFrameCBufferData.CurrTime;
+
+	HRESULT hResult;
+	D3D11_MAPPED_SUBRESOURCE MappedSubresource = {};
+	ASSERT_NOT_FAILED(m_DeviceContext->Map(m_FrameCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedSubresource));
+	memcpy(MappedSubresource.pData, &m_FrameCBufferData, sizeof(FrameCBuffer));
+	m_DeviceContext->Unmap(m_FrameCBuffer.Get(), 0u);
 }
 
 DirectX::XMMATRIX Graphics::GetDefaultProjMatrix() const

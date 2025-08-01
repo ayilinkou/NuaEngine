@@ -55,6 +55,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	m_PostProcessManager = std::make_shared<PostProcessManager>();
 	bResult = m_PostProcessManager->Init(m_Profiler, m_CameraManager);
 	assert(bResult);
+	m_CameraManager->SetPostProcessManager(m_PostProcessManager);
 	
 	m_FrustumCuller = std::make_shared<FrustumCuller>();
 	bResult = m_FrustumCuller->Init(m_CameraManager, m_Profiler);
@@ -106,9 +107,6 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 void Application::Shutdown()
 {		
-	ResourceManager::GetSingletonPtr()->UnloadTexture(m_QuadTexturePath);
-	m_TextureResourceView = nullptr;
-	
 	m_GameObjects.clear();
 
 	m_Skybox.reset();
@@ -117,9 +115,12 @@ void Application::Shutdown()
 	m_Landscape.reset();
 	m_FrustumCuller.reset();
 	m_BoxRenderer.reset();
+	m_CameraManager.reset();
 	m_PostProcessManager.reset();
 
+	ResourceManager::GetSingletonPtr()->UnloadTexture(m_QuadTexturePath);
 	ResourceManager::GetSingletonPtr()->Shutdown();
+	m_TextureResourceView = nullptr;
 
 	if (m_Graphics)
 	{
@@ -128,7 +129,7 @@ void Application::Shutdown()
 	}
 }
 
-bool Application::Frame()
+bool Application::Tick()
 {	
 	auto Now = std::chrono::steady_clock::now();
 	m_DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(Now - m_LastUpdate).count() / 1000000.0; // in seconds
@@ -137,14 +138,25 @@ bool Application::Frame()
 	m_FrameIndex++;
 
 	m_Profiler->Tick(m_DeltaTime);
+	m_CameraManager->Tick(m_FrameIndex, m_Graphics->GetRenderTargetDimensions());
+	m_BoxRenderer->ClearBoxes();
 
 	if (GetForegroundWindow() == m_hWnd)
 	{
 		ProcessInput();
 	}
 
-	m_BoxRenderer->ClearBoxes();
-	
+	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
+	FrameCBuffer NewFrameCBuffer = {};
+	ActiveCamera->GetViewMatrix(NewFrameCBuffer.CurrView);
+	ActiveCamera->GetProjMatrix(NewFrameCBuffer.CurrProj);
+	ActiveCamera->GetViewProjMatrix(NewFrameCBuffer.CurrViewProj);
+	m_CameraManager->GetCurrJitteredProjMatrix(NewFrameCBuffer.CurrProjJittered);
+	m_CameraManager->GetCurrJitteredViewProjMatrix(NewFrameCBuffer.CurrViewProjJittered);
+	NewFrameCBuffer.CameraPos = ActiveCamera->GetPosition();
+	NewFrameCBuffer.CurrTime = (float)m_AppTime;
+	m_Graphics->UpdateFrameConstantBuffer(NewFrameCBuffer);
+
 	bool Result = Render();
 	if (!Result)
 	{
@@ -248,11 +260,6 @@ bool Application::Render()
 
 bool Application::RenderScene()
 {
-	for (const std::shared_ptr<Camera>& c : m_CameraManager->GetCameras())
-	{
-		c->CalcViewMatrix();
-	}
-	
 	if (m_Skybox.get())
 	{
 		m_Skybox->Render(); // this should probably be rendered last to reduce overdraw
@@ -277,8 +284,8 @@ void Application::RenderModels()
 	DirectX::XMMATRIX View, Proj, ViewProj;
 	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
 	ActiveCamera->GetViewMatrix(View);
-	ActiveCamera->GetProjMatrix(Proj);
-	ActiveCamera->GetViewProjMatrix(ViewProj);
+	Proj = m_CameraManager->GetCurrJitteredProjMatrix();
+	ViewProj = View * Proj;
 
 	std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
 
