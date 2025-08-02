@@ -34,6 +34,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	PostProcessData::BloomData BloomData = {};
 	PostProcessData::GaussianBlurData BloomGaussianData = {};
 	PostProcessData::BoxBlurData BoxBlurData = {};
+	PostProcessData::ChromaticAberrationData ChromaticData = {};
 	PostProcessData::ColorCorrectionData ColorData = {};
 	PostProcessData::FogData FogData = {};
 	PostProcessData::GammaCorrectionData GammaData = {};
@@ -43,6 +44,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	PostProcessData::ToneMapperData ToneMapperData = {};
 	bool bBloomActive;
 	bool bBoxBlurActive;
+	bool bChromaticActive;
 	bool bColorActive;
 	bool bFogActive;
 	bool bGammaActive;
@@ -67,6 +69,12 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 			BoxBlurData.BlurStrength = PPConfig.value("blurStrength", 30);
 			BoxBlurData.TexelSize = PixelSize;
 			bBoxBlurActive = PPConfig.value("active", false);
+		}
+		else if (Type == "ChromaticAberration")
+		{
+			ChromaticData.Scale = PPConfig.value("scale", 1.f);
+			ChromaticData.PixelSize = PixelSize;
+			bChromaticActive = PPConfig.value("active", false);
 		}
 		else if (Type == "ColorCorrection")
 		{
@@ -128,6 +136,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessBoxBlur>(bBoxBlurActive, BoxBlurData, Dimensions));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessGaussianBlur>(bGaussianBlurActive, GaussianBlurData, Dimensions));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessBloom>(bBloomActive, BloomData, BloomGaussianData, Dimensions));
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessChromaticAberration>(bChromaticActive, ChromaticData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessToneMapper>(bToneMapperActive, ToneMapperData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessColorCorrection>(bColorActive, ColorData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessGammaCorrection>(bGammaActive, GammaData));

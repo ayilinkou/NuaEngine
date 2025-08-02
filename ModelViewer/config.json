@@ -13,6 +13,11 @@
       "blurStrength": 30
     },
     {
+      "type": "ChromaticAberration",
+      "active": false,
+      "scale": 5.0
+    },
+    {
       "type": "ColorCorrection",
       "active": true,
       "contrast": 1.0,

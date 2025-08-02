@@ -311,5 +311,8 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="config.json" />
+    <None Include="Shaders\ChromaticAberrationPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
