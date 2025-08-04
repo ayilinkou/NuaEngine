@@ -5,8 +5,6 @@
 #include "TessellatedPlane.h"
 #include "MyMacros.h"
 #include "Graphics.h"
-//#include "Application.h"
-#include "Shader.h"
 #include "Camera.h"
 #include "ResourceManager.h"
 #include "Common.h"
@@ -88,9 +86,8 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->HSSetShader(m_HullShader, nullptr, 0u);
 	DeviceContext->HSSetConstantBuffers(1u, 1u, m_HullCBuffer.GetAddressOf());
 
-	ID3D11Buffer* dsCBuffers[] = { m_pLandscape->m_CameraCBuffer.Get(), m_pLandscape->m_LandscapeInfoCBuffer.Get() };
 	DeviceContext->DSSetShader(m_DomainShader, nullptr, 0u);
-	DeviceContext->DSSetConstantBuffers(1u, 2u, dsCBuffers);
+	DeviceContext->DSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->DSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
 	DeviceContext->DSSetSamplers(0u, 1u, pGraphics->GetSamplerState().GetAddressOf());
 

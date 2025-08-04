@@ -1,3 +1,5 @@
+#include "GlobalCBuffer.hlsl"
+
 Texture2D screenTexture : register(t0);
 Texture2D depthTexture : register(t1);
 SamplerState samplerState : register(s0);
@@ -11,9 +13,7 @@ cbuffer FogBuffer : register(b1)
 	float3 FogColor;
 	int Formula;
 	float Density;
-	float NearPlane;
-	float FarPlane;
-	float Padding;
+	float3 Padding;
 };
 
 struct PS_In
@@ -44,14 +44,14 @@ float4 main(PS_In p) : SV_TARGET
 	
 	float NonLinearDepth = depthTexture.Sample(samplerState, p.TexCoord);
 
-	float LinearDepth = (1.f - FarPlane / NearPlane) * NonLinearDepth + (FarPlane / NearPlane);
+	float LinearDepth = (1.f - GlobalBuffer.FarZ / GlobalBuffer.NearZ) * NonLinearDepth + (GlobalBuffer.FarZ / GlobalBuffer.NearZ);
 	LinearDepth = 1.f / LinearDepth;
-	float ViewDistance = LinearDepth * FarPlane;
+	float ViewDistance = LinearDepth * GlobalBuffer.FarZ;
 	
 	float FogFactor = 0.f;
 	if (Formula == LINEAR)
 	{
-		FogFactor = LinearFog(ViewDistance, NearPlane, FarPlane);
+		FogFactor = LinearFog(ViewDistance, GlobalBuffer.NearZ, GlobalBuffer.FarZ);
 	}
 	else if (Formula == EXPONENTIAL)
 	{

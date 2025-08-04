@@ -1,4 +1,5 @@
 #include "Common.hlsl"
+#include "GlobalCBuffer.hlsl"
 
 Texture2D Heightmap : register(t0);
 StructuredBuffer<GrassData> Grass : register(t1);
@@ -13,16 +14,10 @@ cbuffer PlaneInfoBuffer : register(b1)
 	bool bVisualiseChunks;
 	float4x4 ChunkScaleMatrix;
 	uint GrassPerChunk;
-	float CurrentTime;
-	float2 Padding;
+	float3 Padding;
 };
 
-cbuffer CameraBuffer : register(b2)
-{
-	float4x4 ViewProj;
-};
-
-cbuffer WindBuffer : register(b3)
+cbuffer WindBuffer : register(b2)
 {
 	float Freq;
 	float Amp;
@@ -55,7 +50,7 @@ struct VS_Out
 float3 Animate(VS_Out o, float2 GrassPos, float Time)
 {
 	float2 Noise = PerlinNoise2D(GrassPos * 0.1f) * 8.f;
-    float Input = dot(GrassPos + Noise, WindDir) - CurrentTime * TimeScale;
+    float Input = dot(GrassPos + Noise, WindDir) - Time * TimeScale;
     float2 WindOffset = SumOfSines(Input, WindDir, FreqMultiplier, AmpMultiplier, WaveCount, Hash((float)o.ChunkID));
     WindOffset += PerlinNoise2D(GrassPos * Freq) * Amp;
     WindOffset *= pow(o.HeightAlongBlade, SwayExponent) * WindDir * WindStrength;
@@ -92,10 +87,10 @@ VS_Out main(VS_In v)
 	// apply wind if not root vertex
 	if (v.Pos.y != 0.f)
 	{		
-        o.WorldPos = Animate(o, GrassPos, CurrentTime);
+        o.WorldPos = Animate(o, GrassPos, GlobalBuffer.CurrTime);
     }
 	
-	o.Pos = mul(float4(o.WorldPos, 1.f), ViewProj);
+	o.Pos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProj);
 	
 	return o;
 }

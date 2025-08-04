@@ -31,7 +31,9 @@ struct GlobalCBuffer
 	DirectX::XMFLOAT3 CameraPos;
 	float CurrTime;
 	float PrevTime;
-	DirectX::XMFLOAT3 Padding;
+	float NearZ;
+	float FarZ;
+	float Padding;
 };
 
 class Graphics

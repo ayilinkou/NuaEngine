@@ -9,7 +9,6 @@
 #include "MyMacros.h"
 #include "Common.h"
 #include "Camera.h"
-#include "Shader.h"
 #include "InstancedShader.h"
 #include "Model.h"
 #include "Light.h"
@@ -46,7 +45,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	bool bResult;
 
 	m_Graphics = Graphics::GetSingletonPtr();
-	bResult = m_Graphics->Initialise(ScreenWidth, ScreenHeight, VSYNC_ENABLED, hWnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
+	bResult = m_Graphics->Initialise(ScreenWidth, ScreenHeight, VSYNC_ENABLED, hWnd, FULL_SCREEN, SCREEN_FAR, SCREEN_NEAR);
 	assert(bResult);
 
 	m_CameraManager = std::make_shared<CameraManager>();
@@ -62,10 +61,6 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	assert(bResult);
 
 	ResourceManager::GetSingletonPtr()->Init(hWnd, m_FrustumCuller.get(), m_Profiler);
-
-	m_Shader = std::make_unique<Shader>();
-	bResult = m_Shader->Initialise(m_Graphics->GetDevice());
-	assert(bResult);
 
 	m_InstancedShader = std::make_unique<InstancedShader>();
 	bResult = m_InstancedShader->Initialise(m_Graphics->GetDevice());
@@ -121,7 +116,6 @@ void Application::Shutdown()
 
 	m_Skybox.reset();
 	m_InstancedShader.reset();
-	m_Shader.reset();
 	m_Landscape.reset();
 	m_FrustumCuller.reset();
 	m_BoxRenderer.reset();
@@ -165,6 +159,8 @@ bool Application::Tick()
 	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CurrViewProjJittered);
 	NewGlobalCBuffer.CameraPos = ActiveCamera->GetPosition();
 	NewGlobalCBuffer.CurrTime = (float)m_AppTime;
+	NewGlobalCBuffer.NearZ = SCREEN_NEAR;
+	NewGlobalCBuffer.FarZ = SCREEN_FAR;
 	m_Graphics->UpdateGlobalConstantBuffer(NewGlobalCBuffer);
 
 	bool Result = Render();
@@ -353,9 +349,6 @@ void Application::RenderModels()
 		m_InstancedShader->ActivateShader(m_Graphics->GetDeviceContext());
 		m_InstancedShader->SetShaderParameters(
 			m_Graphics->GetDeviceContext(),
-			View,
-			Proj,
-			ActiveCamera->GetPosition(),
 			PointLights,
 			DirLights,
 			m_Skybox->GetAverageSkyColor()
@@ -365,7 +358,7 @@ void Application::RenderModels()
 	}
 }
 
-bool Application::RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView)
+/*bool Application::RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView)
 {
 	unsigned int Stride, Offset;
 	Stride = sizeof(Vertex);
@@ -384,7 +377,7 @@ bool Application::RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>
 	m_Profiler->AddDrawCall();
 
 	return true;
-}
+}*/
 
 void Application::RenderImGui()
 {

@@ -19,12 +19,6 @@ class DirectionalLight;
 class InstancedShader
 {
 private:
-	struct MatrixBuffer
-	{
-		DirectX::XMMATRIX ViewMatrix;
-		DirectX::XMMATRIX ProjectionMatrix;
-	};
-
 	struct PointLightData
 	{
 		float Radius;
@@ -45,10 +39,10 @@ private:
 	{
 		PointLightData PointLights[MAX_POINT_LIGHTS];
 		DirectionalLightData DirLights[MAX_DIRECTIONAL_LIGHTS];
-		DirectX::XMFLOAT3 CameraPos;
+		DirectX::XMFLOAT3 SkylightColor = { 1.f, 1.f, 1.f };
 		int PointLightCount = 0;
 		int DirLightCount = 0;
-		DirectX::XMFLOAT3 SkylightColor = { 1.f, 1.f, 1.f };
+		DirectX::XMFLOAT3 Padding;
 	};
 
 public:
@@ -59,8 +53,8 @@ public:
 	void Shutdown();
 
 	void ActivateShader(ID3D11DeviceContext* DeviceContext);
-	bool SetShaderParameters(ID3D11DeviceContext* DeviceContext, const DirectX::XMMATRIX& View, const DirectX::XMMATRIX& Projection, const DirectX::XMFLOAT3& CameraPos,
-		const std::vector<PointLight*>& PointLights, const std::vector<DirectionalLight*>& DirLights, const DirectX::XMFLOAT3& SkylightColor);
+	bool SetShaderParameters(ID3D11DeviceContext* DeviceContext, const std::vector<PointLight*>& PointLights,
+		const std::vector<DirectionalLight*>& DirLights, const DirectX::XMFLOAT3& SkylightColor);
 
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> GetInputLayout() const { return m_InputLayout; }
 
@@ -71,7 +65,6 @@ private:
 	ID3D11VertexShader* m_VertexShader	= nullptr;
 	ID3D11PixelShader* m_PixelShader	= nullptr;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_MatrixBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_LightingBuffer;
 
 	const char* m_vsFilename = "";

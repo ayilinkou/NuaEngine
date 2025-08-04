@@ -39,9 +39,6 @@
     <ClCompile Include="Graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -135,9 +132,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MyMacros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
@@ -259,9 +253,6 @@
     <None Include="Shaders\PhongPS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="Shaders\PhongVS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="Shaders\QuadPS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
@@ -319,6 +310,9 @@
     </None>
     <None Include="Shaders\ToneMapperPS.hlsl">
       <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\GlobalCBuffer.hlsl">
+      <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
 </Project>

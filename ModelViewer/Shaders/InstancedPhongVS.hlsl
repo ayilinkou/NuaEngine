@@ -1,14 +1,10 @@
+#include "GlobalCBuffer.hlsl"
+
 StructuredBuffer<float4x4> CulledTransforms : register(t0);
 
-cbuffer MatrixBuffer : register(b1)
+cbuffer AccumulatedModelTransform : register(b1)
 {
-	matrix ViewMatrix;
-	matrix ProjectionMatrix;
-};
-
-cbuffer AccumulatedModelTransform : register(b2)
-{
-	matrix AccumulatedModelMatrix;
+	float4x4 AccumulatedModelMatrix;
 }
 
 struct VS_In
@@ -38,8 +34,7 @@ VS_Out main(VS_In v)
 	
 	o.WorldPos = o.Pos.xyz;
 	
-	o.Pos = mul(o.Pos, ViewMatrix);
-	o.Pos = mul(o.Pos, ProjectionMatrix);
+	o.Pos = mul(o.Pos, GlobalBuffer.CurrViewProjJittered);
 	
 	o.TexCoord = v.TexCoord;
 	

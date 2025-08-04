@@ -1,4 +1,5 @@
 #include "Common.hlsl"
+#include "GlobalCBuffer.hlsl"
 
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
@@ -24,10 +25,10 @@ cbuffer Lighting : register(b1)
 {
 	PointLight PointLights[MAX_POINT_LIGHTS];
 	DirectionalLight DirLights[MAX_DIRECTIONAL_LIGHTS];
-	float3 CameraPos;
+	float3 SkylightColor;
 	int PointLightCount;
 	int DirectionalLightCount;
-	float3 SkylightColor;
+    float3 Padding;
 };
 
 struct MaterialData
@@ -69,10 +70,10 @@ float4 main(PS_In p) : SV_TARGET
 	float AmbientFactor = 0.5f;
 	float4 Ambient = float4((Color.rgb * SkylightColor), BaseAlpha) * AmbientFactor;
 	
-	float3 PixelToCam = normalize(CameraPos - p.WorldPos);
+	float3 PixelToCam = normalize(GlobalBuffer.CameraPos - p.WorldPos);
 	float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
-	if (dot(CameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
+	if (dot(GlobalBuffer.CameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
 		p.WorldNormal = -p.WorldNormal;
 	
 	for (int i = 0; i < DirectionalLightCount; i++)

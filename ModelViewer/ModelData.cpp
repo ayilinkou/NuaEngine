@@ -181,7 +181,7 @@ void ModelData::RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes)
 
 		std::shared_ptr<Material> Mat = m.get()->m_Material;
 
-		DeviceContext->VSSetConstantBuffers(2u, 1u, m->m_pNode->m_ConstantBuffer.GetAddressOf());
+		DeviceContext->VSSetConstantBuffers(1u, 1u, m->m_pNode->m_ConstantBuffer.GetAddressOf());
 		DeviceContext->PSSetConstantBuffers(2u, 1u, Mat->m_ConstantBuffer.GetAddressOf());
 
 		if (Mat->m_DiffuseSRV >= 0)

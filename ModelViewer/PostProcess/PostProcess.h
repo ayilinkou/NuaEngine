@@ -335,9 +335,7 @@ namespace PostProcessData
 		DirectX::XMFLOAT3 FogColor;
 		FogFormula Formula;
 		float Density;
-		float NearPlane;
-		float FarPlane;
-		float Padding;
+		DirectX::XMFLOAT3 Padding;
 	};
 }
 

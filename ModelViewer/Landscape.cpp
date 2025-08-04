@@ -91,7 +91,6 @@ void Landscape::Render()
 void Landscape::Shutdown()
 {
 	m_LandscapeInfoCBuffer.Reset();
-	m_CameraCBuffer.Reset();
 	m_Plane.reset();
 	m_Grass.reset();
 
@@ -167,11 +166,6 @@ bool Landscape::CreateBuffers()
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, nullptr, &m_LandscapeInfoCBuffer));
 	NAME_D3D_RESOURCE(m_LandscapeInfoCBuffer, "Landscape info constant buffer");
 
-	Desc.ByteWidth = sizeof(CameraCBuffer);
-
-	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, nullptr, &m_CameraCBuffer));
-	NAME_D3D_RESOURCE(m_CameraCBuffer, "Landscape camera constant buffer");
-
 	return true;
 }
 
@@ -179,19 +173,8 @@ void Landscape::UpdateBuffers()
 {
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
-	CameraCBuffer* CameraCBufferPtr;
 	LandscapeInfoCBuffer* LandscapeInfoCBufferPtr;
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
-
-	std::shared_ptr<Camera> pCamera = m_CameraManager->GetActiveCamera();
-	DirectX::XMFLOAT3 CameraPos = pCamera->GetPosition();
-	DirectX::XMMATRIX ViewProj;
-	pCamera->GetViewProjMatrix(ViewProj);
-
-	ASSERT_NOT_FAILED(DeviceContext->Map(m_CameraCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
-	CameraCBufferPtr = (CameraCBuffer*)MappedResource.pData;
-	CameraCBufferPtr->ViewProj = DirectX::XMMatrixTranspose(ViewProj);
-	DeviceContext->Unmap(m_CameraCBuffer.Get(), 0u);
 
 	CullingCBuffer CullingBufferData = {};
 	PrepCullingBuffer(CullingBufferData);
@@ -206,7 +189,6 @@ void Landscape::UpdateBuffers()
 	LandscapeInfoCBufferPtr->bVisualiseChunks = m_bVisualiseChunks;
 	LandscapeInfoCBufferPtr->ChunkInstanceCount = m_ChunkInstanceCount;
 	LandscapeInfoCBufferPtr->GrassPerChunk = m_Grass->GetGrassPerChunk();
-	LandscapeInfoCBufferPtr->CurrentTime = (float)Application::GetSingletonPtr()->GetAppTime();
 	LandscapeInfoCBufferPtr->Padding = {};
 	LandscapeInfoCBufferPtr->ChunkScaleMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixScaling(m_ChunkSize, m_ChunkSize, m_ChunkSize));
 

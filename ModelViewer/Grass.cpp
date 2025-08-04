@@ -136,9 +136,9 @@ void Grass::Render()
 	pContext->IASetInputLayout(m_InputLayout.Get());
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	ID3D11Buffer* CBuffers[] = { m_pLandscape->m_LandscapeInfoCBuffer.Get(), m_pLandscape->m_CameraCBuffer.Get(), m_GrassCBuffer.Get() };
+	ID3D11Buffer* CBuffers[] = { m_pLandscape->m_LandscapeInfoCBuffer.Get(), m_GrassCBuffer.Get() };
 	pContext->VSSetShader(m_VertexShader, nullptr, 0u);
-	pContext->VSSetConstantBuffers(1u, 3u, CBuffers);
+	pContext->VSSetConstantBuffers(1u, 2u, CBuffers);
 	pContext->VSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
 
 	pContext->PSSetShader(m_PixelShader, nullptr, 0u);

@@ -19,11 +19,6 @@ class Landscape : public GameObject
 	friend class Grass;
 
 private:	
-	struct CameraCBuffer
-	{
-		DirectX::XMMATRIX ViewProj;
-	};
-
 	struct CullingCBuffer
 	{
 		DirectX::XMFLOAT4 FrustumPlanes[6];
@@ -38,8 +33,7 @@ private:
 		BOOL bVisualiseChunks;
 		DirectX::XMMATRIX ChunkScaleMatrix;
 		UINT GrassPerChunk;
-		float CurrentTime;
-		DirectX::XMFLOAT2 Padding;
+		DirectX::XMFLOAT3 Padding;
 	};
 
 public:
@@ -85,7 +79,6 @@ private:
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_LandscapeInfoCBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CullingCBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CameraCBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ChunkOffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ChunkOffsetsSRV;
 

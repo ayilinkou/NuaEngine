@@ -67,14 +67,6 @@ bool InstancedShader::InitialiseShader(ID3D11Device* Device)
 	HFALSE_IF_FAILED(Device->CreateInputLayout(VertexLayout, NumElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &m_InputLayout));
 	NAME_D3D_RESOURCE(m_InputLayout, "Instanced shader input layout");
 
-	MatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	MatrixBufferDesc.ByteWidth = sizeof(MatrixBuffer);
-	MatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	MatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	HFALSE_IF_FAILED(Device->CreateBuffer(&MatrixBufferDesc, NULL, &m_MatrixBuffer));
-	NAME_D3D_RESOURCE(m_MatrixBuffer, "Instanced shader matrix buffer");
-
 	LightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	LightBufferDesc.ByteWidth = sizeof(LightingBuffer);
 	LightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -86,26 +78,15 @@ bool InstancedShader::InitialiseShader(ID3D11Device* Device)
 	return true;
 }
 
-bool InstancedShader::SetShaderParameters(ID3D11DeviceContext* DeviceContext, const DirectX::XMMATRIX& View, const DirectX::XMMATRIX& Projection, const DirectX::XMFLOAT3& CameraPos,
-	const std::vector<PointLight*>& PointLights, const std::vector<DirectionalLight*>& DirLights, const DirectX::XMFLOAT3& SkylightColor)
+bool InstancedShader::SetShaderParameters(ID3D11DeviceContext* DeviceContext, const std::vector<PointLight*>& PointLights,
+	const std::vector<DirectionalLight*>& DirLights, const DirectX::XMFLOAT3& SkylightColor)
 {
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
-	MatrixBuffer* MatrixDataPtr;
 	LightingBuffer* LightingDataPtr;
-
-	// remember to transpose from row major before sending to shaders
-	ASSERT_NOT_FAILED(DeviceContext->Map(m_MatrixBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedResource));
-	MatrixDataPtr = (MatrixBuffer*)MappedResource.pData;
-	MatrixDataPtr->ViewMatrix = DirectX::XMMatrixTranspose(View);
-	MatrixDataPtr->ProjectionMatrix = DirectX::XMMatrixTranspose(Projection);
-	DeviceContext->Unmap(m_MatrixBuffer.Get(), 0u);
-
-	DeviceContext->VSSetConstantBuffers(1u, 1u, m_MatrixBuffer.GetAddressOf());
 
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_LightingBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedResource));
 	LightingDataPtr = (LightingBuffer*)MappedResource.pData;
-	LightingDataPtr->CameraPos = CameraPos;
 	LightingDataPtr->SkylightColor = SkylightColor;
 
 	int NumDirLights = 0;

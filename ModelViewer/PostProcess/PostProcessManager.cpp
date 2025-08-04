@@ -88,8 +88,6 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 			JsonParser::ParseFloat3(PPConfig.value("color", std::vector<float>{0.8f, 0.8f, 0.8f}), FogData.FogColor);
 			FogData.Formula = JsonParser::StringToFogFormula(PPConfig.value("formula", "ExponentialSquared"));
 			FogData.Density = PPConfig.value("density", 0.005f);
-			FogData.NearPlane = Graphics::GetSingletonPtr()->GetNearPlane();
-			FogData.FarPlane = Graphics::GetSingletonPtr()->GetFarPlane();
 			bFogActive = PPConfig.value("active", true);
 		}
 		else if (Type == "GammaCorrection")

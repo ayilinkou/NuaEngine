@@ -14,10 +14,9 @@
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
-const float SCREEN_DEPTH = 2000.f;
+const float SCREEN_FAR = 2000.f;
 const float SCREEN_NEAR = 0.1f;
 
-class Shader;
 class InstancedShader;
 class Model;
 class ModelData;
@@ -74,7 +73,7 @@ private:
 	bool Render();
 	bool RenderScene();
 	void RenderModels();
-	bool RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView);
+	//bool RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView);
 
 	void RenderImGui();
 
@@ -93,7 +92,6 @@ private:
 	std::shared_ptr<CameraManager> m_CameraManager;
 	std::shared_ptr<Profiler> m_Profiler;
 
-	std::unique_ptr<Shader> m_Shader;
 	std::unique_ptr<InstancedShader> m_InstancedShader;
 	std::unique_ptr<Skybox> m_Skybox;
 	std::shared_ptr<BoxRenderer> m_BoxRenderer;
@@ -109,7 +107,6 @@ private:
 	bool m_bShowCursor = false;
 	bool m_bCursorToggleReleased = true;
 	bool m_bShowBoundingBoxes = false;
-	//bool m_bUseTAA = false;
 
 	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
 	ID3D11ShaderResourceView* m_TextureResourceView;

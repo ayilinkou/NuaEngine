@@ -516,6 +516,8 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 	m_GlobalCBufferData.CurrViewProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CurrViewProjJittered);
 	m_GlobalCBufferData.CameraPos = NewGlobalCBufferData.CameraPos;
 	m_GlobalCBufferData.CurrTime = NewGlobalCBufferData.CurrTime;
+	m_GlobalCBufferData.NearZ = NewGlobalCBufferData.NearZ;
+	m_GlobalCBufferData.FarZ = NewGlobalCBufferData.FarZ;
 
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE MappedSubresource = {};

@@ -29,7 +29,7 @@
       "active": true,
       "color": [ 0.8, 0.8, 0.8 ],
       "formula": "ExponentialSquared",
-      "density": 0.0007
+      "density": 0.005
     },
     {
       "type": "GammaCorrection",

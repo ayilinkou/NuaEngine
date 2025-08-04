@@ -1,4 +1,4 @@
-cbuffer ViewProjBuffer : register(b1)
+cbuffer ViewProjBuffer : register(b1) // this one can't be replaced by the global cbuffer's view proj
 {
 	float4x4 ViewProj;
 };

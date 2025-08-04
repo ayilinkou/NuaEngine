@@ -46,7 +46,6 @@
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SystemClass.cpp" />
     <ClCompile Include="Landscape.cpp" />
@@ -82,7 +81,6 @@
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderCreateInfo.h" />
     <ClInclude Include="ShaderResource.h" />
     <ClInclude Include="Skybox.h" />
@@ -104,13 +102,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\PhongVS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\PixelationPS.hlsl">
@@ -343,6 +334,11 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\GlobalCBuffer.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

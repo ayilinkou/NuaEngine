@@ -1,4 +1,5 @@
 #include "Common.hlsl"
+#include "GlobalCBuffer.hlsl"
 
 Texture2D Heightmap : register(t0);
 SamplerState Sampler : register(s0);
@@ -18,12 +19,7 @@ struct DS_Out
 	uint ChunkID : TEXCOORD1;
 };
 
-cbuffer DomainBuffer : register(b1)
-{
-	float4x4 ViewProj;
-};
-
-cbuffer PlaneInfoBuffer : register(b2)
+cbuffer PlaneInfoBuffer : register(b1)
 {
 	float PlaneDimension;
 	float HeightDisplacement;
@@ -31,8 +27,7 @@ cbuffer PlaneInfoBuffer : register(b2)
 	bool bVisualiseChunks;
 	float4x4 ChunkScaleMatrix;
 	uint GrassPerChunk;
-	float Time;
-	float2 Padding;
+	float3 Padding;
 };
 
 struct TessFactors
@@ -75,7 +70,7 @@ DS_Out main(
 	
 	Pos.y = Height;
 	o.WorldPos = Pos;
-	o.Pos = mul(float4(Pos, 1.f), ViewProj);
+	o.Pos = mul(float4(Pos, 1.f), GlobalBuffer.CurrViewProj);
 	
 	o.ChunkID = Patch[0].ChunkID;
 

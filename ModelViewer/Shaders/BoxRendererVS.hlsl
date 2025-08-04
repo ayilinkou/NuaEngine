@@ -1,4 +1,5 @@
 #include "Common.hlsl"
+#include "GlobalCBuffer.hlsl"
 
 StructuredBuffer<float4> Corners : register(t0);
 
@@ -16,5 +17,5 @@ struct VS_IN
 
 float4 main(VS_IN v) : SV_POSITION
 {
-	return mul(Corners[v.InstanceID * 8 + v.VertexID], Camera.ViewProj);
+    return mul(Corners[v.InstanceID * 8 + v.VertexID], GlobalBuffer.CurrViewProj);
 }

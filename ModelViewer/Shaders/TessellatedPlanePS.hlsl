@@ -9,8 +9,7 @@ cbuffer PlaneInfoBuffer : register(b1)
 	bool bVisualiseChunks;
 	float4x4 ChunkScaleMatrix;
 	uint GrassPerChunk;
-	float Time;
-	float2 Padding;
+	float3 Padding;
 };
 
 struct PS_In
