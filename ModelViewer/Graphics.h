@@ -33,7 +33,9 @@ struct GlobalCBuffer
 	float PrevTime;
 	float NearZ;
 	float FarZ;
-	float Padding;
+	float Padding0;
+	DirectX::XMFLOAT2 ScreenRes;
+	DirectX::XMFLOAT2 Padding1;
 };
 
 class Graphics

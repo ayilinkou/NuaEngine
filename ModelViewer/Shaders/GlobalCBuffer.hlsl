@@ -15,7 +15,9 @@ struct GlobalCBuffer
     float PrevTime;
     float NearZ;
     float FarZ;
-    float Padding;
+    float Padding0;
+    float2 ScreenRes;
+    float2 Padding1;
 };
 
 cbuffer GlobalCBufferInfo : register(b0)

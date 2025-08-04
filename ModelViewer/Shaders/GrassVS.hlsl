@@ -45,22 +45,21 @@ struct VS_Out
 	uint ChunkID : TEXCOORD1;
 	float HeightAlongBlade : TEXCOORD2;
 	uint LOD : TEXCOORD3;
+    float4 PrevClipPos : TEXCOORD4;
 };
 
-float3 Animate(VS_Out o, float2 GrassPos, float Time)
+void Animate(const in VS_Out o, float2 GrassPos, float Time, inout float3 WorldPos)
 {
 	float2 Noise = PerlinNoise2D(GrassPos * 0.1f) * 8.f;
     float Input = dot(GrassPos + Noise, WindDir) - Time * TimeScale;
     float2 WindOffset = SumOfSines(Input, WindDir, FreqMultiplier, AmpMultiplier, WaveCount, Hash((float)o.ChunkID));
     WindOffset += PerlinNoise2D(GrassPos * Freq) * Amp;
     WindOffset *= pow(o.HeightAlongBlade, SwayExponent) * WindDir * WindStrength;
-    o.WorldPos.xz += WindOffset;
+    WorldPos.xz += WindOffset;
 	
     float WindAmount = length(WindOffset);
     float BendFactor = 0.3f;
-    o.WorldPos.y -= min(WindAmount * BendFactor, 0.8f);
-	
-    return o.WorldPos;
+    WorldPos.y -= min(WindAmount * BendFactor, 0.8f);
 }
 
 VS_Out main(VS_In v)
@@ -83,14 +82,17 @@ VS_Out main(VS_In v)
 	o.HeightAlongBlade = RotatedPos.y;
 	
 	o.WorldPos = RotatedPos * 2.f + float3(GrassPos.x, Height, GrassPos.y);
+    float3 PrevWorldPos = o.WorldPos;
 	
 	// apply wind if not root vertex
 	if (v.Pos.y != 0.f)
 	{		
-        o.WorldPos = Animate(o, GrassPos, GlobalBuffer.CurrTime);
+        Animate(o, GrassPos, GlobalBuffer.CurrTime, o.WorldPos);
+        Animate(o, GrassPos, GlobalBuffer.PrevTime, PrevWorldPos);
     }
 	
-	o.Pos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProj);
+	o.Pos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProjJittered);
+    o.PrevClipPos = mul(float4(PrevWorldPos, 1.f), GlobalBuffer.PrevViewProjJittered);
 	
 	return o;
 }

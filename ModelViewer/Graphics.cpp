@@ -518,6 +518,7 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 	m_GlobalCBufferData.CurrTime = NewGlobalCBufferData.CurrTime;
 	m_GlobalCBufferData.NearZ = NewGlobalCBufferData.NearZ;
 	m_GlobalCBufferData.FarZ = NewGlobalCBufferData.FarZ;
+	m_GlobalCBufferData.ScreenRes = DirectX::XMFLOAT2((float)m_Dimensions.first, (float)m_Dimensions.second);
 
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE MappedSubresource = {};

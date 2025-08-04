@@ -12,10 +12,10 @@
 #include "Graphics.h"
 #include "Common.h"
 
-const bool FULL_SCREEN = false;
-const bool VSYNC_ENABLED = false;
-const float SCREEN_FAR = 2000.f;
-const float SCREEN_NEAR = 0.1f;
+constexpr bool FULL_SCREEN = false;
+constexpr bool VSYNC_ENABLED = false;
+constexpr float SCREEN_FAR = 2000.f;
+constexpr float SCREEN_NEAR = 0.1f;
 
 class InstancedShader;
 class Model;

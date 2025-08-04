@@ -1,4 +1,5 @@
 #include "Common.hlsl"
+#include "GlobalCBuffer.hlsl"
 
 struct PS_In
 {
@@ -8,6 +9,7 @@ struct PS_In
 	uint ChunkID : TEXCOORD1;
 	float HeightAlongBlade : TEXCOORD2;
 	uint LOD : TEXCOORD3;
+    float4 PrevClipPos : TEXCOORD4;
 };
 
 struct PS_Out
@@ -54,6 +56,14 @@ PS_Out main(PS_In p)
 		o.Color = float4(Color, 1.f);
     }
 	
-    o.Velocity = float2(-0.7f, 0.9f); // temporarily hard coded for debugging
+	// Currently using jittered positions to calculate velocity. This can result in static objects saying that they have small amounts of motion.
+	// Using non-jittered viewProj will get accurate velocity, but the color pixel can become misaligned with the velocity pixel.
+	// To get around this, we can have a small threshold either when the velocity is calculated or sampled.
+    float2 CurrNDC = ClipToNDC(p.Pos.xy, GlobalBuffer.ScreenRes);
+	float2 PrevNDC = p.PrevClipPos.xy / p.PrevClipPos.w;
+    float2 CurrUV = NDCToUV(CurrNDC);
+    float2 PrevUV = NDCToUV(PrevNDC);
+    o.Velocity = CurrUV - PrevUV;
+	
     return o;
 }

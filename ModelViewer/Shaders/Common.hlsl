@@ -183,3 +183,13 @@ float RandomAngle(float2 seed)
     // Returns a random angle in [0, 2 pi)
 	return Hash(seed.x + seed.y) * 2.0 * 3.14159265;
 }
+
+float2 ClipToNDC(float2 ClipPos, float2 ScreenRes)
+{
+    return float2(ClipPos.x / ScreenRes.x, (1.f - (ClipPos.y / ScreenRes.y))) * 2.f - 1.f;
+}
+
+float2 NDCToUV(float2 NDC)
+{
+    return float2(NDC.x * 0.5f + 0.5f, (1.f - NDC.y) * 0.5f);
+}
