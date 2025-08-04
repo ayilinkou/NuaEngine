@@ -16,7 +16,7 @@
 
 #include <utility>
 
-struct FrameCBuffer
+struct GlobalCBuffer
 {
 	DirectX::XMMATRIX CurrView;
 	DirectX::XMMATRIX CurrProj;
@@ -62,8 +62,8 @@ public:
 	void SetRasterStateBackFaceCull(bool bShouldCull);
 	void SetWireframeRasterState();
 
-	bool CreateFrameConstantBuffer();
-	void UpdateFrameConstantBuffer(const FrameCBuffer& NewFrameCBufferData);
+	bool CreateGlobalConstantBuffer();
+	void UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferData);
 
 private:
 	bool m_VSync_Enabled;
@@ -89,7 +89,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_WireframeRasterState;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SamplerState;
 	Microsoft::WRL::ComPtr<ID3D11Query> m_PipelineStatsQuery;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_FrameCBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_GlobalCBuffer;
 
 	D3D11_VIEWPORT m_Viewport;
 
@@ -97,7 +97,7 @@ private:
 	float m_NearPlane;
 	float m_FarPlane;
 	float m_ScreenAspect;
-	FrameCBuffer m_FrameCBufferData;
+	GlobalCBuffer m_GlobalCBufferData;
 
 public:
 	ID3D11Device* GetDevice() const { return m_Device.Get(); }

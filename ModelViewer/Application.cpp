@@ -157,15 +157,15 @@ bool Application::Tick()
 	}
 
 	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
-	FrameCBuffer NewFrameCBuffer = {};
-	ActiveCamera->GetViewMatrix(NewFrameCBuffer.CurrView);
-	ActiveCamera->GetProjMatrix(NewFrameCBuffer.CurrProj);
-	ActiveCamera->GetViewProjMatrix(NewFrameCBuffer.CurrViewProj);
-	m_CameraManager->GetCurrJitteredProjMatrix(NewFrameCBuffer.CurrProjJittered);
-	m_CameraManager->GetCurrJitteredViewProjMatrix(NewFrameCBuffer.CurrViewProjJittered);
-	NewFrameCBuffer.CameraPos = ActiveCamera->GetPosition();
-	NewFrameCBuffer.CurrTime = (float)m_AppTime;
-	m_Graphics->UpdateFrameConstantBuffer(NewFrameCBuffer);
+	GlobalCBuffer NewGlobalCBuffer = {};
+	ActiveCamera->GetViewMatrix(NewGlobalCBuffer.CurrView);
+	ActiveCamera->GetProjMatrix(NewGlobalCBuffer.CurrProj);
+	ActiveCamera->GetViewProjMatrix(NewGlobalCBuffer.CurrViewProj);
+	m_CameraManager->GetCurrJitteredProjMatrix(NewGlobalCBuffer.CurrProjJittered);
+	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CurrViewProjJittered);
+	NewGlobalCBuffer.CameraPos = ActiveCamera->GetPosition();
+	NewGlobalCBuffer.CurrTime = (float)m_AppTime;
+	m_Graphics->UpdateGlobalConstantBuffer(NewGlobalCBuffer);
 
 	bool Result = Render();
 	if (!Result)

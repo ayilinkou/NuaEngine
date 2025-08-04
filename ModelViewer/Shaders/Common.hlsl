@@ -6,7 +6,7 @@
 #define MAX_GRASS_PER_CHUNK 10000
 #define MAX_INSTANCE_COUNT 1024
 
-struct FrameCBuffer
+struct GlobalCBuffer
 {
     float4x4 CurrView;
     float4x4 CurrProj;
