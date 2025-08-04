@@ -1,3 +1,6 @@
+#include "Common.hlsl"
+#include "GlobalCBuffer.hlsl"
+
 Texture2D Heightmap : register(t0);
 SamplerState Sampler : register(s0);
 
@@ -18,6 +21,13 @@ struct PS_In
 	float3 WorldPos : WORLDPOS;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
+    float4 PrevClipPos : TEXCOORD2;
+};
+
+struct PS_Out
+{
+    float4 Color : SV_TARGET0;
+    float2 Velocity : SV_TARGET1;
 };
 
 float3 RandomRGB(uint seed)
@@ -40,16 +50,27 @@ float3 RandomRGB(uint seed)
 static const float4 TopColor = float4(0.30f, 0.5f, 0.1f, 1.0f);
 static const float4 BotColor = float4(0.05f, 0.2f, 0.0f, 1.0f);
 
-float4 main(PS_In p) : SV_TARGET
+PS_Out main(PS_In p) : SV_TARGET
 {
+    PS_Out o;
+	
+    o.Velocity = CalculateMotionVector(p.Pos.xy, p.PrevClipPos, GlobalBuffer.ScreenRes);
+		
 	if (bVisualiseChunks)
-		return float4(RandomRGB(p.ChunkID), 1.f);
+    {
+		o.Color = float4(RandomRGB(p.ChunkID), 1.f);
+        return o;
+    }
 
 	float Height = Heightmap.Sample(Sampler, p.UV).r;
 	if (Height < 0.03)
 	{
-		return float4(50.f / 256.f, 123.f / 256.f, 191.f / 256.f, 1.f);
+		o.Color = float4(50.f / 256.f, 123.f / 256.f, 191.f / 256.f, 1.f);
 	}
-
-	return lerp(BotColor, TopColor, Height);
+	else
+    {
+		o.Color = lerp(BotColor, TopColor, Height);
+    }
+	
+    return o;
 }

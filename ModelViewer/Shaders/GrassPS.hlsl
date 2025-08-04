@@ -55,15 +55,8 @@ PS_Out main(PS_In p)
 	
 		o.Color = float4(Color, 1.f);
     }
-	
-	// Currently using jittered positions to calculate velocity. This can result in static objects saying that they have small amounts of motion.
-	// Using non-jittered viewProj will get accurate velocity, but the color pixel can become misaligned with the velocity pixel.
-	// To get around this, we can have a small threshold either when the velocity is calculated or sampled.
-    float2 CurrNDC = ClipToNDC(p.Pos.xy, GlobalBuffer.ScreenRes);
-	float2 PrevNDC = p.PrevClipPos.xy / p.PrevClipPos.w;
-    float2 CurrUV = NDCToUV(CurrNDC);
-    float2 PrevUV = NDCToUV(PrevNDC);
-    o.Velocity = CurrUV - PrevUV;
+
+    o.Velocity = CalculateMotionVector(p.Pos.xy, p.PrevClipPos, GlobalBuffer.ScreenRes);
 	
     return o;
 }

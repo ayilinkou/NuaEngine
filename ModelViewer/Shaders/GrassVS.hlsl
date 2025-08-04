@@ -92,7 +92,7 @@ VS_Out main(VS_In v)
     }
 	
 	o.Pos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProjJittered);
-    o.PrevClipPos = mul(float4(PrevWorldPos, 1.f), GlobalBuffer.PrevViewProjJittered);
+    o.PrevClipPos = mul(float4(PrevWorldPos, 1.f), GlobalBuffer.PrevViewProj);
 	
 	return o;
 }

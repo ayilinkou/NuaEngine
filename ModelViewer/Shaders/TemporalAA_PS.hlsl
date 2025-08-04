@@ -1,12 +1,16 @@
+#include "Common.hlsl"
+
 Texture2D ScreenTexture : register(t0);
-Texture2D LastComposedTexture : register(t1);
+Texture2D HistoryTexture : register(t1);
+Texture2D VelocityTexture : register(t2);
 
 SamplerState samplerState : register(s0);
 
 cbuffer TAABuffer : register(b1)
 {
     float Alpha;
-    float3 Padding;
+    int bUseMotionVectors;
+    float2 Padding;
 };
 
 struct PS_In
@@ -18,8 +22,18 @@ struct PS_In
 
 float4 main(PS_In p) : SV_TARGET
 {
-    float4 CurrentPixel = ScreenTexture.Sample(samplerState, p.TexCoord);
-    float4 LastComposedPixel = LastComposedTexture.Sample(samplerState, p.TexCoord);
+    float2 MotionUV = VelocityTexture.Sample(samplerState, p.TexCoord); // TODO: point sampler should be used here
+    float2 ReprojectedUV = bUseMotionVectors != 0 ? p.TexCoord - MotionUV : p.TexCoord;
     
-    return lerp(CurrentPixel, LastComposedPixel, Alpha);
+    if (IsInRange(ReprojectedUV, 0.f, 1.f))
+    {
+        float4 CurrentPixel = ScreenTexture.Sample(samplerState, p.TexCoord);
+        float4 HistoryPixel = HistoryTexture.Sample(samplerState, ReprojectedUV);
+        
+        // TODO: color clamping
+        
+        return lerp(CurrentPixel, HistoryPixel, Alpha);
+    }
+    
+    return ScreenTexture.Sample(samplerState, p.TexCoord);
 }

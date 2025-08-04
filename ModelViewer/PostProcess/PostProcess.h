@@ -1092,7 +1092,8 @@ namespace PostProcessData
 	struct TemporalAAData
 	{
 		float Alpha;
-		DirectX::XMFLOAT3 Padding = {};
+		int bUseMotionVectors;
+		DirectX::XMFLOAT2 Padding = {};
 	};
 }
 
@@ -1136,6 +1137,8 @@ public:
 
 		if (ImGui::SliderFloat("Alpha", &m_CurrentSettings.Alpha, 0.f, 1.f, "%.2f", ImGuiSliderFlags_AlwaysClamp))
 			bDirty = true;
+		if (ImGui::Checkbox("Use Motion Vectors", (bool*)&m_CurrentSettings.bUseMotionVectors))
+			bDirty = true;
 
 		if (bDirty)
 			UpdateConstantBuffer();
@@ -1145,7 +1148,7 @@ public:
 
 private:
 	void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV) override
-	{
+	{		
 		if (m_bRecentlyActivated)
 		{
 			// reset the history frame texture since it's old/empty
@@ -1163,8 +1166,8 @@ private:
 		else
 		{
 			DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
-			ID3D11ShaderResourceView* SRVs[2] = { SRV.Get(), m_HistoryFrameSRV.Get() };
-			DeviceContext->PSSetShaderResources(0u, 2u, SRVs);
+			ID3D11ShaderResourceView* SRVs[3] = { SRV.Get(), m_HistoryFrameSRV.Get(), Graphics::GetSingletonPtr()->GetVelocitySRV().Get() };
+			DeviceContext->PSSetShaderResources(0u, 3u, SRVs);
 
 			DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 

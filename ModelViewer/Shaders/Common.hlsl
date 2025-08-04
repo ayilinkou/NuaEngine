@@ -193,3 +193,17 @@ float2 NDCToUV(float2 NDC)
 {
     return float2(NDC.x * 0.5f + 0.5f, (1.f - NDC.y) * 0.5f);
 }
+
+float2 CalculateMotionVector(float2 CurrSVPos, float4 PrevClipPos, float2 ScreenRes)
+{
+    float2 CurrNDC = ClipToNDC(CurrSVPos, ScreenRes);
+    float2 PrevNDC = PrevClipPos.xy / PrevClipPos.w;
+    float2 CurrUV = NDCToUV(CurrNDC);
+    float2 PrevUV = NDCToUV(PrevNDC);
+    return CurrUV - PrevUV;
+}
+
+bool IsInRange(float2 xy, float Min, float Max)
+{
+    return xy.x >= Min && xy.x <= Max && xy.y >= Min && xy.y <= Max;
+}
