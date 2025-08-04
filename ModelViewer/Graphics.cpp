@@ -501,6 +501,7 @@ bool Graphics::CreateFrameConstantBuffer()
 
 void Graphics::UpdateFrameConstantBuffer(const FrameCBuffer& NewFrameCBufferData)
 {
+	// previous matrices were already transposed and so we can just copy
 	m_FrameCBufferData.PrevView = m_FrameCBufferData.CurrView;
 	m_FrameCBufferData.PrevProj = m_FrameCBufferData.CurrProj;
 	m_FrameCBufferData.PrevViewProj = m_FrameCBufferData.CurrViewProj;
@@ -508,11 +509,11 @@ void Graphics::UpdateFrameConstantBuffer(const FrameCBuffer& NewFrameCBufferData
 	m_FrameCBufferData.PrevViewProjJittered = m_FrameCBufferData.CurrViewProjJittered;
 	m_FrameCBufferData.PrevTime = m_FrameCBufferData.CurrTime;
 
-	m_FrameCBufferData.CurrView = NewFrameCBufferData.CurrView;
-	m_FrameCBufferData.CurrProj = NewFrameCBufferData.CurrProj;
-	m_FrameCBufferData.CurrViewProj = NewFrameCBufferData.CurrViewProj;
-	m_FrameCBufferData.CurrProjJittered = NewFrameCBufferData.CurrProjJittered;
-	m_FrameCBufferData.CurrViewProjJittered = NewFrameCBufferData.CurrViewProjJittered;
+	m_FrameCBufferData.CurrView = DirectX::XMMatrixTranspose(NewFrameCBufferData.CurrView);
+	m_FrameCBufferData.CurrProj = DirectX::XMMatrixTranspose(NewFrameCBufferData.CurrProj);
+	m_FrameCBufferData.CurrViewProj = DirectX::XMMatrixTranspose(NewFrameCBufferData.CurrViewProj);
+	m_FrameCBufferData.CurrProjJittered = DirectX::XMMatrixTranspose(NewFrameCBufferData.CurrProjJittered);
+	m_FrameCBufferData.CurrViewProjJittered = DirectX::XMMatrixTranspose(NewFrameCBufferData.CurrViewProjJittered);
 	m_FrameCBufferData.CameraPos = NewFrameCBufferData.CameraPos;
 	m_FrameCBufferData.CurrTime = NewFrameCBufferData.CurrTime;
 
