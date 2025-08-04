@@ -1,4 +1,4 @@
-cbuffer CullingBuffer
+cbuffer CullingBuffer : register(b1)
 {
 	float4 FrustumPlanes[6];  // left, right, top, bot, near, far // not using right now, but will use when changing to culling my frustum planes rather than clip space coordinates
 	float4x4 CullCameraViewProj;

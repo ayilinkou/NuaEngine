@@ -81,21 +81,21 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 
 	ID3D11ShaderResourceView* vsSRVs[] = { m_pLandscape->m_HeightmapSRV, m_FrustumCuller->GetCulledOffsetsSRV().Get() };
 	DeviceContext->VSSetShader(m_VertexShader, nullptr, 0u);
-	DeviceContext->VSSetConstantBuffers(0u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
+	DeviceContext->VSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->VSSetShaderResources(0u, 2u, vsSRVs);
 	DeviceContext->VSSetSamplers(0u, 1u, pGraphics->GetSamplerState().GetAddressOf());
 
 	DeviceContext->HSSetShader(m_HullShader, nullptr, 0u);
-	DeviceContext->HSSetConstantBuffers(0u, 1u, m_HullCBuffer.GetAddressOf());
+	DeviceContext->HSSetConstantBuffers(1u, 1u, m_HullCBuffer.GetAddressOf());
 
+	ID3D11Buffer* dsCBuffers[] = { m_pLandscape->m_CameraCBuffer.Get(), m_pLandscape->m_LandscapeInfoCBuffer.Get() };
 	DeviceContext->DSSetShader(m_DomainShader, nullptr, 0u);
-	DeviceContext->DSSetConstantBuffers(0u, 1u, m_pLandscape->m_CameraCBuffer.GetAddressOf());
-	DeviceContext->DSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
+	DeviceContext->DSSetConstantBuffers(1u, 2u, dsCBuffers);
 	DeviceContext->DSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
 	DeviceContext->DSSetSamplers(0u, 1u, pGraphics->GetSamplerState().GetAddressOf());
 
 	DeviceContext->GSSetShader(m_GeometryShader, nullptr, 0u);
-	DeviceContext->GSSetConstantBuffers(0u, 1u, m_pLandscape->m_CullingCBuffer.GetAddressOf());
+	DeviceContext->GSSetConstantBuffers(1u, 1u, m_pLandscape->m_CullingCBuffer.GetAddressOf());
 
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 	DeviceContext->PSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());

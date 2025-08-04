@@ -5,7 +5,7 @@ StructuredBuffer<float2> Offsets : register(t1);
 
 SamplerState Sampler : register(s0);
 
-cbuffer PlaneInfoBuffer : register(b0)
+cbuffer PlaneInfoBuffer : register(b1)
 {
 	float PlaneDimension;
 	float HeightDisplacement;

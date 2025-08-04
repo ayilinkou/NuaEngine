@@ -41,8 +41,8 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelData.cpp" />
     <ClCompile Include="Node.cpp" />
-    <ClCompile Include="PostProcess.cpp" />
-    <ClCompile Include="PostProcessManager.cpp" />
+    <ClCompile Include="PostProcess\PostProcess.cpp" />
+    <ClCompile Include="PostProcess\PostProcessManager.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
@@ -77,8 +77,8 @@
     <ClInclude Include="ModelData.h" />
     <ClInclude Include="MyMacros.h" />
     <ClInclude Include="Node.h" />
-    <ClInclude Include="PostProcess.h" />
-    <ClInclude Include="PostProcessManager.h" />
+    <ClInclude Include="PostProcess\PostProcess.h" />
+    <ClInclude Include="PostProcess\PostProcessManager.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
@@ -404,7 +404,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -426,7 +426,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -448,7 +448,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -470,7 +470,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>

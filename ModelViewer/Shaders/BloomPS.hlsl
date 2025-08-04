@@ -2,7 +2,7 @@ Texture2D screenTexture : register(t0);
 Texture2D blurredTexture : register(t1);
 SamplerState samplerState : register(s0);
 
-cbuffer BloomBuffer
+cbuffer BloomBuffer : register(b1)
 {
 	float luminanceThreshold;
 	float3 padding;

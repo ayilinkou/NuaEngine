@@ -1,7 +1,7 @@
 Texture2D screenTexture : register(t0);
 SamplerState samplerState : register(s0);
 
-cbuffer PixelBuffer
+cbuffer PixelBuffer : register(b1)
 {
 	float2 texelSize;
 	float blockSize;

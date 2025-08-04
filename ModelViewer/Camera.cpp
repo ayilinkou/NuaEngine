@@ -7,7 +7,7 @@
 #include "Camera.h"
 #include "Application.h"
 #include "Graphics.h"
-#include "PostProcessManager.h"
+#include "PostProcess/PostProcessManager.h"
 
 Camera::Camera(const DirectX::XMMATRIX& Proj) : m_ProjMatrix(Proj)
 {
@@ -111,4 +111,22 @@ DirectX::XMFLOAT3 Camera::GetRotatedLookRight() const
 	DirectX::XMFLOAT3 RotatedLookRight;
 	DirectX::XMStoreFloat3(&RotatedLookRight, RightVector);
 	return RotatedLookRight;
+}
+
+CameraInfo Camera::GetCameraInfo()
+{
+	CameraInfo Info = {};
+	Info.View = DirectX::XMMatrixTranspose(m_ViewMatrix);
+	Info.Proj = DirectX::XMMatrixTranspose(m_ProjMatrix);
+	Info.ViewProj = DirectX::XMMatrixTranspose(m_ViewMatrix * m_ProjMatrix);
+	Info.Pos = m_Transform.Position;
+	return Info;
+}
+
+void Camera::GetCameraInfo(CameraInfo& Info)
+{
+	Info.View = DirectX::XMMatrixTranspose(m_ViewMatrix);
+	Info.Proj = DirectX::XMMatrixTranspose(m_ProjMatrix);
+	Info.ViewProj = DirectX::XMMatrixTranspose(m_ViewMatrix * m_ProjMatrix);
+	Info.Pos = m_Transform.Position;
 }

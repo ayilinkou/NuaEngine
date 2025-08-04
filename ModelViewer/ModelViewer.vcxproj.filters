@@ -16,6 +16,12 @@
     <Filter Include="Shader Files">
       <UniqueIdentifier>{75e5fbe2-02ae-4c3d-9e77-d4eebde2c5b1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Post Process">
+      <UniqueIdentifier>{b15520f7-7237-4955-b0c1-e292d5e46328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader Files\Post Process">
+      <UniqueIdentifier>{a8a07b47-7c0f-47f6-b57c-a9bf4faf7b6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -46,9 +52,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImGuiManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
@@ -108,11 +111,14 @@
     <ClCompile Include="Profiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PostProcessManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="JsonParser.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcess.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessManager.cpp">
+      <Filter>Post Process</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -144,9 +150,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
@@ -218,21 +221,18 @@
     <ClInclude Include="Profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PostProcessManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="JsonParser.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcess.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessManager.h">
+      <Filter>Post Process</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BasicPS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="Shaders\BloomPS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="Shaders\BoxBlurPS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="Shaders\BoxRendererPS.hlsl">
@@ -241,22 +241,10 @@
     <None Include="Shaders\BoxRendererVS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="Shaders\ColorCorrectionPS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="Shaders\Common.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="Shaders\FogPS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="Shaders\FrustumCullingCS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="Shaders\GammaCorrectionPS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="Shaders\GaussianBlurPS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="Shaders\GrassPS.hlsl">
@@ -274,9 +262,6 @@
     <None Include="Shaders\PhongVS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="Shaders\PixelationPS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="Shaders\QuadPS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
@@ -287,9 +272,6 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="Shaders\SkyboxVS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="Shaders\TemporalAA_PS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="Shaders\TessellatedPlaneDS.hlsl">
@@ -307,12 +289,36 @@
     <None Include="Shaders\TessellatedPlaneVS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="Shaders\ToneMapperPS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="config.json" />
+    <None Include="Shaders\BloomPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\BoxBlurPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
     <None Include="Shaders\ChromaticAberrationPS.hlsl">
-      <Filter>Shader Files</Filter>
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\ColorCorrectionPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\FogPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\GammaCorrectionPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\GaussianBlurPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\PixelationPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\TemporalAA_PS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
+    </None>
+    <None Include="Shaders\ToneMapperPS.hlsl">
+      <Filter>Shader Files\Post Process</Filter>
     </None>
   </ItemGroup>
 </Project>

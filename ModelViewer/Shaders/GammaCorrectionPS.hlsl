@@ -1,7 +1,7 @@
 Texture2D screenTexture : register(t0);
 SamplerState samplerState : register(s0);
 
-cbuffer ToneMapperBuffer
+cbuffer ToneMapperBuffer : register(b1)
 {
 	float gamma;
 	float3 padding;

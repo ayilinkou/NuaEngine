@@ -1,11 +1,11 @@
-cbuffer MatrixBuffer : register(b0)
+cbuffer MatrixBuffer : register(b1)
 {
 	matrix WorldMatrix;
 	matrix ViewMatrix;
 	matrix ProjectionMatrix;
 };
 
-cbuffer AccumulatedModelTransform : register(b1)
+cbuffer AccumulatedModelTransform : register(b2)
 {
 	matrix AccumulatedModelMatrix;
 }

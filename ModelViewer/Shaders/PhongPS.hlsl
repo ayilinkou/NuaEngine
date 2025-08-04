@@ -20,7 +20,7 @@ struct DirectionalLight
 	float Padding;
 };
 
-cbuffer Lighting : register(b0)
+cbuffer Lighting : register(b1)
 {
 	PointLight PointLights[MAX_POINT_LIGHTS];
 	DirectionalLight DirLights[MAX_DIRECTIONAL_LIGHTS];
@@ -38,7 +38,7 @@ struct MaterialData
 	int SpecularSRV;
 };
 
-cbuffer Material : register(b1)
+cbuffer Material : register(b2)
 {
 	MaterialData Mat;
 };

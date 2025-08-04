@@ -1,12 +1,12 @@
 StructuredBuffer<float4x4> CulledTransforms : register(t0);
 
-cbuffer MatrixBuffer : register(b0)
+cbuffer MatrixBuffer : register(b1)
 {
 	matrix ViewMatrix;
 	matrix ProjectionMatrix;
 };
 
-cbuffer AccumulatedModelTransform : register(b1)
+cbuffer AccumulatedModelTransform : register(b2)
 {
 	matrix AccumulatedModelMatrix;
 }

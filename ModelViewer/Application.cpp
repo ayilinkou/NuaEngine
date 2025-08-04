@@ -13,7 +13,7 @@
 #include "InstancedShader.h"
 #include "Model.h"
 #include "Light.h"
-#include "PostProcess.h"
+#include "PostProcess/PostProcess.h"
 #include "ResourceManager.h"
 #include "SystemClass.h"
 #include "InputClass.h"
@@ -27,7 +27,7 @@
 #include "Grass.h"
 #include "CameraManager.h"
 #include "Profiler.h"
-#include "PostProcessManager.h"
+#include "PostProcess/PostProcessManager.h"
 
 Application* Application::m_Instance = nullptr;
 
@@ -99,6 +99,16 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	m_GameObjects.emplace_back(std::make_shared<GameObject>());
 	m_GameObjects.back()->SetName("Directional Light");
 	m_GameObjects.back()->AddComponent(std::make_shared<DirectionalLight>());
+
+	for (int i = 0; i < 16; i++)
+	{
+		for (int j = 0; j < 16; j++)
+		{
+			m_GameObjects.emplace_back(std::make_shared<GameObject>());
+			m_GameObjects.back()->SetPosition((float)i * 2.f, 15.f, (float)j * 2.f);
+			m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/fantasy_sword_stylized/scene.gltf", "Models/fantasy_sword_stylized/"));
+		}
+	}
 
 	m_TextureResourceView = static_cast<ID3D11ShaderResourceView*>(ResourceManager::GetSingletonPtr()->LoadTexture(m_QuadTexturePath));
 

@@ -65,7 +65,7 @@ void BoxRenderer::Render()
 	DeviceContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 
 	DeviceContext->VSSetShader(m_VertexShader, nullptr, 0u);
-	DeviceContext->VSSetConstantBuffers(0u, 1u, m_CameraCBuffer.GetAddressOf());
+	DeviceContext->VSSetConstantBuffers(1u, 1u, m_CameraCBuffer.GetAddressOf());
 	DeviceContext->VSSetShaderResources(0u, 1u, m_CornersSRV.GetAddressOf());
 
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
@@ -146,7 +146,7 @@ bool BoxRenderer::CreateBuffers()
 	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-	Desc.ByteWidth = sizeof(CameraBuffer);
+	Desc.ByteWidth = sizeof(CameraInfo);
 
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, nullptr, &m_CameraCBuffer));
 	NAME_D3D_RESOURCE(m_CameraCBuffer, "Box renderer camera constant buffer");
@@ -179,13 +179,13 @@ bool BoxRenderer::CreateViews()
 void BoxRenderer::UpdateBuffers()
 {
 	HRESULT hResult;
-	CameraBuffer* CameraBufferPtr;
+	CameraInfo* CameraBufferPtr;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_CameraCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
-	CameraBufferPtr = (CameraBuffer*)MappedResource.pData;
-	CameraBufferPtr->ViewProj = DirectX::XMMatrixTranspose(m_CameraManager->GetActiveCamera()->GetViewProjMatrix());
+	CameraBufferPtr = (CameraInfo*)MappedResource.pData;
+	m_CameraManager->GetActiveCamera()->GetCameraInfo(*CameraBufferPtr);
 	DeviceContext->Unmap(m_CameraCBuffer.Get(), 0u);
 }
 

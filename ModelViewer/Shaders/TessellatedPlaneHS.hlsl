@@ -18,7 +18,7 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float InsideTessFactor[2]		: SV_InsideTessFactor;
 };
 
-cbuffer CameraBuffer
+cbuffer CameraBuffer : register(b1)
 {
 	float3 CameraPos;
 	float TessellationScale;

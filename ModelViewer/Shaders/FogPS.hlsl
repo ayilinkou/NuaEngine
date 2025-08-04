@@ -6,7 +6,7 @@ SamplerState samplerState : register(s0);
 #define EXPONENTIAL 1
 #define EXPONENTIAL_SQUARED 2
 
-cbuffer FogBuffer : register(b0)
+cbuffer FogBuffer : register(b1)
 {
 	float3 FogColor;
 	int Formula;
@@ -15,7 +15,6 @@ cbuffer FogBuffer : register(b0)
 	float FarPlane;
 	float Padding;
 };
-
 
 struct PS_In
 {

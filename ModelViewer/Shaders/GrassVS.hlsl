@@ -5,7 +5,7 @@ StructuredBuffer<GrassData> Grass : register(t1);
 
 SamplerState Sampler : register(s0);
 
-cbuffer PlaneInfoBuffer : register(b0)
+cbuffer PlaneInfoBuffer : register(b1)
 {
 	float PlaneDimension;
 	float HeightDisplacement;
@@ -17,12 +17,12 @@ cbuffer PlaneInfoBuffer : register(b0)
 	float2 Padding;
 };
 
-cbuffer CameraBuffer : register(b1)
+cbuffer CameraBuffer : register(b2)
 {
 	float4x4 ViewProj;
 };
 
-cbuffer WindBuffer : register(b2)
+cbuffer WindBuffer : register(b3)
 {
 	float Freq;
 	float Amp;

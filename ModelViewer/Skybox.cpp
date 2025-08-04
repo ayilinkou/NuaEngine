@@ -144,7 +144,7 @@ void Skybox::Render()
 	DeviceContext->IASetVertexBuffers(0u, 1u, m_VertexBuffer.GetAddressOf(), Strides, Offsets);
 	DeviceContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 	DeviceContext->VSSetShader(m_VertexShader, nullptr, 0u);
-	DeviceContext->VSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+	DeviceContext->VSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 	DeviceContext->PSSetShaderResources(0u, 1u, m_SRV.GetAddressOf());
 

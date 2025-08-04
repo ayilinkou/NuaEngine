@@ -24,6 +24,15 @@ struct FrameCBuffer
     float3 Padding;
 };
 
+struct CameraInfo
+{
+    float4x4 View;
+    float4x4 Proj;
+    float4x4 ViewProj;
+    float3 Pos;
+    float Padding;
+};
+
 struct GrassData
 {
 	float2 Offset;

@@ -397,7 +397,7 @@ private:
 
 		ID3D11ShaderResourceView* SRVs[2] = { SRV.Get(), Graphics::GetSingletonPtr()->GetDepthStencilSRV().Get() };
 		DeviceContext->PSSetShaderResources(0u, 2u, SRVs);
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
@@ -483,7 +483,7 @@ private:
 		DeviceContext->PSSetShader(m_HorizontalPS, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, m_IntermediateRTV.GetAddressOf(), nullptr);
 
@@ -619,7 +619,7 @@ private:
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 		DeviceContext->PSSetShaderResources(1u, 1u, m_GaussianWeightsSRV.GetAddressOf());
 
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, m_IntermediateRTV.GetAddressOf(), nullptr);
 
@@ -730,7 +730,7 @@ private:
 	{
 		DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
@@ -840,7 +840,7 @@ private:
 		// render luminous pixels
 		DeviceContext->PSSetShader(m_LuminancePS, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, m_LuminousRTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
@@ -856,7 +856,7 @@ private:
 		DeviceContext->PSSetShader(m_BloomPS, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 		DeviceContext->PSSetShaderResources(1u, 1u, m_BlurredSRV.GetAddressOf());
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 		DeviceContext->DrawIndexed(6u, 0u, 0);
@@ -957,7 +957,7 @@ private:
 		DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
@@ -1013,7 +1013,7 @@ private:
 		DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
@@ -1075,7 +1075,7 @@ private:
 		DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 		DeviceContext->PSSetShaderResources(0u, 1u, SRV.GetAddressOf());
 
-		DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 		DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 
@@ -1168,7 +1168,7 @@ private:
 			ID3D11ShaderResourceView* SRVs[2] = { SRV.Get(), m_HistoryFrameSRV.Get() };
 			DeviceContext->PSSetShaderResources(0u, 2u, SRVs);
 
-			DeviceContext->PSSetConstantBuffers(0u, 1u, m_ConstantBuffer.GetAddressOf());
+			DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
 			DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
 

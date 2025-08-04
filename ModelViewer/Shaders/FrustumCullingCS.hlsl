@@ -15,7 +15,7 @@ RWStructuredBuffer<uint> InstanceCounts : register(u4);
 RWByteAddressBuffer FirstArgsBuffer : register(u5);
 RWByteAddressBuffer SecondArgsBuffer : register(u6);
 
-cbuffer CullData : register(b0)
+cbuffer CullData : register(b1)
 {
 	float4 Corners[8];
 	float4x4 ScaleMatrix;

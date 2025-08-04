@@ -3,7 +3,7 @@ SamplerState samplerState : register(s0);
 
 StructuredBuffer<float> gaussianWeights : register(t1);
 
-cbuffer BlurBuffer : register(b0)
+cbuffer BlurBuffer : register(b1)
 {
 	float2 texelSize;
 	int blurStrength;

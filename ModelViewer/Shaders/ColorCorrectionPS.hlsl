@@ -1,7 +1,7 @@
 Texture2D screenTexture : register(t0);
 SamplerState samplerState : register(s0);
 
-cbuffer ColorData
+cbuffer ColorData : register(b1)
 {
 	float Contrast;
 	float Brightness;

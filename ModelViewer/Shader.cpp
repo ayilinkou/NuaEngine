@@ -91,8 +91,6 @@ bool Shader::SetShaderParameters(ID3D11DeviceContext* DeviceContext, DirectX::XM
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	MatrixBuffer* MatrixDataPtr;
 	LightingBuffer* LightingDataPtr;
-	unsigned int vsBufferSlot = 0u;
-	unsigned int psBufferSlot = 0u;
 	
 	// remember to transpose from row major before sending to shaders
 	World = DirectX::XMMatrixTranspose(World);
@@ -106,8 +104,7 @@ bool Shader::SetShaderParameters(ID3D11DeviceContext* DeviceContext, DirectX::XM
 	MatrixDataPtr->ProjectionMatrix = Projection;
 	DeviceContext->Unmap(m_MatrixBuffer.Get(), 0u);
 
-	DeviceContext->VSSetConstantBuffers(vsBufferSlot, 1u, m_MatrixBuffer.GetAddressOf());
-	vsBufferSlot++;
+	DeviceContext->VSSetConstantBuffers(1u, 1u, m_MatrixBuffer.GetAddressOf());
 
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_LightingBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedResource));
 	LightingDataPtr = (LightingBuffer*)MappedResource.pData;
@@ -119,8 +116,7 @@ bool Shader::SetShaderParameters(ID3D11DeviceContext* DeviceContext, DirectX::XM
 	LightingDataPtr->Padding = 0.f;
 	DeviceContext->Unmap(m_LightingBuffer.Get(), 0u);
 
-	DeviceContext->PSSetConstantBuffers(psBufferSlot, 1u, m_LightingBuffer.GetAddressOf());
-	psBufferSlot++;
+	DeviceContext->PSSetConstantBuffers(1u, 1u, m_LightingBuffer.GetAddressOf());
 
 	return true;
 }

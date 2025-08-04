@@ -7,6 +7,15 @@
 
 #include "GameObject.h"
 
+struct CameraInfo
+{
+	DirectX::XMMATRIX View;
+	DirectX::XMMATRIX Proj;
+	DirectX::XMMATRIX ViewProj;
+	DirectX::XMFLOAT3 Pos;
+	float Padding;
+};
+
 class Camera : public GameObject
 {
 public:
@@ -32,6 +41,11 @@ public:
 	DirectX::XMMATRIX GetViewProjMatrix() { return m_ViewMatrix * GetProjMatrix(); }
 
 	bool ShouldVisualiseFrustum() const { return m_bVisualiseFrustum; }
+
+	// the struct holds transposed matrices, ready to be used in shaders
+	CameraInfo GetCameraInfo();
+	// the struct holds transposed matrices, ready to be used in shaders
+	void GetCameraInfo(CameraInfo& Info);
 
 private:
 	DirectX::XMFLOAT3 m_LookDir;

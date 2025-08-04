@@ -2,9 +2,9 @@
 
 StructuredBuffer<float4> Corners : register(t0);
 
-cbuffer CameraBuffer : register(b0)
+cbuffer CameraBuffer : register(b1)
 {
-	float4x4 ViewProj;
+	CameraInfo Camera;
 }
 
 struct VS_IN
@@ -16,5 +16,5 @@ struct VS_IN
 
 float4 main(VS_IN v) : SV_POSITION
 {
-	return mul(Corners[v.InstanceID * 8 + v.VertexID], ViewProj);
+	return mul(Corners[v.InstanceID * 8 + v.VertexID], Camera.ViewProj);
 }

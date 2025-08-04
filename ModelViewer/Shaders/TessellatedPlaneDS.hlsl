@@ -18,12 +18,12 @@ struct DS_Out
 	uint ChunkID : TEXCOORD1;
 };
 
-cbuffer DomainBuffer : register(b0)
+cbuffer DomainBuffer : register(b1)
 {
 	float4x4 ViewProj;
 };
 
-cbuffer PlaneInfoBuffer : register(b1)
+cbuffer PlaneInfoBuffer : register(b2)
 {
 	float PlaneDimension;
 	float HeightDisplacement;

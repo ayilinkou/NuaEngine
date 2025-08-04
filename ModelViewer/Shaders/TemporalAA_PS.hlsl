@@ -3,7 +3,7 @@ Texture2D LastComposedTexture : register(t1);
 
 SamplerState samplerState : register(s0);
 
-cbuffer TAABuffer
+cbuffer TAABuffer : register(b1)
 {
     float Alpha;
     float3 Padding;

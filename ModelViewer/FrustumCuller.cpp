@@ -116,12 +116,12 @@ void FrustumCuller::CullLandscape(ID3D11ShaderResourceView* ChunksOffsetsSRV, co
 	DeviceContext->CSSetUnorderedAccessViews(1u, 1u, m_CulledOffsetsUAV.GetAddressOf(), &InitialCount);
 	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
 	DeviceContext->CSSetShaderResources(1u, 3u, SRVs);
-	DeviceContext->CSSetConstantBuffers(0u, 1u, m_CBuffer.GetAddressOf());
+	DeviceContext->CSSetConstantBuffers(1u, 1u, m_CBuffer.GetAddressOf());
 
 	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
 	m_Profiler->AddComputeDispatch();
 
-	DeviceContext->CSSetConstantBuffers(0u, 8u, NullBuffers);
+	DeviceContext->CSSetConstantBuffers(1u, 7u, NullBuffers);
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);
 	DeviceContext->CSSetUnorderedAccessViews(0u, 8u, NullUAVs, nullptr);
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
@@ -150,12 +150,12 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const s
 	DeviceContext->CSSetUnorderedAccessViews(3u, 1u, m_CulledGrassLODDataUAV.GetAddressOf(), &InitialCount);
 	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
 	DeviceContext->CSSetShaderResources(1u, 3u, SRVs);
-	DeviceContext->CSSetConstantBuffers(0u, 1u, m_CBuffer.GetAddressOf());
+	DeviceContext->CSSetConstantBuffers(1u, 1u, m_CBuffer.GetAddressOf());
 
 	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
 	m_Profiler->AddComputeDispatch();
 
-	DeviceContext->CSSetConstantBuffers(0u, 8u, NullBuffers);
+	DeviceContext->CSSetConstantBuffers(1u, 7u, NullBuffers);
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);
 	DeviceContext->CSSetUnorderedAccessViews(0u, 8u, NullUAVs, nullptr);
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
@@ -426,12 +426,12 @@ void FrustumCuller::DispatchShaderImpl(UINT* ThreadGroupCount)
 	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
 	DeviceContext->CSSetShaderResources(0u, 1u, m_TransformsSRV.GetAddressOf());
 	DeviceContext->CSSetShaderResources(1u, 1u, m_OffsetsSRV.GetAddressOf());
-	DeviceContext->CSSetConstantBuffers(0u, 1u, m_CBuffer.GetAddressOf());
+	DeviceContext->CSSetConstantBuffers(1u, 1u, m_CBuffer.GetAddressOf());
 	
 	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
 	m_Profiler->AddComputeDispatch();
 
-	DeviceContext->CSSetConstantBuffers(0u, 8u, NullBuffers);
+	DeviceContext->CSSetConstantBuffers(1u, 7u, NullBuffers);
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);
 	DeviceContext->CSSetUnorderedAccessViews(0u, 8u, NullUAVs, nullptr);
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
