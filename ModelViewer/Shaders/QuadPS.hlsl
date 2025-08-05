@@ -1,5 +1,6 @@
+#include "Common.hlsl"
+
 Texture2D screenTexture : register(t0);
-SamplerState samplerState : register(s0);
 
 struct PS_In
 {
@@ -10,5 +11,5 @@ struct PS_In
 
 float4 main(PS_In p) : SV_TARGET
 {
-	return screenTexture.Sample(samplerState, p.TexCoord);
+	return screenTexture.Sample(LinearSampler, p.TexCoord);
 }

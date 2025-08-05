@@ -2,7 +2,6 @@
 #include "GlobalCBuffer.hlsl"
 
 Texture2D Heightmap : register(t0);
-SamplerState Sampler : register(s0);
 
 cbuffer PlaneInfoBuffer : register(b1)
 {
@@ -62,7 +61,7 @@ PS_Out main(PS_In p) : SV_TARGET
         return o;
     }
 
-	float Height = Heightmap.Sample(Sampler, p.UV).r;
+	float Height = Heightmap.Sample(LinearSampler, p.UV).r;
 	if (Height < 0.03)
 	{
 		o.Color = float4(50.f / 256.f, 123.f / 256.f, 191.f / 256.f, 1.f);

@@ -1,5 +1,6 @@
+#include "Common.hlsl"
+
 Texture2D screenTexture : register(t0);
-SamplerState samplerState : register(s0);
 
 cbuffer ColorData : register(b1)
 {
@@ -18,7 +19,7 @@ struct PS_In
 
 float4 main(PS_In p) : SV_TARGET
 {
-	float3 Color = screenTexture.Sample(samplerState, p.TexCoord).xyz;
+	float3 Color = screenTexture.Sample(LinearSampler, p.TexCoord).xyz;
 	float Greyscale = 0.299f * Color.r + 0.587f * Color.g + 0.114f * Color.b;
 	float3 GreyscaleColor = float3(Greyscale, Greyscale, Greyscale);
 	

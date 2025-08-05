@@ -1,5 +1,6 @@
+#include "Common.hlsl"
+
 Texture2D screenTexture : register(t0);
-SamplerState samplerState : register(s0);
 
 StructuredBuffer<float> gaussianWeights : register(t1);
 
@@ -30,7 +31,7 @@ float4 HorizontalPS(PS_In p) : SV_TARGET
 		u = p.TexCoord.x + offset;
 		if (u >= 0.f && u <= 1.f)
 		{
-			colorSum += screenTexture.Sample(samplerState, float2(u, p.TexCoord.y)).xyz * gaussianWeights[i];
+			colorSum += screenTexture.Sample(LinearSampler, float2(u, p.TexCoord.y)).xyz * gaussianWeights[i];
 			weightSum += gaussianWeights[i];
 		}
 		
@@ -42,7 +43,7 @@ float4 HorizontalPS(PS_In p) : SV_TARGET
 		u = p.TexCoord.x - offset;
 		if (u >= 0.f && u <= 1.f)
 		{
-			colorSum += screenTexture.Sample(samplerState, float2(u, p.TexCoord.y)).xyz * gaussianWeights[i];
+			colorSum += screenTexture.Sample(LinearSampler, float2(u, p.TexCoord.y)).xyz * gaussianWeights[i];
 			weightSum += gaussianWeights[i];
 		}
 	}
@@ -64,7 +65,7 @@ float4 VerticalPS(PS_In p) : SV_TARGET
 		v = p.TexCoord.y + offset;
 		if (v >= 0.f && v <= 1.f)
 		{
-			colorSum += screenTexture.Sample(samplerState, float2(p.TexCoord.x, v)).xyz * gaussianWeights[i];
+			colorSum += screenTexture.Sample(LinearSampler, float2(p.TexCoord.x, v)).xyz * gaussianWeights[i];
 			weightSum += gaussianWeights[i];
 		}
 		
@@ -76,7 +77,7 @@ float4 VerticalPS(PS_In p) : SV_TARGET
 		v = p.TexCoord.y - offset;
 		if (v >= 0.f && v <= 1.f)
 		{
-			colorSum += screenTexture.Sample(samplerState, float2(p.TexCoord.x, v)).xyz * gaussianWeights[i];
+			colorSum += screenTexture.Sample(LinearSampler, float2(p.TexCoord.x, v)).xyz * gaussianWeights[i];
 			weightSum += gaussianWeights[i];
 		}
 	}

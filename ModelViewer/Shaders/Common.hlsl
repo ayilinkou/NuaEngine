@@ -6,6 +6,9 @@
 #define MAX_GRASS_PER_CHUNK 10000
 #define MAX_INSTANCE_COUNT 1024
 
+SamplerState LinearSampler : register(s0);
+SamplerState PointSampler : register(s1);
+
 struct CameraInfo
 {
     float4x4 View;

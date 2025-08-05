@@ -1,7 +1,5 @@
 #include "Common.hlsl"
 
-SamplerState Sampler : register(s0);
-
 StructuredBuffer<float4x4> Transforms : register(t0);
 StructuredBuffer<float2> Offsets : register(t1);
 StructuredBuffer<float2> CulledOffsets : register(t2);
@@ -106,7 +104,7 @@ void FrustumCullGrass(uint3 DTid : SV_DispatchThreadID)
 	const float4 WorldOffset = float4(ChunkOffset + GrassOffset, 0.f);
 	
 	const float2 UV = GetHeightmapUV(WorldOffset.xz, PlaneDimension);
-	const float4 Height = float4(0.f, Heightmap.SampleLevel(Sampler, UV, 0.f).r * HeightDisplacement, 0.f, 0.f);
+	const float4 Height = float4(0.f, Heightmap.SampleLevel(LinearSampler, UV, 0.f).r * HeightDisplacement, 0.f, 0.f);
 	
 	float Dist = distance(CameraPos, WorldOffset.xyz);
 	bool bHighLOD = Dist < LODDistanceThreshold;

@@ -2,7 +2,6 @@
 #include "GlobalCBuffer.hlsl"
 
 Texture2D Heightmap : register(t0);
-SamplerState Sampler : register(s0);
 
 struct DS_In
 {
@@ -67,7 +66,7 @@ DS_Out main(
 	float2 BotUV = lerp(uv2, uv3, UV.x);
 	o.UV = lerp(TopUV, BotUV, UV.y);
 
-	float Height = Heightmap.SampleLevel(Sampler, DS_UV, 0.f).r * HeightDisplacement;
+	float Height = Heightmap.SampleLevel(LinearSampler, DS_UV, 0.f).r * HeightDisplacement;
 	
 	Pos.y = Height;
 	o.WorldPos = Pos;

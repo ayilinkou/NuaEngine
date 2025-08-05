@@ -1,5 +1,6 @@
+#include "Common.hlsl"
+
 Texture2D screenTexture : register(t0);
-SamplerState samplerState : register(s0);
 
 cbuffer BlurBuffer : register(b1)
 {
@@ -30,7 +31,7 @@ float4 HorizontalPS(PS_In p) : SV_TARGET
 			continue;
 		}
 		
-		colorSum += screenTexture.Sample(samplerState, float2(u, p.TexCoord.y));
+		colorSum += screenTexture.Sample(LinearSampler, float2(u, p.TexCoord.y));
 		sampleCount++;
 	}
 	
@@ -53,7 +54,7 @@ float4 VerticalPS(PS_In p) : SV_TARGET
 			continue;
 		}
 		
-		colorSum += screenTexture.Sample(samplerState, float2(p.TexCoord.x, v));
+		colorSum += screenTexture.Sample(LinearSampler, float2(p.TexCoord.x, v));
 		sampleCount++;
 	}
 	

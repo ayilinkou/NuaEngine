@@ -1,5 +1,6 @@
+#include "Common.hlsl"
+
 Texture2D screenTexture : register(t0);
-SamplerState samplerState : register(s0);
 
 cbuffer ToneMapperBuffer : register(b1)
 {
@@ -16,7 +17,7 @@ struct PS_In
 
 float4 main(PS_In p) : SV_TARGET
 {
-	float4 color = screenTexture.Sample(samplerState, p.TexCoord);
+	float4 color = screenTexture.Sample(LinearSampler, p.TexCoord);
 	
 	return float4(pow(color.xyz, 1.f / gamma), 1.f);
 }

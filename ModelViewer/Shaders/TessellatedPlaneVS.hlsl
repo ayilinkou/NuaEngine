@@ -3,8 +3,6 @@
 Texture2D Heightmap : register(t0);
 StructuredBuffer<float2> Offsets : register(t1);
 
-SamplerState Sampler : register(s0);
-
 cbuffer PlaneInfoBuffer : register(b1)
 {
 	float PlaneDimension;
@@ -35,7 +33,7 @@ VS_Out main(VS_In v)
 	o.Pos = mul(float4(v.Pos, 1.f), ChunkScaleMatrix).xyz + float3(Offsets[v.InstanceID].x, 0.f, Offsets[v.InstanceID].y);
 	o.UV = GetHeightmapUV(o.Pos.xz, PlaneDimension);
 	
-	float Height = Heightmap.SampleLevel(Sampler, o.UV, 0.f).r * HeightDisplacement;
+	float Height = Heightmap.SampleLevel(LinearSampler, o.UV, 0.f).r * HeightDisplacement;
 	o.Pos.y = Height;
 	
 	o.ChunkID = HashFloat2ToUint(Offsets[v.InstanceID]);

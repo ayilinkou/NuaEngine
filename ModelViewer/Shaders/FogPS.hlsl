@@ -1,8 +1,8 @@
+#include "Common.hlsl"
 #include "GlobalCBuffer.hlsl"
 
 Texture2D screenTexture : register(t0);
 Texture2D depthTexture : register(t1);
-SamplerState samplerState : register(s0);
 
 #define LINEAR 0
 #define EXPONENTIAL 1
@@ -40,9 +40,9 @@ float ExponentialSquaredFog(float Distance)
 
 float4 main(PS_In p) : SV_TARGET
 {
-	float3 Color = screenTexture.Sample(samplerState, p.TexCoord).xyz;
+	float3 Color = screenTexture.Sample(LinearSampler, p.TexCoord).xyz;
 	
-	float NonLinearDepth = depthTexture.Sample(samplerState, p.TexCoord);
+	float NonLinearDepth = depthTexture.Sample(LinearSampler, p.TexCoord);
 
 	float LinearDepth = (1.f - GlobalBuffer.FarZ / GlobalBuffer.NearZ) * NonLinearDepth + (GlobalBuffer.FarZ / GlobalBuffer.NearZ);
 	LinearDepth = 1.f / LinearDepth;

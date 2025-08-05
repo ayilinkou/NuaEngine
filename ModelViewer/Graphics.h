@@ -91,7 +91,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterStateBackFaceCullOn;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterStateBackFaceCullOff;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_WireframeRasterState;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SamplerState;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_LinearSampler;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_PointSampler;
 	Microsoft::WRL::ComPtr<ID3D11Query> m_PipelineStatsQuery;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_GlobalCBuffer;
 
@@ -111,7 +112,6 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetDepthStencilSRV() const { return m_DepthStencilSRV; }
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetVelocitySRV() const { return m_VelocitySRV; }
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GetVelocityRTV() const { return m_VelocityRTV; }
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> GetSamplerState() const { return m_SamplerState; }
 
 	std::pair<int, int> GetRenderTargetDimensions() const { return m_Dimensions; }
 	float GetNearPlane() const { return m_NearPlane; }

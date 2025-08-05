@@ -324,9 +324,21 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	SamplerDesc.MinLOD = 0;
 	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	ASSERT_NOT_FAILED(m_Device->CreateSamplerState(&SamplerDesc, &m_SamplerState));
-	m_SamplerState->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen("Sampler state"), "Sampler state");
-	m_DeviceContext->PSSetSamplers(0, 1, m_SamplerState.GetAddressOf());
+	ASSERT_NOT_FAILED(m_Device->CreateSamplerState(&SamplerDesc, &m_LinearSampler));
+	m_LinearSampler->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen("Linear sampler state"), "Linear sampler state");
+
+	SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+	ASSERT_NOT_FAILED(m_Device->CreateSamplerState(&SamplerDesc, &m_PointSampler));
+	m_PointSampler->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen("Point sampler state"), "Point sampler state");
+
+	ID3D11SamplerState* Samplers[2] = { m_LinearSampler.Get(), m_PointSampler.Get() };
+	m_DeviceContext->VSSetSamplers(0u, 2u, Samplers);
+	m_DeviceContext->HSSetSamplers(0u, 2u, Samplers);
+	m_DeviceContext->DSSetSamplers(0u, 2u, Samplers);
+	m_DeviceContext->GSSetSamplers(0u, 2u, Samplers);
+	m_DeviceContext->PSSetSamplers(0u, 2u, Samplers);
+	m_DeviceContext->CSSetSamplers(0u, 2u, Samplers);
 
 	D3D11_QUERY_DESC QueryDesc = {};
 	QueryDesc.Query = D3D11_QUERY_PIPELINE_STATISTICS;
@@ -386,7 +398,8 @@ void Graphics::Shutdown()
 	m_BlendStateTransparent.Reset();
 	m_RasterStateBackFaceCullOn.Reset();
 	m_RasterStateBackFaceCullOff.Reset();
-	m_SamplerState.Reset();
+	m_LinearSampler.Reset();
+	m_PointSampler.Reset();
 	m_BackBufferRTV.Reset();
 	m_PostProcessRTVFirst.Reset();
 	m_PostProcessRTVSecond.Reset();

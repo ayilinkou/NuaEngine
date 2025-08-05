@@ -81,7 +81,6 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->VSSetShader(m_VertexShader, nullptr, 0u);
 	DeviceContext->VSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->VSSetShaderResources(0u, 2u, vsSRVs);
-	DeviceContext->VSSetSamplers(0u, 1u, pGraphics->GetSamplerState().GetAddressOf());
 
 	DeviceContext->HSSetShader(m_HullShader, nullptr, 0u);
 	DeviceContext->HSSetConstantBuffers(1u, 1u, m_HullCBuffer.GetAddressOf());
@@ -89,7 +88,6 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->DSSetShader(m_DomainShader, nullptr, 0u);
 	DeviceContext->DSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->DSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
-	DeviceContext->DSSetSamplers(0u, 1u, pGraphics->GetSamplerState().GetAddressOf());
 
 	DeviceContext->GSSetShader(m_GeometryShader, nullptr, 0u);
 	DeviceContext->GSSetConstantBuffers(1u, 1u, m_pLandscape->m_CullingCBuffer.GetAddressOf());
@@ -97,7 +95,6 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 	DeviceContext->PSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->PSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
-	DeviceContext->PSSetSamplers(0u, 1u, pGraphics->GetSamplerState().GetAddressOf());
 
 	DeviceContext->Begin(pGraphics->GetPipelineStatsQuery().Get());
 	DeviceContext->DrawIndexedInstancedIndirect(m_ArgsBuffer.Get(), 0u);

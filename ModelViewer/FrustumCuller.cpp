@@ -106,7 +106,6 @@ void FrustumCuller::CullLandscape(ID3D11ShaderResourceView* ChunksOffsetsSRV, co
 
 	ClearInstanceCount();
 	DeviceContext->CSSetShader(m_OffsetsCullingShader, nullptr, 0u);
-	DeviceContext->CSSetSamplers(0u, 1u, Graphics::GetSingletonPtr()->GetSamplerState().GetAddressOf());
 
 	UINT ThreadGroupCount[3] = { (NumChunks + 31) / 32u, 1u, 1u };
 
@@ -135,7 +134,6 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const s
 
 	ClearInstanceCount();
 	DeviceContext->CSSetShader(m_GrassCullingShader, nullptr, 0u);
-	DeviceContext->CSSetSamplers(0u, 1u, Graphics::GetSingletonPtr()->GetSamplerState().GetAddressOf());
 
 	const UINT ThreadsX = 32u;
 	const UINT ThreadsY = 8u;

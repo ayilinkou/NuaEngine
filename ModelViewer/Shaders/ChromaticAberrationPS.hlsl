@@ -1,5 +1,6 @@
+#include "Common.hlsl"
+
 Texture2D screenTexture : register(t0);
-SamplerState samplerState : register(s0);
 
 cbuffer ChromaticAberrationBuffer : register(b1)
 {
@@ -20,8 +21,8 @@ float4 main(PS_In p) : SV_TARGET
     float3 Color = float3(0.f, 0.f, 0.f);
     float2 Offset = float2(1.f, 1.f) * TexelSize;
     
-    Color.r = screenTexture.Sample(samplerState, p.TexCoord + Offset * Scale).r;
-    Color.g = screenTexture.Sample(samplerState, p.TexCoord).g;
-    Color.b = screenTexture.Sample(samplerState, p.TexCoord - Offset * Scale).b;
+    Color.r = screenTexture.Sample(LinearSampler, p.TexCoord + Offset * Scale).r;
+    Color.g = screenTexture.Sample(LinearSampler, p.TexCoord).g;
+    Color.b = screenTexture.Sample(LinearSampler, p.TexCoord - Offset * Scale).b;
     return float4(Color, 1.f);
 }

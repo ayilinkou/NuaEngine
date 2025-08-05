@@ -4,8 +4,6 @@
 Texture2D Heightmap : register(t0);
 StructuredBuffer<GrassData> Grass : register(t1);
 
-SamplerState Sampler : register(s0);
-
 cbuffer PlaneInfoBuffer : register(b1)
 {
 	float PlaneDimension;
@@ -75,7 +73,7 @@ VS_Out main(VS_In v)
 	
 	// apply height offset
 	o.UV = GetHeightmapUV(GrassPos, PlaneDimension);
-	float NoiseVal = Heightmap.SampleLevel(Sampler, o.UV, 0.f).r;
+	float NoiseVal = Heightmap.SampleLevel(LinearSampler, o.UV, 0.f).r;
 	float Height = NoiseVal * HeightDisplacement;
 	
 	RotatedPos.y *= lerp(0.1f, 2.f, NoiseVal);

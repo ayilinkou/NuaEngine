@@ -1,6 +1,7 @@
+#include "Common.hlsl"
+
 Texture2D screenTexture : register(t0);
 Texture2D blurredTexture : register(t1);
-SamplerState samplerState : register(s0);
 
 cbuffer BloomBuffer : register(b1)
 {
@@ -22,7 +23,7 @@ float CalcLuminance(float3 color)
 
 float4 LuminancePS(PS_In p) : SV_TARGET
 {
-	float4 color = screenTexture.Sample(samplerState, p.TexCoord);
+	float4 color = screenTexture.Sample(LinearSampler, p.TexCoord);
 	if (CalcLuminance(color.xyz) < luminanceThreshold)
 	{
 		return float4(0.f, 0.f, 0.f, 1.f);
@@ -33,5 +34,5 @@ float4 LuminancePS(PS_In p) : SV_TARGET
 
 float4 BloomPS(PS_In p) : SV_TARGET
 {
-	return float4((screenTexture.Sample(samplerState, p.TexCoord) + blurredTexture.Sample(samplerState, p.TexCoord)).xyz, 1.f);
+	return float4((screenTexture.Sample(LinearSampler, p.TexCoord) + blurredTexture.Sample(LinearSampler, p.TexCoord)).xyz, 1.f);
 }

@@ -1,6 +1,7 @@
+#include "Common.hlsl"
+
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
-SamplerState samplerState : register(s0);
 
 cbuffer Material : register(b1)
 {
@@ -23,7 +24,7 @@ float4 main(PS_In p) : SV_TARGET
 {		
 	if (DiffuseSRV >= 0)
 	{
-		return diffuseTexture.Sample(samplerState, p.TexCoord);
+		return diffuseTexture.Sample(LinearSampler, p.TexCoord);
 	}
 	return float4(DiffuseColor, 1.f);
 }

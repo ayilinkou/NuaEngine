@@ -3,7 +3,6 @@
 
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
-SamplerState samplerState : register(s0);
 
 struct PointLight
 {
@@ -57,7 +56,7 @@ float4 main(PS_In p) : SV_TARGET
 	float4 Color;
 	if (Mat.DiffuseSRV >= 0)
 	{
-		Color = diffuseTexture.Sample(samplerState, p.TexCoord);
+		Color = diffuseTexture.Sample(LinearSampler, p.TexCoord);
 	}
 	else
 	{
