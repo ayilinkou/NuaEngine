@@ -1,4 +1,5 @@
 #include "Common.hlsl"
+#include "GlobalCBuffer.hlsl"
 
 Texture2D ScreenTexture : register(t0);
 Texture2D HistoryTexture : register(t1);
