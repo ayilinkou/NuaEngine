@@ -50,7 +50,7 @@
     {
       "type": "TAA",
       "active": true,
-      "alpha": 0.8,
+      "alpha": 0.9,
       "bUseMotionVectors": true,
       "bUseColorClamping": true
     },
