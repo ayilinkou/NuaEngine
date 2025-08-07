@@ -1093,7 +1093,8 @@ namespace PostProcessData
 	{
 		float Alpha;
 		int bUseMotionVectors;
-		DirectX::XMFLOAT2 Padding = {};
+		int bUseColorClamping;
+		float Padding;
 	};
 }
 
@@ -1138,6 +1139,8 @@ public:
 		if (ImGui::SliderFloat("Alpha", &m_CurrentSettings.Alpha, 0.f, 1.f, "%.2f", ImGuiSliderFlags_AlwaysClamp))
 			bDirty = true;
 		if (ImGui::Checkbox("Use Motion Vectors", (bool*)&m_CurrentSettings.bUseMotionVectors))
+			bDirty = true;
+		if (ImGui::Checkbox("Use Color Clamping", (bool*)&m_CurrentSettings.bUseColorClamping))
 			bDirty = true;
 
 		if (bDirty)

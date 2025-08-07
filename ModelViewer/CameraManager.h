@@ -80,6 +80,7 @@ private:
 
 	CameraSettings m_CameraSettings;
 	int m_ActiveCameraID;
+	const int m_NumJitterSamples;
 
 	Delegate<void()> m_OnActiveCameraChanged;
 };

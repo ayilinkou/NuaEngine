@@ -2,7 +2,7 @@
 #include "Camera.h"
 #include "PostProcess/PostProcessManager.h"
 
-CameraManager::CameraManager() : m_ActiveCameraID(0)
+CameraManager::CameraManager() : m_ActiveCameraID(0), m_NumJitterSamples(8)
 {
 }
 
@@ -70,10 +70,8 @@ void CameraManager::CalcJitteredMatrices(uint32_t FrameIndex, const std::pair<in
 		return;
 	}
 	
-	const int NumSamples = 16;
-
-	float JitterX = Halton(FrameIndex % NumSamples, 2) - 0.5f;
-	float JitterY = Halton(FrameIndex % NumSamples, 3) - 0.5f;
+	float JitterX = Halton(FrameIndex % m_NumJitterSamples, 2) - 0.5f;
+	float JitterY = Halton(FrameIndex % m_NumJitterSamples, 3) - 0.5f;
 
 	JitterX *= (2.f / (float)Dimensions.first);
 	JitterY *= (2.f / (float)Dimensions.second);

@@ -51,7 +51,8 @@
       "type": "TAA",
       "active": true,
       "alpha": 0.8,
-      "bUseMotionVectors": true
+      "bUseMotionVectors": true,
+      "bUseColorClamping": true
     },
     {
       "type": "ToneMapper",

@@ -112,6 +112,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 		{
 			TAAData.Alpha = PPConfig.value("alpha", 0.5f);
 			TAAData.bUseMotionVectors = PPConfig.value("bUseMotionVectors", true);
+			TAAData.bUseColorClamping = PPConfig.value("bUseColorClamping", true);
 			bTAAActive = PPConfig.value("active", true);
 		}
 		else if (Type == "ToneMapper")
