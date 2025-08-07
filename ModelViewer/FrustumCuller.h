@@ -13,6 +13,7 @@
 
 class CameraManager;
 class Profiler;
+struct CullTransformData;
 
 class FrustumCuller
 {
@@ -52,7 +53,7 @@ public:
 	bool Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler);
 	void Shutdown();
 
-	void DispatchShader(const std::vector<DirectX::XMMATRIX>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
+	void DispatchShader(const std::vector<CullTransformData>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
 	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
 	void CullLandscape(ID3D11ShaderResourceView* ChunksOffsetsSRV, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix, const UINT NumChunks, UINT PlaneDimension,
 		float HeightDisplacement, ID3D11ShaderResourceView* Heightmap);
@@ -74,7 +75,7 @@ private:
 	bool CreateBufferViews();
 	bool InitialiseStatics();
 
-	void UpdateBuffers(const std::vector<DirectX::XMMATRIX>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners,const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
+	void UpdateBuffers(const std::vector<CullTransformData>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners,const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
 	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);

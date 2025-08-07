@@ -27,6 +27,7 @@
 #include "CameraManager.h"
 #include "Profiler.h"
 #include "PostProcess/PostProcessManager.h"
+#include "GameObject.h"
 
 Application* Application::m_Instance = nullptr;
 
@@ -81,7 +82,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	m_GameObjects.push_back(m_Landscape);
 
 	float TessellationScale = 10.f;
-	UINT GrassDimensionPerChunk = 64u;
+	UINT GrassDimensionPerChunk = 32u;
 	bResult = m_Landscape->Init("Textures/perlin_noise.png", TessellationScale, GrassDimensionPerChunk);
 	assert(bResult);
 
@@ -95,9 +96,9 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	m_GameObjects.back()->SetName("Directional Light");
 	m_GameObjects.back()->AddComponent(std::make_shared<DirectionalLight>());
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 5; i++)
 	{
-		for (int j = 0; j < 16; j++)
+		for (int j = 0; j < 5; j++)
 		{
 			m_GameObjects.emplace_back(std::make_shared<GameObject>());
 			m_GameObjects.back()->SetPosition((float)i * 2.f, 15.f, (float)j * 2.f);
@@ -135,6 +136,11 @@ void Application::Shutdown()
 
 bool Application::Tick()
 {	
+	if (GetForegroundWindow() == m_hWnd)
+	{
+		ProcessInput();
+	}
+
 	auto Now = std::chrono::steady_clock::now();
 	m_DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(Now - m_LastUpdate).count() / 1000000.0; // in seconds
 	m_LastUpdate = Now;
@@ -145,23 +151,35 @@ bool Application::Tick()
 	m_CameraManager->Tick(m_FrameIndex, m_Graphics->GetRenderTargetDimensions());
 	m_BoxRenderer->ClearBoxes();
 
-	if (GetForegroundWindow() == m_hWnd)
+	for (const std::shared_ptr<GameObject>& GO : m_GameObjects)
 	{
-		ProcessInput();
+		GO->Tick(m_FrameIndex);
 	}
 
-	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
-	GlobalCBuffer NewGlobalCBuffer = {};
-	ActiveCamera->GetViewMatrix(NewGlobalCBuffer.CurrView);
-	ActiveCamera->GetProjMatrix(NewGlobalCBuffer.CurrProj);
-	ActiveCamera->GetViewProjMatrix(NewGlobalCBuffer.CurrViewProj);
-	m_CameraManager->GetCurrJitteredProjMatrix(NewGlobalCBuffer.CurrProjJittered);
-	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CurrViewProjJittered);
-	NewGlobalCBuffer.CameraPos = ActiveCamera->GetPosition();
-	NewGlobalCBuffer.CurrTime = (float)m_AppTime;
-	NewGlobalCBuffer.NearZ = SCREEN_NEAR;
-	NewGlobalCBuffer.FarZ = SCREEN_FAR;
-	m_Graphics->UpdateGlobalConstantBuffer(NewGlobalCBuffer);
+	// frame time can differ significantly depending on if ImGui windows are shown
+	std::cout << m_Profiler->GetRenderStats().FrameTime << std::endl;
+
+	{
+		// temp while testing how well motion vectors and color clamping are working for TAA
+		const auto& Pos = m_GameObjects[3]->GetPosition();
+		float BoundaryX = 5.f;
+
+		if (Pos.x > BoundaryX)
+		{
+			m_GameObjects[3]->SetPosition(BoundaryX, Pos.y, Pos.z);
+			m_bRight = false;
+		}
+		else if (Pos.x < -BoundaryX)
+		{
+			m_GameObjects[3]->SetPosition(-BoundaryX, Pos.y, Pos.z);
+			m_bRight = true;
+		}
+
+		float Offset = m_bRight ? 1.f : -1.f;
+		m_GameObjects[3]->SetPosition(Pos.x + Offset * (float)m_DeltaTime, Pos.y, Pos.z);
+	}
+
+	UpdateGlobalConstantBuffer();
 
 	bool Result = Render();
 	if (!Result)
@@ -232,7 +250,7 @@ bool Application::Render()
 
 			for (const auto& t : pModelData->GetTransforms())
 			{
-				m_BoxRenderer->LoadBoxCorners(pModelData->GetBoundingBox(), DirectX::XMMatrixTranspose(t)); // back to column major
+				m_BoxRenderer->LoadBoxCorners(pModelData->GetBoundingBox(), DirectX::XMMatrixTranspose(t.CurrTransform)); // back to column major
 			}
 		}
 
@@ -419,6 +437,22 @@ void Application::ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetVi
 	m_Profiler->SetPostProcessPipelineTime(m_Profiler->GetGPUTime());
 }
 
+void Application::UpdateGlobalConstantBuffer()
+{
+	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
+	GlobalCBuffer NewGlobalCBuffer = {};
+	ActiveCamera->GetViewMatrix(NewGlobalCBuffer.CurrView);
+	ActiveCamera->GetProjMatrix(NewGlobalCBuffer.CurrProj);
+	ActiveCamera->GetViewProjMatrix(NewGlobalCBuffer.CurrViewProj);
+	m_CameraManager->GetCurrJitteredProjMatrix(NewGlobalCBuffer.CurrProjJittered);
+	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CurrViewProjJittered);
+	NewGlobalCBuffer.CameraPos = ActiveCamera->GetPosition();
+	NewGlobalCBuffer.CurrTime = (float)m_AppTime;
+	NewGlobalCBuffer.NearZ = SCREEN_NEAR;
+	NewGlobalCBuffer.FarZ = SCREEN_FAR;
+	m_Graphics->UpdateGlobalConstantBuffer(NewGlobalCBuffer);
+}
+
 void Application::ProcessInput()
 {
 	if (InputClass::GetSingletonPtr()->IsKeyDown('M'))
@@ -505,4 +539,6 @@ void Application::ToggleShowCursor()
 		SystemClass::m_MouseDelta = { 0.f, 0.f };
 	}
 	m_bShowCursor = !m_bShowCursor;
+
+	std::cout << (m_bShowCursor ? "ImGui opened!" : "ImGui closed!") << std::endl;
 }

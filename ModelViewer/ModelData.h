@@ -47,7 +47,7 @@ public:
 	std::unordered_map<std::string, UINT>& GetTextureIndexMap() { return m_TextureIndexMap; }
 	std::unordered_set<std::string>& GetTexturePathsSet() { return m_TexturePathsSet; }
 
-	std::vector<DirectX::XMMATRIX>& GetTransforms() { return m_Transforms; }
+	std::vector<CullTransformData>& GetTransforms() { return m_Transforms; }
 	AABB& GetBoundingBox() { return m_BoundingBox; }
 
 	std::string GetModelPath() const { return m_ModelPath; }
@@ -78,7 +78,7 @@ private:
 	std::unordered_map<std::string, UINT> m_TextureIndexMap;
 	std::unordered_set<std::string> m_TexturePathsSet;
 
-	std::vector<DirectX::XMMATRIX> m_Transforms;
+	std::vector<CullTransformData> m_Transforms;
 	AABB m_BoundingBox;
 	
 	std::string m_ModelPath;

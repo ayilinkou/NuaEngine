@@ -49,10 +49,20 @@ struct PS_In
 	float3 WorldPos : POSITION;
 	float2 TexCoord : TEXCOORD0;
 	float3 WorldNormal : NORMAL;
+    float4 CurrClipPos : TEXCOORD1;
+    float4 PrevClipPos : TEXCOORD2;
 };
 
-float4 main(PS_In p) : SV_TARGET
+struct PS_Out
+{
+    float4 Color : SV_TARGET0;
+    float2 Velocity : SV_TARGET1;
+};
+
+PS_Out main(PS_In p)
 {		
+    PS_Out o;
+	
 	float4 Color;
 	if (Mat.DiffuseSRV >= 0)
 	{
@@ -114,5 +124,8 @@ float4 main(PS_In p) : SV_TARGET
 		LightTotal += Specular * Attenuation;
 	}
 	
-	return saturate(Ambient + LightTotal);
+	o.Color = saturate(Ambient + LightTotal);
+    o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
+	
+    return o;
 }

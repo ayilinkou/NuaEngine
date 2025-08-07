@@ -38,5 +38,6 @@ void Model::RenderControls()
 void Model::SendTransformToModel()
 {
 	DirectX::XMMATRIX Transform = DirectX::XMMatrixTranspose(GetAccumulatedWorldMatrix());
-	m_pModelData->GetTransforms().push_back(Transform);
+	DirectX::XMMATRIX PrevTransform = DirectX::XMMatrixTranspose(GetPrevAccumulatedWorldMatrix());
+	m_pModelData->GetTransforms().push_back({ Transform, PrevTransform });
 }

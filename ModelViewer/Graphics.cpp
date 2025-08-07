@@ -16,6 +16,12 @@ Graphics::Graphics()
 	m_FarPlane = 1000.f;
 	m_NearPlane = 0.1f;
 	m_ScreenAspect = 0.f;
+
+	m_GlobalCBufferData.CurrView = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CurrProj = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CurrViewProj = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CurrProjJittered = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CurrViewProjJittered = DirectX::XMMatrixIdentity();
 }
 
 Graphics* Graphics::GetSingletonPtr()

@@ -19,6 +19,7 @@ class Component
 {
 public:
 	virtual ~Component() = default;
+	virtual void Tick(uint32_t FrameIndex);
 
 	virtual void RenderControls() = 0;
 
@@ -41,6 +42,8 @@ public:
 	Transform& GetTransformRef()  { return m_Transform; }
 	const DirectX::XMMATRIX GetWorldMatrix() const;
 	const DirectX::XMMATRIX GetAccumulatedWorldMatrix() const;
+	const DirectX::XMMATRIX GetPrevWorldMatrix() const;
+	const DirectX::XMMATRIX GetPrevAccumulatedWorldMatrix() const;
 
 	Component* GetOwner() const { return m_pOwner; }
 
@@ -50,10 +53,12 @@ public:
 protected:
 	Component* m_pOwner = nullptr;
 	Transform m_Transform;
+	Transform m_PrevTransform;
 	std::string m_ComponentName = "Component Name";
 
 	std::vector<std::shared_ptr<Component>> m_Components; // I think these should be unique_ptr??? refactor soon
 	std::vector<Model*> m_Models;
 
+	uint32_t m_LastTickedFrame;
 };
 

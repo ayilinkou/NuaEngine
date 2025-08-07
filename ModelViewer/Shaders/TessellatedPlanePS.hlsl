@@ -20,7 +20,8 @@ struct PS_In
 	float3 WorldPos : WORLDPOS;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
-    float4 PrevClipPos : TEXCOORD2;
+    float4 CurrClipPos : TEXCOORD2;
+    float4 PrevClipPos : TEXCOORD3;
 };
 
 struct PS_Out
@@ -49,11 +50,11 @@ float3 RandomRGB(uint seed)
 static const float4 TopColor = float4(0.30f, 0.5f, 0.1f, 1.0f);
 static const float4 BotColor = float4(0.05f, 0.2f, 0.0f, 1.0f);
 
-PS_Out main(PS_In p) : SV_TARGET
+PS_Out main(PS_In p)
 {
     PS_Out o;
 	
-    o.Velocity = CalculateMotionVector(p.Pos.xy, p.PrevClipPos, GlobalBuffer.ScreenRes);
+    o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
 		
 	if (bVisualiseChunks)
     {

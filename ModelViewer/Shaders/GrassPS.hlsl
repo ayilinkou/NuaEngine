@@ -9,7 +9,8 @@ struct PS_In
 	uint ChunkID : TEXCOORD1;
 	float HeightAlongBlade : TEXCOORD2;
 	uint LOD : TEXCOORD3;
-    float4 PrevClipPos : TEXCOORD4;
+    float4 CurrClipPos : TEXCOORD4;
+    float4 PrevClipPos : TEXCOORD5;
 };
 
 struct PS_Out
@@ -56,7 +57,7 @@ PS_Out main(PS_In p)
 		o.Color = float4(Color, 1.f);
     }
 
-    o.Velocity = CalculateMotionVector(p.Pos.xy, p.PrevClipPos, GlobalBuffer.ScreenRes);
+    o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
 	
     return o;
 }

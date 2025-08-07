@@ -25,6 +25,12 @@ struct GrassData
 	uint LOD;
 };
 
+struct CullTransformData
+{
+    float4x4 CurrTransform;
+    float4x4 PrevTransform;
+};
+
 float Remap(float Value, float FromMin, float FromMax, float ToMin, float ToMax)
 {
 	return ToMin + (Value - FromMin) * (ToMax - ToMin) / (FromMax - FromMin);
@@ -197,9 +203,9 @@ float2 NDCToUV(float2 NDC)
     return float2(NDC.x * 0.5f + 0.5f, (1.f - NDC.y) * 0.5f);
 }
 
-float2 CalculateMotionVector(float2 CurrSVPos, float4 PrevClipPos, float2 ScreenRes)
+float2 CalculateMotionVector(float4 CurrClipPos, float4 PrevClipPos)
 {
-    float2 CurrNDC = ClipToNDC(CurrSVPos, ScreenRes);
+    float2 CurrNDC = CurrClipPos.xy / CurrClipPos.w;
     float2 PrevNDC = PrevClipPos.xy / PrevClipPos.w;
     float2 CurrUV = NDCToUV(CurrNDC);
     float2 PrevUV = NDCToUV(PrevNDC);

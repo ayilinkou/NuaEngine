@@ -75,10 +75,13 @@ private:
 	void RenderModels();
 	//bool RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView);
 
+	// Depending on how many windows are open, this can actually have a significant cost to frame times
 	void RenderImGui();
 
 	void ApplyPostProcesses(Microsoft::WRL::ComPtr<ID3D11RenderTargetView> CurrentRTV, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> SecondaryRTV,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CurrentSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SecondarySRV, bool& DrawingForward);
+
+	void UpdateGlobalConstantBuffer();
 
 	void ProcessInput();
 	void ToggleShowCursor();
@@ -111,6 +114,7 @@ private:
 	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
 	ID3D11ShaderResourceView* m_TextureResourceView;
 
+	bool m_bRight = true;
 };
 
 #endif

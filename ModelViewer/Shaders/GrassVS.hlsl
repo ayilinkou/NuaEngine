@@ -43,7 +43,8 @@ struct VS_Out
 	uint ChunkID : TEXCOORD1;
 	float HeightAlongBlade : TEXCOORD2;
 	uint LOD : TEXCOORD3;
-    float4 PrevClipPos : TEXCOORD4;
+    float4 CurrClipPos : TEXCOORD4;
+    float4 PrevClipPos : TEXCOORD5;
 };
 
 void Animate(const in VS_Out o, float2 GrassPos, float Time, inout float3 WorldPos)
@@ -90,6 +91,7 @@ VS_Out main(VS_In v)
     }
 	
 	o.Pos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProjJittered);
+    o.CurrClipPos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProj);
     o.PrevClipPos = mul(float4(PrevWorldPos, 1.f), GlobalBuffer.PrevViewProj);
 	
 	return o;

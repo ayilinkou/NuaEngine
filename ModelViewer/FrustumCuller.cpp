@@ -74,7 +74,7 @@ std::array<UINT, 2> FrustumCuller::GetInstanceCounts()
 	return InstanceCounts;
 }
 
-void FrustumCuller::DispatchShader(const std::vector<DirectX::XMMATRIX>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners,	const DirectX::XMMATRIX& ScaleMatrix)
+void FrustumCuller::DispatchShader(const std::vector<CullTransformData>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners,	const DirectX::XMMATRIX& ScaleMatrix)
 {
 	ClearInstanceCount();
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_CullingShader, nullptr, 0u);
@@ -191,11 +191,11 @@ bool FrustumCuller::CreateBuffers()
 	ID3D11Device* Device = Graphics::GetSingletonPtr()->GetDevice();
 
 	Desc.Usage = D3D11_USAGE_DYNAMIC;
-	Desc.ByteWidth = (UINT)(sizeof(DirectX::XMMATRIX) * MAX_INSTANCE_COUNT);
+	Desc.ByteWidth = (UINT)(sizeof(CullTransformData) * MAX_INSTANCE_COUNT);
 	Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	Desc.StructureByteStride = sizeof(DirectX::XMMATRIX);
+	Desc.StructureByteStride = sizeof(CullTransformData);
 
 	HFALSE_IF_FAILED(Device->CreateBuffer(&Desc, nullptr, &m_TransformsBuffer));
 	NAME_D3D_RESOURCE(m_TransformsBuffer, "Frustum culler transforms buffer");
@@ -358,7 +358,7 @@ bool FrustumCuller::InitialiseStatics()
 	return true;
 }
 
-void FrustumCuller::UpdateBuffers(const std::vector<DirectX::XMMATRIX>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners,	const DirectX::XMMATRIX& ScaleMatrix,
+void FrustumCuller::UpdateBuffers(const std::vector<CullTransformData>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix,
 	UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk, UINT PlaneDimension, float HeightDisplacement)
 {
 	assert(Transforms.size() <= MAX_INSTANCE_COUNT);
@@ -368,7 +368,7 @@ void FrustumCuller::UpdateBuffers(const std::vector<DirectX::XMMATRIX>& Transfor
 	D3D11_MAPPED_SUBRESOURCE MappedResource = {};
 
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_TransformsBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedResource));
-	memcpy(MappedResource.pData, Transforms.data(), sizeof(DirectX::XMMATRIX) * Transforms.size());
+	memcpy(MappedResource.pData, Transforms.data(), sizeof(CullTransformData) * Transforms.size());
 	DeviceContext->Unmap(m_TransformsBuffer.Get(), 0u);
 
 	UpdateCBuffer(Corners, ScaleMatrix, ThreadGroupCount, SentInstanceCount, GrassPerChunk, PlaneDimension, HeightDisplacement);

@@ -16,7 +16,8 @@ struct DS_Out
 	float3 WorldPos : WORLDPOS;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
-    float4 PrevClipPos : TEXCOORD2;
+    float4 CurrClipPos : TEXCOORD2;
+    float4 PrevClipPos : TEXCOORD3;
 };
 
 cbuffer PlaneInfoBuffer : register(b1)
@@ -71,6 +72,7 @@ DS_Out main(
 	Pos.y = Height;
 	o.WorldPos = Pos;
 	o.Pos = mul(float4(Pos, 1.f), GlobalBuffer.CurrViewProjJittered);
+    o.CurrClipPos = mul(float4(Pos, 1.f), GlobalBuffer.CurrViewProj);
     o.PrevClipPos = mul(float4(Pos, 1.f), GlobalBuffer.PrevViewProj);
 	
 	o.ChunkID = Patch[0].ChunkID;

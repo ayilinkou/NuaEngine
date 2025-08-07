@@ -10,7 +10,8 @@ struct GS_In
 	float3 WorldPos : WORLDPOS;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
-    float4 PrevClipPos : TEXCOORD2;
+    float4 CurrClipPos : TEXCOORD2;
+    float4 PrevClipPos : TEXCOORD3;
 };
 
 [maxvertexcount(3)]

@@ -1,6 +1,19 @@
 #include "Component.h"
 #include "Model.h"
 
+void Component::Tick(uint32_t FrameIndex)
+{
+	assert(FrameIndex != m_LastTickedFrame);
+	
+	m_LastTickedFrame = FrameIndex;
+	m_PrevTransform = m_Transform;
+
+	for (const std::shared_ptr<Component>& Comp : m_Components)
+	{
+		Comp->Tick(FrameIndex);
+	}
+}
+
 void Component::SetPosition(float x, float y, float z)
 {
 	m_Transform.Position = DirectX::XMFLOAT3(x, y, z);
@@ -84,6 +97,31 @@ const DirectX::XMMATRIX Component::GetAccumulatedWorldMatrix() const
 
 	DirectX::XMMATRIX Accumulated = m_pOwner->GetAccumulatedWorldMatrix();
 	Accumulated *= GetWorldMatrix();
+
+	return Accumulated;
+}
+
+const DirectX::XMMATRIX Component::GetPrevWorldMatrix() const
+{
+	DirectX::XMMATRIX Matrix = DirectX::XMMatrixIdentity();
+	Matrix *= DirectX::XMMatrixScaling(m_PrevTransform.Scale.x, m_PrevTransform.Scale.y, m_PrevTransform.Scale.z);
+	Matrix *= DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(m_PrevTransform.Rotation.y));
+	Matrix *= DirectX::XMMatrixRotationX(DirectX::XMConvertToRadians(m_PrevTransform.Rotation.x));
+	Matrix *= DirectX::XMMatrixRotationZ(DirectX::XMConvertToRadians(m_PrevTransform.Rotation.z));
+	Matrix *= DirectX::XMMatrixTranslation(m_PrevTransform.Position.x, m_PrevTransform.Position.y, m_PrevTransform.Position.z);
+
+	return Matrix;
+}
+
+const DirectX::XMMATRIX Component::GetPrevAccumulatedWorldMatrix() const
+{
+	if (m_pOwner == nullptr)
+	{
+		return GetPrevWorldMatrix();
+	}
+
+	DirectX::XMMATRIX Accumulated = m_pOwner->GetPrevAccumulatedWorldMatrix();
+	Accumulated *= GetPrevWorldMatrix();
 
 	return Accumulated;
 }
