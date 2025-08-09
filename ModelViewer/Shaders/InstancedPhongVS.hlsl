@@ -37,11 +37,11 @@ VS_Out main(VS_In v)
 	
 	o.WorldPos = o.Pos.xyz;
 	
-	o.Pos = mul(o.Pos, GlobalBuffer.CurrViewProjJittered);
+	o.Pos = mul(o.Pos, GlobalBuffer.Camera.CurrViewProjJittered);
 	
-    o.CurrClipPos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProj);
+    o.CurrClipPos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.Camera.CurrViewProj);
     o.PrevClipPos = mul(mul(float4(v.Pos, 1.f), AccumulatedModelMatrix), CulledTransforms[v.InstanceID].PrevTransform);
-    o.PrevClipPos = mul(o.PrevClipPos, GlobalBuffer.PrevViewProj);
+    o.PrevClipPos = mul(o.PrevClipPos, GlobalBuffer.Camera.PrevViewProj);
 	
 	o.TexCoord = v.TexCoord;
 	

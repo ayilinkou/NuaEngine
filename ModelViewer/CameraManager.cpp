@@ -65,6 +65,7 @@ void CameraManager::CalcJitteredMatrices(uint32_t FrameIndex, const std::pair<in
 {
 	if (!m_PostProcessManager->IsUsingTAA())
 	{
+		// set jittered matrices as non-jittered;
 		m_ActiveCamera->GetProjMatrix(m_CurrJitteredProjMatrix);
 		m_ActiveCamera->GetViewProjMatrix(m_CurrJitteredViewProjMatrix);
 		return;

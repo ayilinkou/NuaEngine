@@ -3,6 +3,7 @@
 #include "ImGui\imgui_impl_dx11.h"
 
 #include "MyMacros.h"
+#include "Light.h"
 
 Graphics* Graphics::m_Instance = nullptr;
 
@@ -17,11 +18,11 @@ Graphics::Graphics()
 	m_NearPlane = 0.1f;
 	m_ScreenAspect = 0.f;
 
-	m_GlobalCBufferData.CurrView = DirectX::XMMatrixIdentity();
-	m_GlobalCBufferData.CurrProj = DirectX::XMMatrixIdentity();
-	m_GlobalCBufferData.CurrViewProj = DirectX::XMMatrixIdentity();
-	m_GlobalCBufferData.CurrProjJittered = DirectX::XMMatrixIdentity();
-	m_GlobalCBufferData.CurrViewProjJittered = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CameraData.CurrView = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CameraData.CurrProj = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CameraData.CurrViewProj = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CameraData.CurrProjJittered = DirectX::XMMatrixIdentity();
+	m_GlobalCBufferData.CameraData.CurrViewProjJittered = DirectX::XMMatrixIdentity();
 }
 
 Graphics* Graphics::GetSingletonPtr()
@@ -521,23 +522,73 @@ bool Graphics::CreateGlobalConstantBuffer()
 void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferData)
 {
 	// previous matrices were already transposed and so we can just copy
-	m_GlobalCBufferData.PrevView = m_GlobalCBufferData.CurrView;
-	m_GlobalCBufferData.PrevProj = m_GlobalCBufferData.CurrProj;
-	m_GlobalCBufferData.PrevViewProj = m_GlobalCBufferData.CurrViewProj;
-	m_GlobalCBufferData.PrevProjJittered = m_GlobalCBufferData.CurrProjJittered;
-	m_GlobalCBufferData.PrevViewProjJittered = m_GlobalCBufferData.CurrViewProjJittered;
+	m_GlobalCBufferData.CameraData.PrevView = m_GlobalCBufferData.CameraData.CurrView;
+	m_GlobalCBufferData.CameraData.PrevProj = m_GlobalCBufferData.CameraData.CurrProj;
+	m_GlobalCBufferData.CameraData.PrevViewProj = m_GlobalCBufferData.CameraData.CurrViewProj;
+	m_GlobalCBufferData.CameraData.PrevProjJittered = m_GlobalCBufferData.CameraData.CurrProjJittered;
+	m_GlobalCBufferData.CameraData.PrevViewProjJittered = m_GlobalCBufferData.CameraData.CurrViewProjJittered;
 	m_GlobalCBufferData.PrevTime = m_GlobalCBufferData.CurrTime;
 
-	m_GlobalCBufferData.CurrView = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CurrView);
-	m_GlobalCBufferData.CurrProj = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CurrProj);
-	m_GlobalCBufferData.CurrViewProj = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CurrViewProj);
-	m_GlobalCBufferData.CurrProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CurrProjJittered);
-	m_GlobalCBufferData.CurrViewProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CurrViewProjJittered);
-	m_GlobalCBufferData.CameraPos = NewGlobalCBufferData.CameraPos;
+	m_GlobalCBufferData.CameraData.CurrView = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrView);
+	m_GlobalCBufferData.CameraData.CurrProj = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrProj);
+	m_GlobalCBufferData.CameraData.CurrViewProj = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrViewProj);
+	m_GlobalCBufferData.CameraData.CurrProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrProjJittered);
+	m_GlobalCBufferData.CameraData.CurrViewProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrViewProjJittered);
+	m_GlobalCBufferData.CameraData.CameraPos = NewGlobalCBufferData.CameraData.CameraPos;
 	m_GlobalCBufferData.CurrTime = NewGlobalCBufferData.CurrTime;
 	m_GlobalCBufferData.NearZ = NewGlobalCBufferData.NearZ;
 	m_GlobalCBufferData.FarZ = NewGlobalCBufferData.FarZ;
 	m_GlobalCBufferData.ScreenRes = DirectX::XMFLOAT2((float)m_Dimensions.first, (float)m_Dimensions.second);
+	m_GlobalCBufferData.LightData.SkylightColor = NewGlobalCBufferData.LightData.SkylightColor;
+
+	std::vector<PointLight*> PointLights;
+	std::vector<DirectionalLight*> DirLights;
+	for (Light* pLight : Light::GetLights())
+	{
+		if (pLight && pLight->IsActive())
+		{
+			PointLight* pPointLight = dynamic_cast<PointLight*>(pLight);
+			if (pPointLight)
+			{
+				PointLights.push_back(pPointLight);
+				continue;
+			}
+
+			DirectionalLight* pDirLight = dynamic_cast<DirectionalLight*>(pLight);
+			if (pDirLight)
+			{
+				DirLights.push_back(pDirLight);
+				continue;
+			}
+		}
+	}
+
+	int NumDirLights = 0;
+	for (int i = 0; i < DirLights.size(); i++)
+	{
+		assert(NumDirLights < MAX_POINT_LIGHTS);
+		m_GlobalCBufferData.LightData.DirLights[NumDirLights].LightColor = DirLights[NumDirLights]->GetDiffuseColor();
+		m_GlobalCBufferData.LightData.DirLights[NumDirLights].LightDir = DirLights[NumDirLights]->GetDirection();
+		m_GlobalCBufferData.LightData.DirLights[NumDirLights].SpecularPower = DirLights[NumDirLights]->GetSpecularPower();
+
+		NumDirLights++;
+		continue;
+	}
+	m_GlobalCBufferData.LightData.DirLightCount = NumDirLights;
+
+	int NumPointLights = 0;
+	for (int i = 0; i < PointLights.size(); i++)
+	{
+		assert(NumPointLights < MAX_POINT_LIGHTS);
+		m_GlobalCBufferData.LightData.PointLights[NumPointLights].LightColor = PointLights[NumPointLights]->GetDiffuseColor();
+		m_GlobalCBufferData.LightData.PointLights[NumPointLights].LightPos = PointLights[NumPointLights]->GetPosition();
+		m_GlobalCBufferData.LightData.PointLights[NumPointLights].Radius = PointLights[NumPointLights]->GetRadius();
+		m_GlobalCBufferData.LightData.PointLights[NumPointLights].SpecularPower = PointLights[NumPointLights]->GetSpecularPower();
+
+		NumPointLights++;
+		continue;
+	}
+	m_GlobalCBufferData.LightData.PointLightCount = NumPointLights;
 
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE MappedSubresource = {};

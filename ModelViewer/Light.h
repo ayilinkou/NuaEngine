@@ -12,8 +12,7 @@
 class Light : public Component
 {
 public:
-	Light();
-	virtual ~Light() = 0;
+	virtual ~Light();
 
 	virtual void RenderControls() override;
 
@@ -23,12 +22,17 @@ public:
 	const DirectX::XMFLOAT3 GetDiffuseColor() const { return m_DiffuseColor; }
 	float GetSpecularPower() const { return m_SpecularPower; }
 	bool IsActive() const { return m_bActive; }
+	static std::vector<Light*>& GetLights() { return m_Lights; }
+
+protected:
+	Light();
 
 private:
 	DirectX::XMFLOAT3 m_DiffuseColor;
 	float m_SpecularPower;
 	bool m_bActive;
-	
+
+	inline static std::vector<Light*> m_Lights;
 };
 
 class PointLight : public Light

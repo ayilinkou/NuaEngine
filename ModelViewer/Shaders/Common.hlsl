@@ -1,7 +1,8 @@
+#ifndef COMMON_HLSL
+#define COMMON_HLSL
+
 // if changing these, also update in Common.h
 
-#define MAX_POINT_LIGHTS 8
-#define MAX_DIRECTIONAL_LIGHTS 1
 #define MAX_PLANE_CHUNKS 1024
 #define MAX_GRASS_PER_CHUNK 10000
 #define MAX_INSTANCE_COUNT 1024
@@ -216,3 +217,5 @@ bool IsInRange(float2 xy, float Min, float Max)
 {
     return xy.x >= Min && xy.x <= Max && xy.y >= Min && xy.y <= Max;
 }
+
+#endif

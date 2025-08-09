@@ -67,60 +67,6 @@ bool InstancedShader::InitialiseShader(ID3D11Device* Device)
 	HFALSE_IF_FAILED(Device->CreateInputLayout(VertexLayout, NumElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &m_InputLayout));
 	NAME_D3D_RESOURCE(m_InputLayout, "Instanced shader input layout");
 
-	LightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	LightBufferDesc.ByteWidth = sizeof(LightingBuffer);
-	LightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	LightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	HFALSE_IF_FAILED(Device->CreateBuffer(&LightBufferDesc, NULL, &m_LightingBuffer));
-	NAME_D3D_RESOURCE(m_LightingBuffer, "Instanced shader lighting buffer");
-
-	return true;
-}
-
-bool InstancedShader::SetShaderParameters(ID3D11DeviceContext* DeviceContext, const std::vector<PointLight*>& PointLights,
-	const std::vector<DirectionalLight*>& DirLights, const DirectX::XMFLOAT3& SkylightColor)
-{
-	HRESULT hResult;
-	D3D11_MAPPED_SUBRESOURCE MappedResource;
-	LightingBuffer* LightingDataPtr;
-
-	ASSERT_NOT_FAILED(DeviceContext->Map(m_LightingBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedResource));
-	LightingDataPtr = (LightingBuffer*)MappedResource.pData;
-	LightingDataPtr->SkylightColor = SkylightColor;
-
-	int NumDirLights = 0;
-	for (int i = 0; i < DirLights.size(); i++)
-	{
-		assert(NumDirLights < MAX_POINT_LIGHTS);
-		LightingDataPtr->DirLights[NumDirLights].LightColor = DirLights[NumDirLights]->GetDiffuseColor();
-		LightingDataPtr->DirLights[NumDirLights].LightDir = DirLights[NumDirLights]->GetDirection();
-		LightingDataPtr->DirLights[NumDirLights].SpecularPower = DirLights[NumDirLights]->GetSpecularPower();
-
-		NumDirLights++;
-		continue;
-	}
-
-	LightingDataPtr->DirLightCount = NumDirLights;
-
-	int NumPointLights = 0;
-	for (int i = 0; i < PointLights.size(); i++)
-	{
-		assert(NumPointLights < MAX_POINT_LIGHTS);
-		LightingDataPtr->PointLights[NumPointLights].LightColor = PointLights[NumPointLights]->GetDiffuseColor();
-		LightingDataPtr->PointLights[NumPointLights].LightPos = PointLights[NumPointLights]->GetPosition();
-		LightingDataPtr->PointLights[NumPointLights].Radius = PointLights[NumPointLights]->GetRadius();
-		LightingDataPtr->PointLights[NumPointLights].SpecularPower = PointLights[NumPointLights]->GetSpecularPower();
-
-		NumPointLights++;
-		continue;
-	}
-
-	LightingDataPtr->PointLightCount = NumPointLights;
-	DeviceContext->Unmap(m_LightingBuffer.Get(), 0u);
-
-	DeviceContext->PSSetConstantBuffers(1u, 1u, m_LightingBuffer.GetAddressOf());
-
 	return true;
 }
 

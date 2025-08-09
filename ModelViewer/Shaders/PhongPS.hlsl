@@ -4,32 +4,6 @@
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
 
-struct PointLight
-{
-	float Radius;
-	float3 LightPos;
-	float SpecularPower;
-	float3 LightColor;
-};
-
-struct DirectionalLight
-{
-	float3 LightDir;
-	float SpecularPower;
-	float3 LightColor;
-	float Padding;
-};
-
-cbuffer Lighting : register(b1)
-{
-	PointLight PointLights[MAX_POINT_LIGHTS];
-	DirectionalLight DirLights[MAX_DIRECTIONAL_LIGHTS];
-	float3 SkylightColor;
-	int PointLightCount;
-	int DirectionalLightCount;
-    float3 Padding;
-};
-
 struct MaterialData
 {
 	float3 DiffuseColor;
@@ -38,7 +12,7 @@ struct MaterialData
 	int SpecularSRV;
 };
 
-cbuffer Material : register(b2)
+cbuffer Material : register(b1)
 {
 	MaterialData Mat;
 };
@@ -77,49 +51,49 @@ PS_Out main(PS_In p)
 	
 	float BaseAlpha = Color.a;
 	float AmbientFactor = 0.5f;
-	float4 Ambient = float4((Color.rgb * SkylightColor), BaseAlpha) * AmbientFactor;
+	float4 Ambient = float4((Color.rgb * GlobalBuffer.Lights.SkylightColor), BaseAlpha) * AmbientFactor;
 	
-	float3 PixelToCam = normalize(GlobalBuffer.CameraPos - p.WorldPos);
+	float3 PixelToCam = normalize(GlobalBuffer.Camera.CameraPos - p.WorldPos);
 	float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
-	if (dot(GlobalBuffer.CameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
+	if (dot(GlobalBuffer.Camera.CameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
 		p.WorldNormal = -p.WorldNormal;
 	
-	for (int i = 0; i < DirectionalLightCount; i++)
+	for (int i = 0; i < GlobalBuffer.Lights.DirectionalLightCount; i++)
 	{
-		float DiffuseFactor = saturate(dot(-DirLights[i].LightDir, p.WorldNormal));
+		float DiffuseFactor = saturate(dot(-GlobalBuffer.Lights.DirLights[i].LightDir, p.WorldNormal));
 		if (DiffuseFactor <= 0.f)
 			continue;
 			
-		float4 Diffuse = float4(DirLights[i].LightColor, 1.f) * float4(Color.xyz, 0.5f) * DiffuseFactor;
+		float4 Diffuse = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * float4(Color.xyz, 0.5f) * DiffuseFactor;
 
-		float3 HalfwayVec = normalize(PixelToCam + DirLights[i].LightDir);
-		float SpecularFactor = pow(saturate(dot(p.WorldNormal, HalfwayVec)), DirLights[i].SpecularPower);
-		float4 Specular = float4(DirLights[i].LightColor, 1.f) * SpecularFactor;
+		float3 HalfwayVec = normalize(PixelToCam + GlobalBuffer.Lights.DirLights[i].LightDir);
+		float SpecularFactor = pow(saturate(dot(p.WorldNormal, HalfwayVec)), GlobalBuffer.Lights.DirLights[i].SpecularPower);
+		float4 Specular = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * SpecularFactor;
 		
 		LightTotal += Diffuse;
 		LightTotal += Specular;
 	}
 	
-	for (int i = 0; i < PointLightCount; i++)
+	for (int i = 0; i < GlobalBuffer.Lights.PointLightCount; i++)
 	{
-		float Distance = distance(p.WorldPos, PointLights[i].LightPos);
-		if (Distance > PointLights[i].Radius)
+		float Distance = distance(p.WorldPos, GlobalBuffer.Lights.PointLights[i].LightPos);
+		if (Distance > GlobalBuffer.Lights.PointLights[i].Radius)
 			continue;
 	
-		float3 PixelToLight = normalize(PointLights[i].LightPos - p.WorldPos);
+		float3 PixelToLight = normalize(GlobalBuffer.Lights.PointLights[i].LightPos - p.WorldPos);
 		float DiffuseFactor = saturate(dot(PixelToLight, p.WorldNormal));
 	
 		if (DiffuseFactor <= 0.f)
 			continue;
 
-		float4 Diffuse = float4(PointLights[i].LightColor, 1.f) * float4(Color.xyz, 0.5f) * DiffuseFactor;
+		float4 Diffuse = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * float4(Color.xyz, 0.5f) * DiffuseFactor;
 		
 		float3 HalfwayVec = normalize(PixelToCam + PixelToLight);
-		float SpecularFactor = pow(saturate(dot(p.WorldNormal, HalfwayVec)), PointLights[i].SpecularPower);
-		float4 Specular = float4(PointLights[i].LightColor, 1.f) * SpecularFactor;
+		float SpecularFactor = pow(saturate(dot(p.WorldNormal, HalfwayVec)), GlobalBuffer.Lights.PointLights[i].SpecularPower);
+		float4 Specular = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * SpecularFactor;
 	
-		float Attenuation = saturate(1.f - (Distance * Distance) / (PointLights[i].Radius * PointLights[i].Radius)); // less control than constant, linear and quadratic, but guaranteed to reach 0 past max radius
+		float Attenuation = saturate(1.f - (Distance * Distance) / (GlobalBuffer.Lights.PointLights[i].Radius * GlobalBuffer.Lights.PointLights[i].Radius)); // less control than constant, linear and quadratic, but guaranteed to reach 0 past max radius
 		LightTotal += Diffuse * Attenuation;
 		LightTotal += Specular * Attenuation;
 	}

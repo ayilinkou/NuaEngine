@@ -8,9 +8,17 @@ Light::Light()
 	m_bActive = true;
 
 	m_ComponentName = "Light";
+	m_Lights.push_back(this);
 }
 
-Light::~Light() {}
+Light::~Light()
+{
+	auto it = std::find(m_Lights.begin(), m_Lights.end(), this);
+	if (it != m_Lights.end())
+	{
+		m_Lights.erase(it);
+	}
+}
 
 void Light::RenderControls()
 {

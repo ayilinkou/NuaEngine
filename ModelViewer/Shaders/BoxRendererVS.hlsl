@@ -17,5 +17,5 @@ struct VS_IN
 
 float4 main(VS_IN v) : SV_POSITION
 {
-    return mul(Corners[v.InstanceID * 8 + v.VertexID], GlobalBuffer.CurrViewProj);
+    return mul(Corners[v.InstanceID * 8 + v.VertexID], GlobalBuffer.Camera.CurrViewProj);
 }

@@ -9,14 +9,16 @@
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "assimp-vc143-mt.lib")
 
-#include <d3d11.h>
-#include <DirectXMath.h>
-
-#include <wrl.h>
-
 #include <utility>
 
-struct GlobalCBuffer
+#include "d3d11.h"
+#include "DirectXMath.h"
+
+#include "wrl.h"
+
+#include "Common.h"
+
+struct CameraBuffer
 {
 	DirectX::XMMATRIX CurrView;
 	DirectX::XMMATRIX CurrProj;
@@ -29,13 +31,45 @@ struct GlobalCBuffer
 	DirectX::XMMATRIX PrevProjJittered;
 	DirectX::XMMATRIX PrevViewProjJittered;
 	DirectX::XMFLOAT3 CameraPos;
+	float Padding;
+};
+
+struct PointLightData
+{
+	float Radius;
+	DirectX::XMFLOAT3 LightPos;
+	float SpecularPower;
+	DirectX::XMFLOAT3 LightColor;
+};
+
+struct DirectionalLightData
+{
+	DirectX::XMFLOAT3 LightDir;
+	float SpecularPower;
+	DirectX::XMFLOAT3 LightColor;
+	float Padding = 0.f;
+};
+
+struct LightingBuffer
+{
+	PointLightData PointLights[MAX_POINT_LIGHTS];
+	DirectionalLightData DirLights[MAX_DIRECTIONAL_LIGHTS];
+	DirectX::XMFLOAT3 SkylightColor = { 1.f, 1.f, 1.f };
+	int PointLightCount = 0;
+	int DirLightCount = 0;
+	DirectX::XMFLOAT3 Padding;
+};
+
+struct GlobalCBuffer
+{
+	CameraBuffer CameraData;
+	LightingBuffer LightData;
 	float CurrTime;
 	float PrevTime;
 	float NearZ;
 	float FarZ;
-	float Padding0;
 	DirectX::XMFLOAT2 ScreenRes;
-	DirectX::XMFLOAT2 Padding1;
+	DirectX::XMFLOAT2 Padding;
 };
 
 class Graphics

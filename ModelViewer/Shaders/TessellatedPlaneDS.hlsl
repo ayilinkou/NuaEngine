@@ -71,9 +71,9 @@ DS_Out main(
 	
 	Pos.y = Height;
 	o.WorldPos = Pos;
-	o.Pos = mul(float4(Pos, 1.f), GlobalBuffer.CurrViewProjJittered);
-    o.CurrClipPos = mul(float4(Pos, 1.f), GlobalBuffer.CurrViewProj);
-    o.PrevClipPos = mul(float4(Pos, 1.f), GlobalBuffer.PrevViewProj);
+	o.Pos = mul(float4(Pos, 1.f), GlobalBuffer.Camera.CurrViewProjJittered);
+    o.CurrClipPos = mul(float4(Pos, 1.f), GlobalBuffer.Camera.CurrViewProj);
+    o.PrevClipPos = mul(float4(Pos, 1.f), GlobalBuffer.Camera.PrevViewProj);
 	
 	o.ChunkID = Patch[0].ChunkID;
 

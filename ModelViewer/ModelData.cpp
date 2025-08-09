@@ -182,7 +182,7 @@ void ModelData::RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes)
 		std::shared_ptr<Material> Mat = m.get()->m_Material;
 
 		DeviceContext->VSSetConstantBuffers(1u, 1u, m->m_pNode->m_ConstantBuffer.GetAddressOf());
-		DeviceContext->PSSetConstantBuffers(2u, 1u, Mat->m_ConstantBuffer.GetAddressOf());
+		DeviceContext->PSSetConstantBuffers(1u, 1u, Mat->m_ConstantBuffer.GetAddressOf());
 
 		if (Mat->m_DiffuseSRV >= 0)
 		{
@@ -194,7 +194,7 @@ void ModelData::RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes)
 			DeviceContext->PSSetShaderResources(1u, 1u, &m_Textures[Mat->m_SpecularSRV]);
 		}
 
-		//Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(!Mat->m_bTwoSided); // this doesn't actually work in some cases, investigate
+		//Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(!Mat->m_bTwoSided); // TODO: this doesn't actually work in some cases, investigate
 		Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(true);
 		//Graphics::GetSingletonPtr()->SetWireframeRasterState(); // swap back to line above when done or refactor to support switching
 

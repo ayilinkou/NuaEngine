@@ -322,31 +322,9 @@ void Application::RenderModels()
 		pModelData->GetTransforms().clear();
 	}
 
-	std::vector<PointLight*> PointLights;
-	std::vector<DirectionalLight*> DirLights;
 	for (auto& Object : m_GameObjects)
 	{
 		Object->SendTransformToModels();
-		for (auto& Comp : Object->GetComponents())
-		{
-			Light* pLight = dynamic_cast<Light*>(Comp.get());
-			if (pLight && pLight->IsActive())
-			{
-				PointLight* pPointLight = dynamic_cast<PointLight*>(pLight);
-				if (pPointLight)
-				{
-					PointLights.push_back(pPointLight);
-					continue;
-				}
-
-				DirectionalLight* pDirLight = dynamic_cast<DirectionalLight*>(pLight);
-				if (pDirLight)
-				{
-					DirLights.push_back(pDirLight);
-					continue;
-				}
-			}
-		}
 	}
 	
 	for (const auto& ModelPair : Models)
@@ -365,13 +343,6 @@ void Application::RenderModels()
 		m_Profiler->AddInstancesRendered(pModelData->GetModelPath(), InstanceCount);
 		
 		m_InstancedShader->ActivateShader(m_Graphics->GetDeviceContext());
-		m_InstancedShader->SetShaderParameters(
-			m_Graphics->GetDeviceContext(),
-			PointLights,
-			DirLights,
-			m_Skybox->GetAverageSkyColor()
-		);
-
 		pModelData->Render();
 	}
 }
@@ -441,15 +412,16 @@ void Application::UpdateGlobalConstantBuffer()
 {
 	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
 	GlobalCBuffer NewGlobalCBuffer = {};
-	ActiveCamera->GetViewMatrix(NewGlobalCBuffer.CurrView);
-	ActiveCamera->GetProjMatrix(NewGlobalCBuffer.CurrProj);
-	ActiveCamera->GetViewProjMatrix(NewGlobalCBuffer.CurrViewProj);
-	m_CameraManager->GetCurrJitteredProjMatrix(NewGlobalCBuffer.CurrProjJittered);
-	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CurrViewProjJittered);
-	NewGlobalCBuffer.CameraPos = ActiveCamera->GetPosition();
+	ActiveCamera->GetViewMatrix(NewGlobalCBuffer.CameraData.CurrView);
+	ActiveCamera->GetProjMatrix(NewGlobalCBuffer.CameraData.CurrProj);
+	ActiveCamera->GetViewProjMatrix(NewGlobalCBuffer.CameraData.CurrViewProj);
+	m_CameraManager->GetCurrJitteredProjMatrix(NewGlobalCBuffer.CameraData.CurrProjJittered);
+	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CameraData.CurrViewProjJittered);
+	NewGlobalCBuffer.CameraData.CameraPos = ActiveCamera->GetPosition();
 	NewGlobalCBuffer.CurrTime = (float)m_AppTime;
 	NewGlobalCBuffer.NearZ = SCREEN_NEAR;
 	NewGlobalCBuffer.FarZ = SCREEN_FAR;
+	NewGlobalCBuffer.LightData.SkylightColor = m_Skybox->GetAverageSkyColor();
 	m_Graphics->UpdateGlobalConstantBuffer(NewGlobalCBuffer);
 }
 
