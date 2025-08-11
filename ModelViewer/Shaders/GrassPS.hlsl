@@ -5,6 +5,8 @@ struct PS_In
 {
 	float4 Pos : SV_POSITION;
 	float3 WorldPos : WORLDPOS;
+    float3 WorldNormal : NORMAL0;
+    float3 ViewNormal : NORMAL1;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
 	float HeightAlongBlade : TEXCOORD2;
@@ -16,7 +18,8 @@ struct PS_In
 struct PS_Out
 {
     float4 Color : SV_TARGET0;
-    float2 Velocity : SV_TARGET1;
+    float4 Normal : SV_TARGET1;
+    float2 Velocity : SV_TARGET2;
 };
 
 static const float3 AOColor		= float3(0.0f,  0.1f, 0.0f);
@@ -57,6 +60,8 @@ PS_Out main(PS_In p)
 		o.Color = float4(Color, 1.f);
     }
 
+    o.Color = float4(p.WorldNormal, 1.f);
+    o.Normal = float4(normalize(p.ViewNormal), 0.f);
     o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
 	
     return o;

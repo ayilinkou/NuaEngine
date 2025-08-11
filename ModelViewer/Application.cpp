@@ -290,8 +290,8 @@ bool Application::RenderScene()
 	}
 
 	m_Graphics->EnableDepthWrite();
-	ID3D11RenderTargetView* RTVs[2] = { m_Graphics->m_PostProcessRTVFirst.Get(), m_Graphics->GetVelocityRTV().Get() };
-	m_Graphics->GetDeviceContext()->OMSetRenderTargets(2u, RTVs, m_Graphics->GetDepthStencilView());
+	ID3D11RenderTargetView* RTVs[3] = { m_Graphics->m_PostProcessRTVFirst.Get(), m_Graphics->GetNormalRTV().Get(), m_Graphics->GetVelocityRTV().Get() };
+	m_Graphics->GetDeviceContext()->OMSetRenderTargets(3u, RTVs, m_Graphics->GetDepthStencilView());
 
 	RenderModels();
 
@@ -339,11 +339,10 @@ void Application::RenderModels()
 		UINT InstanceCount = m_FrustumCuller->GetInstanceCounts()[0];
 		if (InstanceCount == 0)
 			continue;
-
-		m_Profiler->AddInstancesRendered(pModelData->GetModelPath(), InstanceCount);
 		
 		m_InstancedShader->ActivateShader(m_Graphics->GetDeviceContext());
 		pModelData->Render();
+		m_Profiler->AddInstancesRendered(pModelData->GetModelPath(), InstanceCount);
 	}
 }
 

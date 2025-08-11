@@ -18,6 +18,8 @@ struct PS_In
 {
 	float4 Pos : SV_POSITION;
 	float3 WorldPos : WORLDPOS;
+    float3 WorldNormal : NORMAL0;
+    float3 ViewNormal : NORMAL1;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
     float4 CurrClipPos : TEXCOORD2;
@@ -27,7 +29,8 @@ struct PS_In
 struct PS_Out
 {
     float4 Color : SV_TARGET0;
-    float2 Velocity : SV_TARGET1;
+    float4 Normal : SV_TARGET1;
+    float2 Velocity : SV_TARGET2;
 };
 
 float3 RandomRGB(uint seed)
@@ -54,8 +57,6 @@ PS_Out main(PS_In p)
 {
     PS_Out o;
 	
-    o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
-		
 	if (bVisualiseChunks)
     {
 		o.Color = float4(RandomRGB(p.ChunkID), 1.f);
@@ -72,5 +73,7 @@ PS_Out main(PS_In p)
 		o.Color = lerp(BotColor, TopColor, Height);
     }
 	
+    o.Normal = float4(p.ViewNormal, 0.f);
+    o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
     return o;
 }

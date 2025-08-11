@@ -53,8 +53,10 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> PostProcessRTTFirst;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> PostProcessRTTSecond;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> VelocityBufferTexture;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> NormalBufferTexture;
 	D3D11_TEXTURE2D_DESC PostProcessTextureDesc = {};
 	D3D11_TEXTURE2D_DESC DepthBufferDesc = {};
+	D3D11_TEXTURE2D_DESC NormalBufferDesc = {};
 	D3D11_TEXTURE2D_DESC VelocityBufferDesc = {};
 	D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
 	D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
@@ -371,6 +373,22 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	Result = CreateGlobalConstantBuffer();
 	assert(Result);
 
+	NormalBufferDesc.Width = ScreenWidth;
+	NormalBufferDesc.Height = ScreenHeight;
+	NormalBufferDesc.MipLevels = 1;
+	NormalBufferDesc.ArraySize = 1;
+	NormalBufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	NormalBufferDesc.SampleDesc.Count = 1;
+	NormalBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	NormalBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+	ASSERT_NOT_FAILED(m_Device->CreateTexture2D(&NormalBufferDesc, NULL, &NormalBufferTexture));
+	ASSERT_NOT_FAILED(m_Device->CreateRenderTargetView(NormalBufferTexture.Get(), NULL, &m_NormalRTV));
+	ASSERT_NOT_FAILED(m_Device->CreateShaderResourceView(NormalBufferTexture.Get(), NULL, &m_NormalSRV));
+	NAME_D3D_RESOURCE(NormalBufferTexture, "Normal buffer texture");
+	NAME_D3D_RESOURCE(m_NormalRTV, "Normal buffer RTV");
+	NAME_D3D_RESOURCE(m_NormalSRV, "Normal buffer SRV");
+
 	m_DeviceContext->VSSetConstantBuffers(0u, 1u, m_GlobalCBuffer.GetAddressOf());
 	m_DeviceContext->HSSetConstantBuffers(0u, 1u, m_GlobalCBuffer.GetAddressOf());
 	m_DeviceContext->DSSetConstantBuffers(0u, 1u, m_GlobalCBuffer.GetAddressOf());
@@ -438,6 +456,7 @@ void Graphics::BeginScene(float Red, float Green, float Blue, float Alpha)
 	Color[2] = Blue;
 	Color[3] = Alpha;
 
+	m_DeviceContext->ClearRenderTargetView(m_NormalRTV.Get(), Color);
 	m_DeviceContext->ClearRenderTargetView(m_VelocityRTV.Get(), Color);
 	m_DeviceContext->ClearRenderTargetView(m_BackBufferRTV.Get(), Color);
 	m_DeviceContext->ClearRenderTargetView(m_PostProcessRTVFirst.Get(), Color);

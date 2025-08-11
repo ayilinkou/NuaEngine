@@ -8,6 +8,8 @@ struct GS_In
 {
 	float4 Pos : SV_POSITION;
 	float3 WorldPos : WORLDPOS;
+    float3 WorldNormal : NORMAL0;
+    float3 ViewNormal : NORMAL1;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
     float4 CurrClipPos : TEXCOORD2;

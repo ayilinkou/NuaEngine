@@ -39,6 +39,8 @@ struct VS_Out
 {
 	float4 Pos : SV_POSITION;
 	float3 WorldPos : WORLDPOS;
+    float3 WorldNormal : NORMAL0;
+    float3 ViewNormal : NORMAL1;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
 	float HeightAlongBlade : TEXCOORD2;
@@ -70,7 +72,11 @@ VS_Out main(VS_In v)
 	o.LOD = Grass[v.InstanceID].LOD;
 	
 	// apply random rotation
-	float3 RotatedPos = Rotate(float3(v.Pos.xy, 0.f), float3(0.f, 1.f, 0.f), RandomAngle(GrassPos));
+    const float3 Up = float3(0.f, 1.f, 0.f);
+    float RotationAngle = RandomAngle(GrassPos);
+	float3 RotatedPos = Rotate(float3(v.Pos.xy, 0.f), Up, RotationAngle);
+    o.WorldNormal = normalize(Rotate(float3(0.f, 0.f, 1.f), Up, RotationAngle));
+    o.ViewNormal = normalize(mul(float4(o.WorldNormal, 0.f), GlobalBuffer.Camera.CurrView));
 	
 	// apply height offset
 	o.UV = GetHeightmapUV(GrassPos, PlaneDimension);
@@ -86,13 +92,14 @@ VS_Out main(VS_In v)
 	// apply wind if not root vertex
 	if (v.Pos.y != 0.f)
 	{		
-        Animate(o, GrassPos, GlobalBuffer.CurrTime, o.WorldPos);
-        Animate(o, GrassPos, GlobalBuffer.PrevTime, PrevWorldPos);
+        // temporarily disabled while adding normal buffer
+		//Animate(o, GrassPos, GlobalBuffer.CurrTime, o.WorldPos);
+        //Animate(o, GrassPos, GlobalBuffer.PrevTime, PrevWorldPos);
     }
 	
-	o.Pos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProjJittered);
-    o.CurrClipPos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.CurrViewProj);
-    o.PrevClipPos = mul(float4(PrevWorldPos, 1.f), GlobalBuffer.PrevViewProj);
+	o.Pos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.Camera.CurrViewProjJittered);
+    o.CurrClipPos = mul(float4(o.WorldPos, 1.f), GlobalBuffer.Camera.CurrViewProj);
+    o.PrevClipPos = mul(float4(PrevWorldPos, 1.f), GlobalBuffer.Camera.PrevViewProj);
 	
 	return o;
 }

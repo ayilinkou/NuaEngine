@@ -14,6 +14,8 @@ struct DS_Out
 {
 	float4 Pos : SV_POSITION;
 	float3 WorldPos : WORLDPOS;
+    float3 WorldNormal : NORMAL0;
+    float3 ViewNormal : NORMAL1;
 	float2 UV : TEXCOORD0;
 	uint ChunkID : TEXCOORD1;
     float4 CurrClipPos : TEXCOORD2;
@@ -71,6 +73,12 @@ DS_Out main(
 	
 	Pos.y = Height;
 	o.WorldPos = Pos;
+	
+    float3 dpdu = lerp(p1 - p0, p3 - p2, UV.y);
+    float3 dpdv = lerp(p2 - p0, p3 - p1, UV.x);
+    o.WorldNormal = normalize(cross(dpdu, dpdv));
+    o.ViewNormal = normalize(mul(float4(o.WorldNormal, 0.f), GlobalBuffer.Camera.CurrView)).xyz;
+	
 	o.Pos = mul(float4(Pos, 1.f), GlobalBuffer.Camera.CurrViewProjJittered);
     o.CurrClipPos = mul(float4(Pos, 1.f), GlobalBuffer.Camera.CurrViewProj);
     o.PrevClipPos = mul(float4(Pos, 1.f), GlobalBuffer.Camera.PrevViewProj);

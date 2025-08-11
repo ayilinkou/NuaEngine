@@ -22,7 +22,8 @@ struct VS_Out
 	float4 Pos : SV_POSITION;
 	float3 WorldPos : POSITION;
 	float2 TexCoord : TEXCOORD0;
-	float3 WorldNormal : NORMAL;
+	float3 WorldNormal : NORMAL0;
+    float3 ViewNormal : NORMAL1;
     float4 CurrClipPos : TEXCOORD1;
     float4 PrevClipPos : TEXCOORD2;
 };
@@ -45,8 +46,9 @@ VS_Out main(VS_In v)
 	
 	o.TexCoord = v.TexCoord;
 	
-	o.WorldNormal = mul(mul(float4(v.Normal, 0.f), AccumulatedModelMatrix), CulledTransforms[v.InstanceID].CurrTransform).xyz; // TODO: correct as long as I use uniform scaling, come back and fix
+    o.WorldNormal = mul(float4(mul(float4(v.Normal, 0.f), AccumulatedModelMatrix).xyz, 0.f), CulledTransforms[v.InstanceID].CurrTransform).xyz; // TODO: correct as long as I use uniform scaling, come back and fix
 	o.WorldNormal = normalize(o.WorldNormal);
+    o.ViewNormal = normalize(mul(float4(o.WorldNormal, 0.f), GlobalBuffer.Camera.CurrView).xyz);
 	
 	return o;
 }
