@@ -57,9 +57,11 @@ void ModelData::Render()
 
 	Graphics::GetSingletonPtr()->EnableDepthWrite();
 	Graphics::GetSingletonPtr()->DisableBlending();
+	InstancedShader::ActivateShaderOpaque(DeviceContext);
 	RenderMeshes(m_OpaqueMeshes);
 	Graphics::GetSingletonPtr()->DisableDepthWrite();
 	Graphics::GetSingletonPtr()->EnableBlending();
+	InstancedShader::ActivateShaderTransparent(DeviceContext);
 	RenderMeshes(m_TransparentMeshes);
 
 	ID3D11ShaderResourceView* NullSRVs[] = { nullptr };

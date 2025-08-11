@@ -25,17 +25,19 @@ public:
 	bool Initialise(ID3D11Device* Device);
 	void Shutdown();
 
-	void ActivateShader(ID3D11DeviceContext* DeviceContext);
+	static void ActivateShaderOpaque(ID3D11DeviceContext* DeviceContext);
+	static void ActivateShaderTransparent(ID3D11DeviceContext* DeviceContext);
 
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> GetInputLayout() const { return m_InputLayout; }
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> GetInputLayout() const { return ms_InputLayout; }
 
 private:
 	bool InitialiseShader(ID3D11Device* Device);
 
 private:
-	ID3D11VertexShader* m_VertexShader	= nullptr;
-	ID3D11PixelShader* m_PixelShader	= nullptr;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
+	inline static ID3D11VertexShader* ms_VertexShader			= nullptr;
+	inline static ID3D11PixelShader* ms_PixelShaderOpaque		= nullptr;
+	inline static ID3D11PixelShader* ms_PixelShaderTransparent	= nullptr;
+	inline static Microsoft::WRL::ComPtr<ID3D11InputLayout> ms_InputLayout;
 
 	const char* m_vsFilename = "";
 	const char* m_psFilename = "";

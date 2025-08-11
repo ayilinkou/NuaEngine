@@ -24,6 +24,7 @@ void InstancedShader::Shutdown()
 {
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11VertexShader>(m_vsFilename, "main");
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11PixelShader>(m_psFilename, "main");
+	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11PixelShader>(m_psFilename, "mainTransparent");
 }
 
 bool InstancedShader::InitialiseShader(ID3D11Device* Device)
@@ -35,8 +36,9 @@ bool InstancedShader::InitialiseShader(ID3D11Device* Device)
 	D3D11_INPUT_ELEMENT_DESC VertexLayout[3] = {};
 	unsigned int NumElements;
 
-	m_VertexShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11VertexShader>(m_vsFilename, "main", vsBuffer);
-	m_PixelShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11PixelShader>(m_psFilename, "main");
+	ms_VertexShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11VertexShader>(m_vsFilename, "main", vsBuffer);
+	ms_PixelShaderOpaque = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11PixelShader>(m_psFilename, "main");
+	ms_PixelShaderTransparent = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11PixelShader>(m_psFilename, "mainTransparent");
 
 	VertexLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	VertexLayout[0].SemanticName = "POSITION";
@@ -64,16 +66,24 @@ bool InstancedShader::InitialiseShader(ID3D11Device* Device)
 
 	NumElements = _countof(VertexLayout);
 
-	HFALSE_IF_FAILED(Device->CreateInputLayout(VertexLayout, NumElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &m_InputLayout));
-	NAME_D3D_RESOURCE(m_InputLayout, "Instanced shader input layout");
+	HFALSE_IF_FAILED(Device->CreateInputLayout(VertexLayout, NumElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &ms_InputLayout));
+	NAME_D3D_RESOURCE(ms_InputLayout, "Instanced shader input layout");
 
 	return true;
 }
 
-void InstancedShader::ActivateShader(ID3D11DeviceContext* DeviceContext)
+void InstancedShader::ActivateShaderOpaque(ID3D11DeviceContext* DeviceContext)
 {
-	DeviceContext->IASetInputLayout(m_InputLayout.Get());
+	DeviceContext->IASetInputLayout(ms_InputLayout.Get());
 
-	DeviceContext->VSSetShader(m_VertexShader, NULL, 0u);
-	DeviceContext->PSSetShader(m_PixelShader, NULL, 0u);
+	DeviceContext->VSSetShader(ms_VertexShader, NULL, 0u);
+	DeviceContext->PSSetShader(ms_PixelShaderOpaque, NULL, 0u);
+}
+
+void InstancedShader::ActivateShaderTransparent(ID3D11DeviceContext* DeviceContext)
+{
+	DeviceContext->IASetInputLayout(ms_InputLayout.Get());
+
+	DeviceContext->VSSetShader(ms_VertexShader, NULL, 0u);
+	DeviceContext->PSSetShader(ms_PixelShaderTransparent, NULL, 0u);
 }

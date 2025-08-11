@@ -340,7 +340,6 @@ void Application::RenderModels()
 		if (InstanceCount == 0)
 			continue;
 		
-		m_InstancedShader->ActivateShader(m_Graphics->GetDeviceContext());
 		pModelData->Render();
 		m_Profiler->AddInstancesRendered(pModelData->GetModelPath(), InstanceCount);
 	}
