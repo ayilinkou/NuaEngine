@@ -3,8 +3,8 @@
     {
       "type": "Bloom",
       "active": false,
-      "luminanceThreshold": 0.8,
-      "BlurStrength": 16,
+      "luminanceThreshold": 1.0,
+      "BlurStrength": 10,
       "sigma": 8.0
     },
     {

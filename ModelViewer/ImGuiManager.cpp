@@ -8,6 +8,7 @@
 #include "Graphics.h"
 #include "CameraManager.h"
 #include "Profiler.h"
+#include "Camera.h"
 
 static int s_SelectedId = -1;
 

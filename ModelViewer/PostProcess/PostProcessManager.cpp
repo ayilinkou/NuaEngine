@@ -4,6 +4,17 @@
 #include "PostProcess.h"
 #include "JsonParser.h"
 
+#include "PostProcessBloom.h"
+#include "PostProcessBoxBlur.h"
+#include "PostProcessChromaticAberration.h"
+#include "PostProcessColorCorrection.h"
+#include "PostProcessFog.h"
+#include "PostProcessGammaCorrection.h"
+#include "PostProcessGaussianBlur.h"
+#include "PostProcessPixelation.h"
+#include "PostProcessTemporalAA.h"
+#include "PostProcessToneMapper.h"
+
 PostProcessManager::~PostProcessManager()
 {
 	Shutdown();

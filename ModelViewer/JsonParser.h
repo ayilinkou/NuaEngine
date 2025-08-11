@@ -7,7 +7,6 @@
 
 #include "nlohmann/json.hpp"
 
-// TODO: doing these forward declares forces me to include post process header in cpp, is there a better way?
 namespace PostProcessData
 {
 	enum class FogFormula;

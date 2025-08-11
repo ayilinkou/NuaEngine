@@ -1,5 +1,6 @@
 #include "JsonParser.h"
-#include "PostProcess/PostProcess.h"
+#include "PostProcess/PostProcessFog.h"
+#include "PostProcess/PostProcessToneMapper.h"
 
 void JsonParser::ParseFloat2(const nlohmann::json& j, DirectX::XMFLOAT2& v)
 {

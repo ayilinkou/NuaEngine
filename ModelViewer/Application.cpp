@@ -1,5 +1,7 @@
 #include "Application.h"
 
+#include <iostream>
+
 #include "Windows.h"
 
 #include "ImGui/imgui.h"
@@ -12,7 +14,6 @@
 #include "InstancedShader.h"
 #include "Model.h"
 #include "Light.h"
-#include "PostProcess/PostProcess.h"
 #include "ResourceManager.h"
 #include "SystemClass.h"
 #include "InputClass.h"
@@ -26,6 +27,8 @@
 #include "Grass.h"
 #include "CameraManager.h"
 #include "Profiler.h"
+#include "PostProcess/PostProcess.h"
+#include "PostProcess/PostProcessEmpty.h"
 #include "PostProcess/PostProcessManager.h"
 #include "GameObject.h"
 
