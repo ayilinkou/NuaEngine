@@ -35,8 +35,8 @@ const GrassVertex GrassVertices[] =
 const GrassVertex GrassVerticesLOD[] =
 {
 	{{-0.028f, 0.0f}},
-	{{ 0.000f, 1.0f}},
 	{{ 0.028f, 0.0f}},
+	{{ 0.000f, 1.0f}},
 };
 
 const UINT GrassIndices[] =
@@ -57,7 +57,7 @@ Grass::Grass()
 	SetName("Grass");
 	SetWindDirection({ 1.f, 1.f });
 	m_bShouldRender = true;
-	m_LODDistanceThreshold = 100.f;
+	m_LODDistanceThreshold = 80.f;
 	m_Freq = 2.f;
 	m_Amp = 1.5f;
 	m_TimeScale = 4.f;
@@ -94,11 +94,8 @@ bool Grass::Init(Landscape* pLandscape, UINT GrassDimensionPerChunk, std::shared
 	m_PixelShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11PixelShader>(m_psFilepath);
 
 	D3D11_INPUT_ELEMENT_DESC LayoutDesc[1] = {};
-	LayoutDesc[0].Format = DXGI_FORMAT_R32G32_FLOAT;
-	LayoutDesc[0].SemanticName = "POSITION";
-	LayoutDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-
-	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateInputLayout(LayoutDesc, _countof(LayoutDesc), vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &m_InputLayout));
+	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateInputLayout(LayoutDesc, 0u, vsBuffer->GetBufferPointer(),
+		vsBuffer->GetBufferSize(), &m_InputLayout));
 	NAME_D3D_RESOURCE(m_InputLayout, "Grass input layout");
 
 	GenerateAABB();
@@ -131,7 +128,7 @@ void Grass::Render()
 	
 	pGraphics->SetRasterStateBackFaceCull(false);
 
-	UINT Strides[] = { sizeof(GrassVertex) };
+	UINT Strides[] = { 0u };
 	UINT Offsets[] = { 0u };
 	pContext->IASetInputLayout(m_InputLayout.Get());
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -143,15 +140,16 @@ void Grass::Render()
 
 	pContext->PSSetShader(m_PixelShader, nullptr, 0u);
 
+	ID3D11Buffer* NullBuffers[] = { nullptr };
+	pContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0u);
+	pContext->IASetVertexBuffers(0u, 1u, NullBuffers, Strides, Offsets);
+
 	// high LOD
 	if (m_GrassInstanceCounts[0] > 0u)
 	{
-		pContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
-		pContext->IASetVertexBuffers(0u, 1u, m_VertexBuffer.GetAddressOf(), Strides, Offsets);
-
 		pContext->VSSetShaderResources(1u, 1u, m_FrustumCuller->GetCulledGrassDataSRV().GetAddressOf());
 
-		pContext->DrawIndexedInstancedIndirect(m_ArgsBuffer.Get(), 0u);
+		pContext->DrawInstancedIndirect(m_ArgsBuffer.Get(), 0u);
 		m_Profiler->AddDrawCall();
 
 		m_Profiler->AddTrianglesRendered("Grass", m_GrassInstanceCounts[0] * (_countof(GrassVertices) - 2));
@@ -161,12 +159,9 @@ void Grass::Render()
 	// low LOD
 	if (m_GrassInstanceCounts[1] > 0u)
 	{
-		pContext->IASetIndexBuffer(m_IndexBufferLOD.Get(), DXGI_FORMAT_R32_UINT, 0u);
-		pContext->IASetVertexBuffers(0u, 1u, m_VertexBufferLOD.GetAddressOf(), Strides, Offsets);
-
 		pContext->VSSetShaderResources(1u, 1u, m_FrustumCuller->GetCulledGrassLODDataSRV().GetAddressOf());
 
-		pContext->DrawIndexedInstancedIndirect(m_LODArgsBuffer.Get(), 0u);
+		pContext->DrawInstancedIndirect(m_LODArgsBuffer.Get(), 0u);
 		m_Profiler->AddDrawCall();
 
 		m_Profiler->AddTrianglesRendered("Grass LOD", m_GrassInstanceCounts[1] * (_countof(GrassVerticesLOD) - 2));
@@ -241,38 +236,6 @@ bool Grass::CreateBuffers()
 {
 	HRESULT hResult;
 	D3D11_BUFFER_DESC Desc = {};
-	Desc.Usage = D3D11_USAGE_IMMUTABLE;
-	Desc.ByteWidth = sizeof(GrassVertices);
-	Desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA Data = {};
-	Data.pSysMem = GrassVertices;
-
-	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_VertexBuffer));
-	NAME_D3D_RESOURCE(m_VertexBuffer, "Grass vertex buffer");
-
-	Desc.ByteWidth = sizeof(GrassVerticesLOD);
-
-	Data.pSysMem = GrassVerticesLOD;
-
-	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_VertexBufferLOD));
-	NAME_D3D_RESOURCE(m_VertexBufferLOD, "Grass LOD vertex buffer");
-
-	Desc.ByteWidth = sizeof(GrassIndices);
-	Desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-	Data.pSysMem = GrassIndices;
-
-	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_IndexBuffer));
-	NAME_D3D_RESOURCE(m_IndexBuffer, "Grass index buffer");
-
-	Desc.ByteWidth = sizeof(GrassIndicesLOD);
-
-	Data.pSysMem = GrassIndicesLOD;
-
-	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_IndexBufferLOD));
-	NAME_D3D_RESOURCE(m_IndexBufferLOD, "Grass LOD index buffer");
-
 	Desc.Usage = D3D11_USAGE_DYNAMIC;
 	Desc.ByteWidth = sizeof(WindCBuffer);
 	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -289,6 +252,7 @@ bool Grass::CreateBuffers()
 	WindData.Strength = m_WindStrength;
 	WindData.SwayExponent = m_SwayExponent;
 
+	D3D11_SUBRESOURCE_DATA Data = {};
 	Data.pSysMem = &WindData;
 
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_GrassCBuffer));
@@ -333,6 +297,7 @@ bool Grass::CreateBuffers()
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_ArgsBuffer));
 	NAME_D3D_RESOURCE(m_ArgsBuffer, "Grass args buffer");
 
+	ArgsData.IndexCountPerInstance = sizeof(GrassIndicesLOD) / sizeof(UINT);
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, &Data, &m_LODArgsBuffer));
 	NAME_D3D_RESOURCE(m_LODArgsBuffer, "Grass LOD args buffer");
 
