@@ -166,7 +166,7 @@ VS_Out main(VS_In v)
     Animate(CurrVert, GrassPos, GlobalBuffer.PrevTime, PrevWorldPos);
 	
     CurrVert.WorldNormal = CalculateNormals(v.VertexID, CurrVert.WorldPos, v);
-    CurrVert.ViewNormal = normalize(mul(float4(CurrVert.WorldNormal, 0.f), GlobalBuffer.Camera.CurrView).xyz);
+    CurrVert.ViewNormal = normalize(mul(CurrVert.WorldNormal, (float3x3)GlobalBuffer.Camera.CurrView).xyz);
 	
 	CurrVert.Pos = mul(float4(CurrVert.WorldPos, 1.f), GlobalBuffer.Camera.CurrViewProjJittered);
     CurrVert.CurrClipPos = mul(float4(CurrVert.WorldPos, 1.f), GlobalBuffer.Camera.CurrViewProj);

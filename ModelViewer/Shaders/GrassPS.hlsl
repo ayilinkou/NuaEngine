@@ -39,7 +39,7 @@ PS_Out main(PS_In p)
         return 0;
     }*/
 	
-    float3 Color;
+    float3 Color = MidColor;
     float3 PixelToCam = normalize(GlobalBuffer.Camera.CameraPos - p.WorldPos);
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
@@ -71,14 +71,38 @@ PS_Out main(PS_In p)
 		}
 			
 		float DiffuseFactor = saturate(dot(-GlobalBuffer.Lights.DirLights[i].LightDir, AdjustedNormal));
-        DiffuseFactor = Remap(DiffuseFactor, 0.f, 1.f, 0.2f, 1.f); // indirectly adding ambient to pixels perpendicular to light dir
+        DiffuseFactor = Remap(DiffuseFactor, 0.f, 1.f, 0.5f, 1.f); // indirectly adding ambient to pixels perpendicular to light dir
         float4 Diffuse = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * float4(Color, 0.5f) * DiffuseFactor;
         LightTotal += Diffuse;
 
+		// using the original world normal to determine which side to add specular
         float3 HalfwayVec = normalize(PixelToCam - GlobalBuffer.Lights.DirLights[i].LightDir);
         float SpecularFactor = pow(saturate(dot(p.WorldNormal, HalfwayVec)), GlobalBuffer.Lights.DirLights[i].SpecularPower);
 		float4 Specular = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * SpecularFactor;
 		LightTotal += Specular;
+    }
+	
+    for (int i = 0; i < GlobalBuffer.Lights.PointLightCount; i++)
+    {
+        float Distance = distance(p.WorldPos, GlobalBuffer.Lights.PointLights[i].LightPos);
+        float Attenuation = saturate(1.f - (Distance * Distance) / (GlobalBuffer.Lights.PointLights[i].Radius *GlobalBuffer.Lights.PointLights[i].Radius)); // less control than constant, linear and quadratic, but guaranteed to reach 0 past max radius
+	
+		// to simulate subsurface scaterring, we will light the grass on both sides, flipping the normal vector if needed
+        float3 AdjustedNormal = p.WorldNormal;
+        float3 PixelToLight = normalize(GlobalBuffer.Lights.PointLights[i].LightPos - p.WorldPos);
+        if (dot(PixelToLight, AdjustedNormal) < 0.f)
+        {
+            AdjustedNormal = -p.WorldNormal;
+        }
+		
+        float DiffuseFactor = saturate(dot(PixelToLight, AdjustedNormal));
+        float4 Diffuse = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * float4(Color.xyz, 0.5f) * DiffuseFactor;
+        LightTotal += Diffuse * Attenuation;
+		
+        float3 HalfwayVec = normalize(PixelToCam + PixelToLight);
+        float SpecularFactor = pow(saturate(dot(p.WorldNormal, HalfwayVec)), GlobalBuffer.Lights.PointLights[i].SpecularPower);
+        float4 Specular = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * SpecularFactor;
+        LightTotal += Specular * Attenuation;
     }
 		
 	float AmbientFactor = 0.5f;

@@ -7,6 +7,8 @@
 #define MAX_GRASS_PER_CHUNK 10000
 #define MAX_INSTANCE_COUNT 1024
 
+#include "GlobalCBuffer.hlsl"
+
 SamplerState LinearSampler : register(s0);
 SamplerState PointSampler : register(s1);
 
@@ -216,6 +218,44 @@ float2 CalculateMotionVector(float4 CurrClipPos, float4 PrevClipPos)
 bool IsInRange(float2 xy, float Min, float Max)
 {
     return xy.x >= Min && xy.x <= Max && xy.y >= Min && xy.y <= Max;
+}
+
+float4 CalcDirectionalLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+	for (int i = 0; i < GlobalBuffer.Lights.DirectionalLightCount; i++)
+    {
+        float DiffuseFactor = saturate(dot(-GlobalBuffer.Lights.DirLights[i].LightDir, WorldNormal));
+        float4 Diffuse = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
+        LightTotal += Diffuse;
+
+        float3 HalfwayVec = normalize(PixelToCam + GlobalBuffer.Lights.DirLights[i].LightDir);
+        float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), GlobalBuffer.Lights.DirLights[i].SpecularPower);
+        float4 Specular = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * SpecularFactor;
+        LightTotal += Specular;
+    }
+    return LightTotal;
+}
+
+float4 CalcPointLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+	for (int i = 0; i < GlobalBuffer.Lights.PointLightCount; i++)
+    {
+        float Distance = distance(WorldPos, GlobalBuffer.Lights.PointLights[i].LightPos);
+        float Attenuation = saturate(1.f - (Distance * Distance) / (GlobalBuffer.Lights.PointLights[i].Radius * GlobalBuffer.Lights.PointLights[i].Radius)); // less control than constant, linear and quadratic, but guaranteed to reach 0 past max radius
+	
+        float3 PixelToLight = normalize(GlobalBuffer.Lights.PointLights[i].LightPos - WorldPos);
+        float DiffuseFactor = saturate(dot(PixelToLight, WorldNormal));
+        float4 Diffuse = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
+        LightTotal += Diffuse * Attenuation;
+		
+        float3 HalfwayVec = normalize(PixelToCam + PixelToLight);
+        float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), GlobalBuffer.Lights.PointLights[i].SpecularPower);
+        float4 Specular = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * SpecularFactor;
+        LightTotal += Specular * Attenuation;
+    }
+    return LightTotal;
 }
 
 #endif
