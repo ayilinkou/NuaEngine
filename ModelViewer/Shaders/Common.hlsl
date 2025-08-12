@@ -229,7 +229,7 @@ float4 CalcDirectionalLights(float3 PixelColor, float3 WorldPos, float3 WorldNor
         float4 Diffuse = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
         LightTotal += Diffuse;
 
-        float3 HalfwayVec = normalize(PixelToCam + GlobalBuffer.Lights.DirLights[i].LightDir);
+        float3 HalfwayVec = normalize(PixelToCam - GlobalBuffer.Lights.DirLights[i].LightDir);
         float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), GlobalBuffer.Lights.DirLights[i].SpecularPower);
         float4 Specular = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * SpecularFactor;
         LightTotal += Specular;
