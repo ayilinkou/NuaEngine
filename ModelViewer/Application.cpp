@@ -180,7 +180,7 @@ bool Application::Tick()
 
 		float Offset = m_bRight ? 1.f : -1.f;
 		m_GameObjects[3]->SetPosition(Pos.x + Offset * (float)m_DeltaTime, Pos.y, Pos.z);
-	}
+	}*/
 
 	UpdateGlobalConstantBuffer();
 
@@ -337,7 +337,6 @@ void Application::RenderModels()
 			continue;
 		
 		// AABB frustum culling on transforms
-		m_FrustumCuller->DispatchShader(pModelData->GetTransforms(), pModelData->GetBoundingBox().Corners);
 		
 		UINT InstanceCount = m_FrustumCuller->GetInstanceCounts()[0];
 		if (InstanceCount == 0)

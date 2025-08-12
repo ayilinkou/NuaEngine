@@ -76,7 +76,7 @@ PS_Out main(PS_In p)
 		Color = lerp(BotColor, TopColor, Height);
     }
 	
-    float3 PixelToCam = normalize(GlobalBuffer.Camera.CameraPos - p.WorldPos);
+    float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
     LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
     LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);

@@ -11,8 +11,8 @@
 
 #include "wrl.h"
 
-class CameraManager;
 class Profiler;
+struct AABB;
 struct CullTransformData;
 
 class FrustumCuller
@@ -20,17 +20,17 @@ class FrustumCuller
 private:
 	struct CBufferData
 	{
-		DirectX::XMFLOAT4 Corners[8];
 		DirectX::XMMATRIX ScaleMatrix;
-		DirectX::XMMATRIX ViewProj;
 		UINT SentInstanceCount;
 		UINT ThreadGroupCount[3];
 		UINT GrassPerChunk;
 		UINT PlaneDimension;
 		float HeightDisplacement;
 		float LODDistanceThreshold;
-		DirectX::XMFLOAT3 CameraPos;
+		DirectX::XMFLOAT3 Min;
 		float Padding;
+		DirectX::XMFLOAT3 Max;
+		float Padding1;
 	};
 
 	struct InstanceCountMultiplierBufferData
@@ -50,14 +50,12 @@ public:
 	FrustumCuller() = default;
 	~FrustumCuller();
 
-	bool Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler);
+	bool Init(std::shared_ptr<Profiler> pProfiler);
 	void Shutdown();
 
-	void DispatchShader(const std::vector<CullTransformData>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
-	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
-	void CullLandscape(ID3D11ShaderResourceView* ChunksOffsetsSRV, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix, const UINT NumChunks, UINT PlaneDimension,
-		float HeightDisplacement, ID3D11ShaderResourceView* Heightmap);
-	void CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const std::vector<DirectX::XMFLOAT4>& Corners, const UINT GrassPerChunk, const UINT VisibleChunkCount,
+	void DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
+	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
+	void CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const AABB& BBox, const UINT GrassPerChunk, const UINT VisibleChunkCount,
 		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap);
 	void ClearInstanceCount();
 	void SendInstanceCounts(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> FirstArgsBufferUAV, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> SecondArgsBufferUAV = ms_DummyArgsBufferUAV);
@@ -75,11 +73,11 @@ private:
 	bool CreateBufferViews();
 	bool InitialiseStatics();
 
-	void UpdateBuffers(const std::vector<CullTransformData>& Transforms, const std::vector<DirectX::XMFLOAT4>& Corners,const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
+	void UpdateBuffers(const std::vector<CullTransformData>& Transforms, const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
-	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
+	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& Corners, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
-	void UpdateCBuffer(const std::vector<DirectX::XMFLOAT4>& Corners, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk,
+	void UpdateCBuffer(const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk,
 		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold = 0.f);
 
 	void DispatchShaderImpl(UINT* ThreadGroupCount);
@@ -118,7 +116,6 @@ private:
 	const char* m_csFilename = "";
 	bool m_bGotInstanceCount = false;
 
-	std::shared_ptr<CameraManager> m_CameraManager;
 	std::shared_ptr<Profiler> m_Profiler;
 };
 

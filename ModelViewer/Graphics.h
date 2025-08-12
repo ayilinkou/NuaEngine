@@ -30,8 +30,11 @@ struct CameraBuffer
 	DirectX::XMMATRIX PrevViewProj;
 	DirectX::XMMATRIX PrevProjJittered;
 	DirectX::XMMATRIX PrevViewProjJittered;
-	DirectX::XMFLOAT3 CameraPos;
+	DirectX::XMFLOAT3 ActiveCameraPos;
 	float Padding;
+	DirectX::XMFLOAT3 MainCameraPos;
+	float Padding1;
+	DirectX::XMFLOAT4 FrustumPlanes[6]; // xyz = normals, w = d
 };
 
 struct PointLightData

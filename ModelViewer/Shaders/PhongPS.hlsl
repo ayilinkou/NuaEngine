@@ -55,10 +55,10 @@ PS_Out main(PS_In p)
 	float AmbientFactor = 0.5f;
 	float4 Ambient = float4((Color.rgb * GlobalBuffer.Lights.SkylightColor), BaseAlpha) * AmbientFactor;
 	
-	float3 PixelToCam = normalize(GlobalBuffer.Camera.CameraPos - p.WorldPos);
+	float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
 	float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
-	if (dot(GlobalBuffer.Camera.CameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
+	if (dot(GlobalBuffer.Camera.ActiveCameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
 		p.WorldNormal = -p.WorldNormal;
 	
     LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
@@ -89,10 +89,10 @@ float4 mainTransparent(PS_In p) : SV_TARGET
     float AmbientFactor = 0.5f;
     float4 Ambient = float4((Color.rgb * GlobalBuffer.Lights.SkylightColor), BaseAlpha) * AmbientFactor;
 	
-    float3 PixelToCam = normalize(GlobalBuffer.Camera.CameraPos - p.WorldPos);
+    float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
-    if (dot(GlobalBuffer.Camera.CameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
+    if (dot(GlobalBuffer.Camera.ActiveCameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
         p.WorldNormal = -p.WorldNormal;
 	
     LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);

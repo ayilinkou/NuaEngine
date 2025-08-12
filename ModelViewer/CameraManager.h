@@ -60,6 +60,8 @@ public:
 	// if not using TAA, returns active camera's regular viewProj matrix
 	DirectX::XMMATRIX GetPrevJitteredViewProjMatrix() const { return m_PrevJitteredViewProjMatrix; }
 
+	void ExtractFrustumPlanes(DirectX::XMFLOAT4 FrustumPlanes[6]);
+
 	void BindOnActiveCameraChanged(const std::function<void()>& Callback) { m_OnActiveCameraChanged.Bind(Callback); }
 
 private:

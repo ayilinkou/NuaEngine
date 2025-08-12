@@ -40,7 +40,7 @@ PS_Out main(PS_In p)
     }*/
 	
     float3 Color = MidColor;
-    float3 PixelToCam = normalize(GlobalBuffer.Camera.CameraPos - p.WorldPos);
+    float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
 	float TipThreshold = 2.f;

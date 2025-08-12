@@ -424,6 +424,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -446,6 +447,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -468,6 +470,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -490,6 +493,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)ModelViewer;$(SolutionDir)..\ExternalLibs\nlohmann_json\json-3.12.0\single_include;$(SolutionDir)..\ExternalLibs\Assimp x64\include;C:\Dev\DirectX11Renderer\ImGui\Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

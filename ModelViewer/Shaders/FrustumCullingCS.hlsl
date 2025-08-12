@@ -15,17 +15,35 @@ RWByteAddressBuffer SecondArgsBuffer : register(u6);
 
 cbuffer CullData : register(b1)
 {
-	float4 Corners[8];
 	float4x4 ScaleMatrix;
-	float4x4 ViewProj;
 	uint SentInstanceCount;
 	uint3 ThreadGroupCounts;
 	uint GrassPerChunk;
 	uint PlaneDimension;
 	float HeightDisplacement;
 	float LODDistanceThreshold;
-	float3 CameraPos;
-	float Padding;
+    float3 BBoxMin;
+    float Padding;
+    float3 BBoxMax;
+    float Padding1;
+}
+
+bool IsAABBInside(float3 BBoxMin, float3 BBoxMax)
+{
+    for (int i = 0; i < 6; i++)
+    {
+        float3 Normal = GlobalBuffer.Camera.FrustumPlanes[i].xyz;
+        float3 PosVertex = float3(
+            (Normal.x >= 0) ? BBoxMax.x : BBoxMin.x,
+            (Normal.y >= 0) ? BBoxMax.y : BBoxMin.y,
+            (Normal.z >= 0) ? BBoxMax.z : BBoxMin.z
+        );
+        
+        float Dist = dot(Normal, PosVertex) + GlobalBuffer.Camera.FrustumPlanes[i].w;
+        if (Dist < 0.0f)
+            return false;
+    }
+    return true;
 }
 
 static const uint tx = 32u;
@@ -38,24 +56,16 @@ void FrustumCull( uint3 DTid : SV_DispatchThreadID )
                        DTid.y * ThreadGroupCounts.x * tx +
                        DTid.x;
 	
-	if (FlattenedID >= SentInstanceCount)
-		return;
-	
-	const float Bias = 0.01f;
 	const float4x4 t = Transforms[FlattenedID].CurrTransform;
+    float3 TransformedMin = mul(mul(float4(BBoxMin, 1.f), ScaleMatrix), t).xyz;
+    float3 TransformedMax = mul(mul(float4(BBoxMax, 1.f), ScaleMatrix), t).xyz;
 
-	for (int i = 0; i < 8; i++)
-	{
-		float4 TransformedCorner = mul(mul(mul(Corners[i], ScaleMatrix), t), ViewProj);
-
-		if (abs(TransformedCorner.x) <= TransformedCorner.w + Bias && abs(TransformedCorner.y) <= TransformedCorner.w + Bias &&
-			(TransformedCorner.z >= -Bias && TransformedCorner.z <= TransformedCorner.w + Bias))
-		{
-			CulledTransforms.Append(Transforms[FlattenedID]);
-			InterlockedAdd(InstanceCounts[0], 1u);
-			return;
-		}
-	}
+    if (IsAABBInside(TransformedMin, TransformedMax))
+    {
+        CulledTransforms.Append(Transforms[FlattenedID]);
+        InterlockedAdd(InstanceCounts[0], 1u);
+        return;
+    }
 }
 
 [numthreads(tx, ty, tz)]
@@ -68,21 +78,16 @@ void FrustumCullOffsets(uint3 DTid : SV_DispatchThreadID)
 	if (FlattenedID >= SentInstanceCount)
 		return;
 	
-	const float Bias = 0.01f;
-	const float4 o = float4(Offsets[FlattenedID].x, 0.f, Offsets[FlattenedID].y, 0.f);
+    const float4 o = float4(Offsets[FlattenedID].x, 0.f, Offsets[FlattenedID].y, 0.f);
+    float3 TransformedMin = (mul(float4(BBoxMin, 0.f), ScaleMatrix) + o).xyz;
+    float3 TransformedMax = (mul(float4(BBoxMax, 0.f), ScaleMatrix) + o).xyz;
 	
-	for (int i = 0; i < 8; i++)
-	{
-		float4 TransformedCorner = mul(mul(Corners[i], ScaleMatrix) + o, ViewProj);
-
-		if (abs(TransformedCorner.x) <= TransformedCorner.w + Bias && abs(TransformedCorner.y) <= TransformedCorner.w + Bias &&
-			(TransformedCorner.z >= -Bias && TransformedCorner.z <= TransformedCorner.w + Bias))
-		{
-			CulledOffsetsAppend.Append(o.xz);
-			InterlockedAdd(InstanceCounts[0], 1u);
-			return;
-		}
-	}
+    if (IsAABBInside(TransformedMin, TransformedMax))
+    {
+        CulledOffsetsAppend.Append(Offsets[FlattenedID]);
+        InterlockedAdd(InstanceCounts[0], 1u);
+        return;
+    }
 }
 
 static const uint grass_tx = 32u;
@@ -98,45 +103,41 @@ void FrustumCullGrass(uint3 DTid : SV_DispatchThreadID)
 	if (GrassID >= GrassPerChunk || ChunkID >= SentInstanceCount)
 		return;
 	
-	const float Bias = 0.f; // this might be a bit too generous
 	const float3 ChunkOffset = float3(CulledOffsets[ChunkID].x, 0.f, CulledOffsets[ChunkID].y);
 	const float3 GrassOffset = float3(Offsets[GrassID].x, 0.f, Offsets[GrassID].y);
-	const float4 WorldOffset = float4(ChunkOffset + GrassOffset, 0.f);
+	const float3 WorldOffset = float3(ChunkOffset + GrassOffset);
 	
 	const float2 UV = GetHeightmapUV(WorldOffset.xz, PlaneDimension);
-	const float4 Height = float4(0.f, Heightmap.SampleLevel(LinearSampler, UV, 0.f).r * HeightDisplacement, 0.f, 0.f);
+    const float3 Height = float3(0.f, Heightmap.SampleLevel(LinearSampler, UV, 0.f).r * HeightDisplacement, 0.f);
 	
-	float Dist = distance(CameraPos, WorldOffset.xyz);
+	float Dist = distance(GlobalBuffer.Camera.MainCameraPos, WorldOffset.xyz);
 	bool bHighLOD = Dist < LODDistanceThreshold;
 	
-	// breaks slightly when height displacement > 0
-	for (int i = 0; i < 8; i++)
-	{
-		float4 TransformedCorner = mul(Corners[i] + WorldOffset + Height, ViewProj);
+    float3 TransformedMin = BBoxMin + WorldOffset + Height;
+    float3 TransformedMax = BBoxMax + WorldOffset + Height;
 
-		if (abs(TransformedCorner.x) <= TransformedCorner.w + Bias && abs(TransformedCorner.y) <= TransformedCorner.w + Bias &&
-			(TransformedCorner.z >= -Bias && TransformedCorner.z <= TransformedCorner.w + Bias))
-		{
-			GrassData Grass;
-			Grass.Offset = WorldOffset.xz;
-			Grass.ChunkID = HashFloat2ToUint(CulledOffsets[ChunkID]);
+    // still doesn't work perfectly at high height displacement
+    if (IsAABBInside(TransformedMin, TransformedMax))
+    {
+        GrassData Grass;
+        Grass.Offset = WorldOffset.xz;
+        Grass.ChunkID = HashFloat2ToUint(CulledOffsets[ChunkID]);
 			
-			if (bHighLOD)
-			{
-				Grass.LOD = 0u;
-				CulledGrassData.Append(Grass);
-				InterlockedAdd(InstanceCounts[0], 1u);
-				return;				
-			}
-			else
-			{
-				Grass.LOD = 1u;
-				CulledGrassLODData.Append(Grass);
-				InterlockedAdd(InstanceCounts[1], 1u);
-				return;
-			}
-		}
-	}
+        if (bHighLOD)
+        {
+            Grass.LOD = 0u;
+            CulledGrassData.Append(Grass);
+            InterlockedAdd(InstanceCounts[0], 1u);
+            return;
+        }
+        else
+        {
+            Grass.LOD = 1u;
+            CulledGrassLODData.Append(Grass);
+            InterlockedAdd(InstanceCounts[1], 1u);
+            return;
+        }
+    }
 }
 
 [numthreads(1, 1, 1)]
@@ -152,4 +153,3 @@ void TransferInstanceCount(uint3 DTid : SV_DispatchThreadID)
 	FirstArgsBuffer.Store(4u, InstanceCounts[0]);
 	SecondArgsBuffer.Store(4u, InstanceCounts[1]);
 }
-

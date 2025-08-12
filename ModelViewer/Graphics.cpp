@@ -553,12 +553,15 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 	m_GlobalCBufferData.CameraData.CurrViewProj = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrViewProj);
 	m_GlobalCBufferData.CameraData.CurrProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrProjJittered);
 	m_GlobalCBufferData.CameraData.CurrViewProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrViewProjJittered);
-	m_GlobalCBufferData.CameraData.CameraPos = NewGlobalCBufferData.CameraData.CameraPos;
+	m_GlobalCBufferData.CameraData.ActiveCameraPos = NewGlobalCBufferData.CameraData.ActiveCameraPos;
+	m_GlobalCBufferData.CameraData.MainCameraPos = NewGlobalCBufferData.CameraData.MainCameraPos;
 	m_GlobalCBufferData.CurrTime = NewGlobalCBufferData.CurrTime;
 	m_GlobalCBufferData.NearZ = NewGlobalCBufferData.NearZ;
 	m_GlobalCBufferData.FarZ = NewGlobalCBufferData.FarZ;
 	m_GlobalCBufferData.ScreenRes = DirectX::XMFLOAT2((float)m_Dimensions.first, (float)m_Dimensions.second);
 	m_GlobalCBufferData.LightData.SkylightColor = NewGlobalCBufferData.LightData.SkylightColor;
+	
+	memcpy(m_GlobalCBufferData.CameraData.FrustumPlanes, NewGlobalCBufferData.CameraData.FrustumPlanes, sizeof(DirectX::XMFLOAT4) * 6);
 
 	std::vector<PointLight*> PointLights;
 	std::vector<DirectionalLight*> DirLights;

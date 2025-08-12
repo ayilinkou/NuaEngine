@@ -16,8 +16,11 @@ struct CameraData
     float4x4 PrevViewProj;
     float4x4 PrevProjJittered;
     float4x4 PrevViewProjJittered;
-    float3 CameraPos;
+    float3 ActiveCameraPos;
     float Padding;
+    float3 MainCameraPos;
+    float Padding1;
+    float4 FrustumPlanes[6]; // xyz = normals, w = d
 };
 
 struct PointLight

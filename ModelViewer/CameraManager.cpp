@@ -86,3 +86,56 @@ void CameraManager::CalcJitteredMatrices(uint32_t FrameIndex, const std::pair<in
 	m_CurrJitteredProjMatrix = DirectX::XMLoadFloat4x4(&TempMatrix);
 	m_CurrJitteredViewProjMatrix = m_ActiveCamera->GetViewMatrix() * m_CurrJitteredProjMatrix;
 }
+
+void CameraManager::ExtractFrustumPlanes(DirectX::XMFLOAT4 FrustumPlanes[6])
+{
+	DirectX::XMFLOAT4X4 m;
+	DirectX::XMStoreFloat4x4(&m, m_MainCamera->GetViewProjMatrix());
+
+	// Left plane
+	FrustumPlanes[0].x = m._14 + m._11;
+	FrustumPlanes[0].y = m._24 + m._21;
+	FrustumPlanes[0].z = m._34 + m._31;
+	FrustumPlanes[0].w = m._44 + m._41;
+
+	// Right plane
+	FrustumPlanes[1].x = m._14 - m._11;
+	FrustumPlanes[1].y = m._24 - m._21;
+	FrustumPlanes[1].z = m._34 - m._31;
+	FrustumPlanes[1].w = m._44 - m._41;
+
+	// Bottom plane
+	FrustumPlanes[2].x = m._14 + m._12;
+	FrustumPlanes[2].y = m._24 + m._22;
+	FrustumPlanes[2].z = m._34 + m._32;
+	FrustumPlanes[2].w = m._44 + m._42;
+
+	// Top plane
+	FrustumPlanes[3].x = m._14 - m._12;
+	FrustumPlanes[3].y = m._24 - m._22;
+	FrustumPlanes[3].z = m._34 - m._32;
+	FrustumPlanes[3].w = m._44 - m._42;
+
+	// Near plane
+	FrustumPlanes[4].x = m._13;
+	FrustumPlanes[4].y = m._23;
+	FrustumPlanes[4].z = m._33;
+	FrustumPlanes[4].w = m._43;
+
+	// Far plane
+	FrustumPlanes[5].x = m._14 - m._13;
+	FrustumPlanes[5].y = m._24 - m._23;
+	FrustumPlanes[5].z = m._34 - m._33;
+	FrustumPlanes[5].w = m._44 - m._43;
+
+	// Normalise all frustum planes
+	for (int i = 0; i < 6; i++)
+	{
+		DirectX::XMVECTOR n = DirectX::XMLoadFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&FrustumPlanes[i]));
+		float Length = DirectX::XMVectorGetX(DirectX::XMVector3Length(n));
+		FrustumPlanes[i].x /= Length;
+		FrustumPlanes[i].y /= Length;
+		FrustumPlanes[i].z /= Length;
+		FrustumPlanes[i].w /= Length;
+	}
+}

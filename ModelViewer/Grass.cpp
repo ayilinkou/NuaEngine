@@ -115,7 +115,7 @@ void Grass::Render()
 	ID3D11DeviceContext* pContext = pGraphics->GetDeviceContext();
 	m_FrustumCuller->CullGrass(
 		m_GrassOffsetsSRV.Get(),
-		m_BBox.Corners,
+		m_BBox,
 		m_GrassPerChunk,
 		m_pLandscape->GetChunkInstanceCount(),
 		m_pLandscape->GetChunkDimension(),
