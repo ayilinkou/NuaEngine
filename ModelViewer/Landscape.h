@@ -19,12 +19,6 @@ class Landscape : public GameObject
 	friend class Grass;
 
 private:	
-	struct CullingCBuffer
-	{
-		DirectX::XMFLOAT4 FrustumPlanes[6];
-		DirectX::XMMATRIX FrustumCameraViewProj; // exposed seperately to view culling from a different camera
-	};
-
 	struct LandscapeInfoCBuffer
 	{
 		float PlaneDimension;
@@ -74,11 +68,9 @@ private:
 
 	void GenerateChunkOffsets();
 	void GenerateGrassOffsets(UINT GrassCount);
-	void PrepCullingBuffer(CullingCBuffer& CullingBufferData, bool bNormalise = true);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_LandscapeInfoCBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CullingCBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ChunkOffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ChunkOffsetsSRV;
 

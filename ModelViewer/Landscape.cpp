@@ -154,13 +154,8 @@ bool Landscape::CreateBuffers()
 
 	Desc = {};
 	Desc.Usage = D3D11_USAGE_DYNAMIC;
-	Desc.ByteWidth = sizeof(CullingCBuffer);
 	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, nullptr, &m_CullingCBuffer));
-	NAME_D3D_RESOURCE(m_CullingCBuffer, "Landscape culling constant buffer");
-
 	Desc.ByteWidth = sizeof(LandscapeInfoCBuffer);
 
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateBuffer(&Desc, nullptr, &m_LandscapeInfoCBuffer));
@@ -175,12 +170,6 @@ void Landscape::UpdateBuffers()
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	LandscapeInfoCBuffer* LandscapeInfoCBufferPtr;
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
-
-	CullingCBuffer CullingBufferData = {};
-	PrepCullingBuffer(CullingBufferData);
-	ASSERT_NOT_FAILED(DeviceContext->Map(m_CullingCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
-	memcpy(MappedResource.pData, &CullingBufferData, sizeof(CullingCBuffer));
-	DeviceContext->Unmap(m_CullingCBuffer.Get(), 0u);
 
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_LandscapeInfoCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
 	LandscapeInfoCBufferPtr = (LandscapeInfoCBuffer*)MappedResource.pData;
@@ -247,37 +236,5 @@ void Landscape::GenerateGrassOffsets(UINT GrassCount)
 
 			m_GrassOffsets.push_back({ WorldX, WorldZ });
 		}
-	}
-}
-
-void Landscape::PrepCullingBuffer(CullingCBuffer& CullingBufferData, bool bNormalise)
-{
-	CullingBufferData.FrustumCameraViewProj = DirectX::XMMatrixTranspose(m_CameraManager->GetMainCamera()->GetViewProjMatrix()); // Row-major access
-
-	// Each row of the matrix
-	DirectX::XMVECTOR row0 = CullingBufferData.FrustumCameraViewProj.r[0];
-	DirectX::XMVECTOR row1 = CullingBufferData.FrustumCameraViewProj.r[1];
-	DirectX::XMVECTOR row2 = CullingBufferData.FrustumCameraViewProj.r[2];
-	DirectX::XMVECTOR row3 = CullingBufferData.FrustumCameraViewProj.r[3];
-
-	DirectX::XMVECTOR FrustumPlanes[6];
-	FrustumPlanes[0] = DirectX::XMVectorAdd(row3, row0); // Left
-	FrustumPlanes[1] = DirectX::XMVectorAdd(row3, row0); // Right
-	FrustumPlanes[2] = DirectX::XMVectorAdd(row3, row1); // Bottom
-	FrustumPlanes[3] = DirectX::XMVectorAdd(row3, row1); // Top
-	FrustumPlanes[4] = DirectX::XMVectorAdd(row3, row2); // Near
-	FrustumPlanes[5] = DirectX::XMVectorAdd(row3, row2); // Far
-
-	if (bNormalise)
-	{
-		for (int i = 0; i < 6; ++i)
-		{
-			FrustumPlanes[i] = DirectX::XMPlaneNormalize(FrustumPlanes[i]);
-		}
-	}
-
-	for (int i = 0; i < 6; ++i)
-	{
-		DirectX::XMStoreFloat4(&CullingBufferData.FrustumPlanes[i], FrustumPlanes[i]);
 	}
 }

@@ -131,7 +131,6 @@ void TessellatedPlane::Shutdown()
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11VertexShader>(m_vsFilename);
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11HullShader>(m_hsFilename);
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11DomainShader>(m_dsFilename);
-	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11GeometryShader>(m_gsFilename);
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11PixelShader>(m_psFilename);
 }
 
@@ -152,13 +151,11 @@ bool TessellatedPlane::CreateShaders()
 	m_vsFilename = "Shaders/TessellatedPlaneVS.hlsl";
 	m_hsFilename = "Shaders/TessellatedPlaneHS.hlsl";
 	m_dsFilename = "Shaders/TessellatedPlaneDS.hlsl";
-	m_gsFilename = "Shaders/TessellatedPlaneGS.hlsl";
 	m_psFilename = "Shaders/TessellatedPlanePS.hlsl";
 
 	m_VertexShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11VertexShader>(m_vsFilename, "main", vsBuffer);
 	m_HullShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11HullShader>(m_hsFilename);
 	m_DomainShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11DomainShader>(m_dsFilename);
-	m_GeometryShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11GeometryShader>(m_gsFilename);
 	m_PixelShader = ResourceManager::GetSingletonPtr()->LoadShader<ID3D11PixelShader>(m_psFilename);
 	
 	D3D11_INPUT_ELEMENT_DESC LayoutDesc[1] = {};

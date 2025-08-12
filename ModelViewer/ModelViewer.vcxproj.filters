@@ -331,9 +331,6 @@
     <None Include="Shaders\TessellatedPlaneDS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="Shaders\TessellatedPlaneGS.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="Shaders\TessellatedPlaneHS.hlsl">
       <Filter>Shader Files</Filter>
     </None>
