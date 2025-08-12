@@ -89,8 +89,9 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->DSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->DSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
 
-	DeviceContext->GSSetShader(m_GeometryShader, nullptr, 0u);
-	DeviceContext->GSSetConstantBuffers(1u, 1u, m_pLandscape->m_CullingCBuffer.GetAddressOf());
+	// this doesn't actually do that much now since chunk culling is so effective
+	//DeviceContext->GSSetShader(m_GeometryShader, nullptr, 0u);
+	//DeviceContext->GSSetConstantBuffers(1u, 1u, m_pLandscape->m_CullingCBuffer.GetAddressOf());
 
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 	DeviceContext->PSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
