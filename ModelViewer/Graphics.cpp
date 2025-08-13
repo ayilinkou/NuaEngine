@@ -553,6 +553,7 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 	m_GlobalCBufferData.CameraData.CurrViewProj = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrViewProj);
 	m_GlobalCBufferData.CameraData.CurrProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrProjJittered);
 	m_GlobalCBufferData.CameraData.CurrViewProjJittered = DirectX::XMMatrixTranspose(NewGlobalCBufferData.CameraData.CurrViewProjJittered);
+	m_GlobalCBufferData.CameraData.InverseProj = NewGlobalCBufferData.CameraData.InverseProj;
 	m_GlobalCBufferData.CameraData.ActiveCameraPos = NewGlobalCBufferData.CameraData.ActiveCameraPos;
 	m_GlobalCBufferData.CameraData.MainCameraPos = NewGlobalCBufferData.CameraData.MainCameraPos;
 	m_GlobalCBufferData.CurrTime = NewGlobalCBufferData.CurrTime;

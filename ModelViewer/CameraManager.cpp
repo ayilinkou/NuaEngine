@@ -20,6 +20,8 @@ void CameraManager::Tick(uint32_t FrameIndex, const std::pair<int, int>& Dimensi
 
 	m_PrevJitteredProjMatrix = m_CurrJitteredProjMatrix;
 	CalcJitteredMatrices(FrameIndex, Dimensions);
+
+	m_InverseProj = DirectX::XMMatrixInverse(nullptr, m_CurrJitteredProjMatrix);
 }
 
 std::shared_ptr<Camera>& CameraManager::CreateCamera(DirectX::XMMATRIX ProjMatrix, bool bSetActiveCamera)

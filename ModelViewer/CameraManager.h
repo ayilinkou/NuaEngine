@@ -42,6 +42,9 @@ public:
 	const CameraSettings& GetCameraSettings() const { return m_CameraSettings; }
 	void SetCameraSpeed(float NewCameraSpeed) { m_CameraSettings.CameraSpeed = NewCameraSpeed; }
 
+	void GetInverseProjMatrix(DirectX::XMMATRIX& Matrix) { Matrix = m_InverseProj; }
+	DirectX::XMMATRIX GetInverseProjMatrix() const { return m_InverseProj; }
+
 	// if not using TAA, returns active camera's regular proj matrix
 	void GetCurrJitteredProjMatrix(DirectX::XMMATRIX& CurrJitteredProjMatrix) { CurrJitteredProjMatrix = m_CurrJitteredProjMatrix; }
 	// if not using TAA, returns active camera's regular proj matrix
@@ -79,6 +82,7 @@ private:
 	DirectX::XMMATRIX m_PrevJitteredProjMatrix;
 	DirectX::XMMATRIX m_CurrJitteredViewProjMatrix;
 	DirectX::XMMATRIX m_PrevJitteredViewProjMatrix;
+	DirectX::XMMATRIX m_InverseProj;
 
 	CameraSettings m_CameraSettings;
 	int m_ActiveCameraID;

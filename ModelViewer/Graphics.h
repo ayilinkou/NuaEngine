@@ -30,6 +30,7 @@ struct CameraBuffer
 	DirectX::XMMATRIX PrevViewProj;
 	DirectX::XMMATRIX PrevProjJittered;
 	DirectX::XMMATRIX PrevViewProjJittered;
+	DirectX::XMMATRIX InverseProj;
 	DirectX::XMFLOAT3 ActiveCameraPos;
 	float Padding;
 	DirectX::XMFLOAT3 MainCameraPos;

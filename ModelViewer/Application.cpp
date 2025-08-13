@@ -61,7 +61,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 	m_CameraManager->SetPostProcessManager(m_PostProcessManager);
 	
 	m_FrustumCuller = std::make_shared<FrustumCuller>();
-	bResult = m_FrustumCuller->Init(m_CameraManager, m_Profiler);
+	bResult = m_FrustumCuller->Init(m_Profiler);
 	assert(bResult);
 
 	ResourceManager::GetSingletonPtr()->Init(hWnd, m_FrustumCuller.get(), m_Profiler);
@@ -417,7 +417,10 @@ void Application::UpdateGlobalConstantBuffer()
 	ActiveCamera->GetViewProjMatrix(NewGlobalCBuffer.CameraData.CurrViewProj);
 	m_CameraManager->GetCurrJitteredProjMatrix(NewGlobalCBuffer.CameraData.CurrProjJittered);
 	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CameraData.CurrViewProjJittered);
-	NewGlobalCBuffer.CameraData.CameraPos = ActiveCamera->GetPosition();
+	m_CameraManager->GetInverseProjMatrix(NewGlobalCBuffer.CameraData.InverseProj);
+	m_CameraManager->ExtractFrustumPlanes(NewGlobalCBuffer.CameraData.FrustumPlanes);
+	NewGlobalCBuffer.CameraData.ActiveCameraPos = ActiveCamera->GetPosition();
+	NewGlobalCBuffer.CameraData.MainCameraPos = m_CameraManager->GetMainCamera()->GetPosition();
 	NewGlobalCBuffer.CurrTime = (float)m_AppTime;
 	NewGlobalCBuffer.NearZ = SCREEN_NEAR;
 	NewGlobalCBuffer.FarZ = SCREEN_FAR;

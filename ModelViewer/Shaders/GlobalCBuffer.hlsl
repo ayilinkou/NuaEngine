@@ -16,6 +16,7 @@ struct CameraData
     float4x4 PrevViewProj;
     float4x4 PrevProjJittered;
     float4x4 PrevViewProjJittered;
+    float4x4 InverseProj;
     float3 ActiveCameraPos;
     float Padding;
     float3 MainCameraPos;
