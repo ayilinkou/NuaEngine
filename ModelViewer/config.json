@@ -39,13 +39,18 @@
     {
       "type": "GaussianBlur",
       "active": false,
-      "blurStrength": 30,
-      "sigma": 4.0
+      "blurStrength": 10,
+      "sigma": 8.0
     },
     {
       "type": "Pixelation",
       "active": false,
       "pixelSize": 8.0
+    },
+    {
+      "type": "SSAO",
+      "active": true,
+      "radius": 1.0
     },
     {
       "type": "TAA",

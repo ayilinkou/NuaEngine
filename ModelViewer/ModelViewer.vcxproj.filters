@@ -118,34 +118,37 @@
       <Filter>Post Process</Filter>
     </ClCompile>
     <ClCompile Include="PostProcess\PostProcessBloom.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessFog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessChromaticAberration.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessColorCorrection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessGammaCorrection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessToneMapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessGaussianBlur.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessTemporalAA.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess\PostProcessPixelation.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Post Process</Filter>
     </ClCompile>
     <ClCompile Include="PostProcess\PostProcessBoxBlur.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessChromaticAberration.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessColorCorrection.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessFog.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessGammaCorrection.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessGaussianBlur.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessPixelation.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessSSAO.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessTemporalAA.cpp">
+      <Filter>Post Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessToneMapper.cpp">
+      <Filter>Post Process</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -255,37 +258,40 @@
       <Filter>Post Process</Filter>
     </ClInclude>
     <ClInclude Include="PostProcess\PostProcessBloom.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessEmpty.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessFog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessChromaticAberration.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessColorCorrection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessGammaCorrection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessToneMapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessGaussianBlur.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessTemporalAA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\PostProcessPixelation.h">
-      <Filter>Header Files</Filter>
+      <Filter>Post Process</Filter>
     </ClInclude>
     <ClInclude Include="PostProcess\PostProcessBoxBlur.h">
-      <Filter>Header Files</Filter>
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessChromaticAberration.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessColorCorrection.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessEmpty.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessFog.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessGammaCorrection.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessGaussianBlur.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessPixelation.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessSSAO.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessTemporalAA.h">
+      <Filter>Post Process</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessToneMapper.h">
+      <Filter>Post Process</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -374,5 +380,6 @@
     <None Include="Shaders\GlobalCBuffer.hlsl">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="Shaders\SSAO_PS.hlsl" />
   </ItemGroup>
 </Project>

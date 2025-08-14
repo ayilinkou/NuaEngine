@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="AABB.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="PostProcess\PostProcessSSAO.cpp" />
     <ClCompile Include="PostProcess\PostProcessBoxBlur.cpp" />
     <ClCompile Include="PostProcess\PostProcessPixelation.cpp" />
     <ClCompile Include="PostProcess\PostProcessTemporalAA.cpp" />
@@ -64,6 +65,7 @@
   <ItemGroup>
     <ClInclude Include="AABB.h" />
     <ClInclude Include="Application.h" />
+    <ClInclude Include="PostProcess\PostProcessSSAO.h" />
     <ClInclude Include="PostProcess\PostProcessBoxBlur.h" />
     <ClInclude Include="PostProcess\PostProcessPixelation.h" />
     <ClInclude Include="PostProcess\PostProcessTemporalAA.h" />
@@ -347,6 +349,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GlobalCBuffer.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\SSAO_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

@@ -12,6 +12,7 @@
 #include "PostProcessGammaCorrection.h"
 #include "PostProcessGaussianBlur.h"
 #include "PostProcessPixelation.h"
+#include "PostProcessSSAO.h"
 #include "PostProcessTemporalAA.h"
 #include "PostProcessToneMapper.h"
 
@@ -51,6 +52,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	PostProcessData::GammaCorrectionData GammaData = {};
 	PostProcessData::GaussianBlurData GaussianBlurData = {};
 	PostProcessData::PixelationData PixelationData = {};
+	PostProcessData::SSAOData SSAOData = {};
 	PostProcessData::TemporalAAData TAAData = {};
 	PostProcessData::ToneMapperData ToneMapperData = {};
 	bool bBloomActive;
@@ -61,6 +63,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	bool bGammaActive;
 	bool bGaussianBlurActive;
 	bool bPixelationActive;
+	bool bSSAOActive;
 	bool bTAAActive;
 	bool bToneMapperActive;
 
@@ -119,6 +122,11 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 			PixelationData.TruePixelSize = PixelSize;
 			bPixelationActive = PPConfig.value("active", false);
 		}
+		else if (Type == "SSAO")
+		{
+			SSAOData.Radius = PPConfig.value("radius", 1.f);
+			bSSAOActive = PPConfig.value("active", true);
+		}
 		else if (Type == "TAA")
 		{
 			TAAData.Alpha = PPConfig.value("alpha", 0.5f);
@@ -140,6 +148,8 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 		}
 	}
 
+	// this is the order the post processes will be carried out in
+	m_PostProcesses.emplace_back(std::make_unique<PostProcessSSAO>(bSSAOActive, SSAOData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(bFogActive, FogData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(bTAAActive, TAAData, pCameraManager));
 	m_pTAA = m_PostProcesses.back().get();
