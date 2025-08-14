@@ -337,6 +337,7 @@ void Application::RenderModels()
 			continue;
 		
 		// AABB frustum culling on transforms
+		m_FrustumCuller->DispatchShader(pModelData->GetTransforms(), pModelData->GetBoundingBox());
 		
 		UINT InstanceCount = m_FrustumCuller->GetInstanceCounts()[0];
 		if (InstanceCount == 0)
