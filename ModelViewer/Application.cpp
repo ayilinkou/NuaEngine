@@ -259,18 +259,10 @@ bool Application::Render()
 
 		if (m_Landscape->GetShouldRenderBBoxes())
 		{
-			const DirectX::XMMATRIX& Scale = m_Landscape->GetChunkScaleMatrix();
 			const AABB& BBox = m_Landscape->GetBoundingBox();
 			for (const DirectX::XMFLOAT2& o : m_Landscape->GetChunkOffsets())
 			{
-				DirectX::XMMATRIX m = DirectX::XMMatrixMultiply(Scale, DirectX::XMMatrixTranslation(o.x, 0.f, o.y));
-				m_BoxRenderer->LoadBoxCorners(BBox, m);
-
-				for (const DirectX::XMFLOAT2& GrassOffset : m_Landscape->GetGrassOffsets())
-				{
-					m_BoxRenderer->LoadBoxCorners(m_Landscape->GetGrass()->GetBoundingBox(),
-						DirectX::XMMatrixMultiply(DirectX::XMMatrixTranslation(o.x, 0.f, o.y), DirectX::XMMatrixTranslation(GrassOffset.x, 0.f, GrassOffset.y))); // doesn't account for height displacement
-				}
+				m_BoxRenderer->LoadBoxCorners(BBox, DirectX::XMMatrixTranslation(o.x, 0.f, o.y));
 			}
 		}
 	}

@@ -20,7 +20,6 @@ class FrustumCuller
 private:
 	struct CBufferData
 	{
-		DirectX::XMMATRIX ScaleMatrix;
 		UINT SentInstanceCount;
 		UINT ThreadGroupCount[3];
 		UINT GrassPerChunk;
@@ -53,8 +52,8 @@ public:
 	bool Init(std::shared_ptr<Profiler> pProfiler);
 	void Shutdown();
 
-	void DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
-	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix = DirectX::XMMatrixIdentity());
+	void DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox);
+	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox);
 	void CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const AABB& BBox, const UINT GrassPerChunk, const UINT VisibleChunkCount,
 		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap);
 	void ClearInstanceCount();
@@ -73,11 +72,11 @@ private:
 	bool CreateBufferViews();
 	bool InitialiseStatics();
 
-	void UpdateBuffers(const std::vector<CullTransformData>& Transforms, const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
+	void UpdateBuffers(const std::vector<CullTransformData>& Transforms, const AABB& BBox, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
-	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& Corners, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount,
+	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& Corners, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
-	void UpdateCBuffer(const AABB& BBox, const DirectX::XMMATRIX& ScaleMatrix, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk,
+	void UpdateCBuffer(const AABB& BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk,
 		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold = 0.f);
 
 	void DispatchShaderImpl(UINT* ThreadGroupCount);

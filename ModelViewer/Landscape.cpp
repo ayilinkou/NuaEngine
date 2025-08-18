@@ -20,7 +20,6 @@ Landscape::Landscape(UINT ChunkDimension, float ChunkSize, float HeightDisplacem
 {
 	SetName("Landscape");
 	SetScale(ChunkSize);
-	m_ChunkScaleMatrix = DirectX::XMMatrixScaling(ChunkSize, 1.f, ChunkSize);
 	m_bShouldRender = true;
 	m_bShouldRenderBBoxes = true;
 	m_bVisualiseChunks = false;
@@ -61,15 +60,15 @@ bool Landscape::Init(const std::string& HeightMapFilepath, float TessellationSca
 
 void Landscape::SetupAABB()
 {
-	m_BoundingBox.Min = { -0.5f, 0.f, -0.5 };
-	m_BoundingBox.Max = { 0.5f, m_HeightDisplacement, 0.5f };
+	m_BoundingBox.Min = { -0.5f * m_Transform.Scale.x, 0.f, -0.5f * m_Transform.Scale.z };
+	m_BoundingBox.Max = { 0.5f * m_Transform.Scale.x, m_HeightDisplacement, 0.5f * m_Transform.Scale.z };
 	m_BoundingBox.CalcCorners();
 }
 
 void Landscape::Render()
 {	
 	Application* pApp = Application::GetSingletonPtr();
-	pApp->GetFrustumCuller()->DispatchShader(m_ChunkOffsets, m_BoundingBox, m_ChunkScaleMatrix);
+	pApp->GetFrustumCuller()->DispatchShader(m_ChunkOffsets, m_BoundingBox);
 	m_ChunkInstanceCount = pApp->GetFrustumCuller()->GetInstanceCounts()[0];
 	
 	if (m_ChunkInstanceCount == 0u)

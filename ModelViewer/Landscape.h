@@ -49,7 +49,6 @@ public:
 	void SetHeightDisplacement(float NewHeight);
 	std::vector<DirectX::XMFLOAT2>& GetChunkOffsets() { return m_ChunkOffsets; }
 	std::vector<DirectX::XMFLOAT2>& GetGrassOffsets() { return m_GrassOffsets; }
-	const DirectX::XMMATRIX& GetChunkScaleMatrix() const { return m_ChunkScaleMatrix; }
 	UINT GetChunkInstanceCount() const { return m_ChunkInstanceCount; }
 	UINT GetChunkDimension() const { return m_ChunkDimension; }
 
@@ -83,7 +82,6 @@ private:
 
 	ID3D11ShaderResourceView* m_HeightmapSRV;
 	std::string m_HeightMapFilepath;
-	DirectX::XMMATRIX m_ChunkScaleMatrix;
 
 	bool m_bShouldRender;
 	bool m_bVisualiseChunks;

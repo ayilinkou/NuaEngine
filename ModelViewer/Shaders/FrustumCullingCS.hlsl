@@ -15,7 +15,6 @@ RWByteAddressBuffer SecondArgsBuffer : register(u6);
 
 cbuffer CullData : register(b1)
 {
-	float4x4 ScaleMatrix;
 	uint SentInstanceCount;
 	uint3 ThreadGroupCounts;
 	uint GrassPerChunk;
@@ -55,10 +54,13 @@ void FrustumCull( uint3 DTid : SV_DispatchThreadID )
 	uint FlattenedID = DTid.z * ThreadGroupCounts.x * ThreadGroupCounts.y * tx * ty +
                        DTid.y * ThreadGroupCounts.x * tx +
                        DTid.x;
+    
+    if (FlattenedID >= SentInstanceCount)
+        return;
 	
 	const float4x4 t = Transforms[FlattenedID].CurrTransform;
-    float3 TransformedMin = mul(mul(float4(BBoxMin, 1.f), ScaleMatrix), t).xyz;
-    float3 TransformedMax = mul(mul(float4(BBoxMax, 1.f), ScaleMatrix), t).xyz;
+    float3 TransformedMin = mul(float4(BBoxMin, 1.f), t).xyz;
+    float3 TransformedMax = mul(float4(BBoxMax, 1.f), t).xyz;
 
     if (IsAABBInside(TransformedMin, TransformedMax))
     {
@@ -78,11 +80,8 @@ void FrustumCullOffsets(uint3 DTid : SV_DispatchThreadID)
 	if (FlattenedID >= SentInstanceCount)
 		return;
 	
-    const float4 o = float4(Offsets[FlattenedID].x, 0.f, Offsets[FlattenedID].y, 0.f);
-    float3 TransformedMin = (mul(float4(BBoxMin, 0.f), ScaleMatrix) + o).xyz;
-    float3 TransformedMax = (mul(float4(BBoxMax, 0.f), ScaleMatrix) + o).xyz;
-	
-    if (IsAABBInside(TransformedMin, TransformedMax))
+    const float3 o = float4(Offsets[FlattenedID].x, 0.f, Offsets[FlattenedID].y, 0.f);
+    if (IsAABBInside(BBoxMin + o, BBoxMax + o))
     {
         CulledOffsetsAppend.Append(Offsets[FlattenedID]);
         InterlockedAdd(InstanceCounts[0], 1u);
