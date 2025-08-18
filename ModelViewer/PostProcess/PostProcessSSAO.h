@@ -11,6 +11,7 @@ namespace PostProcessData
 	{
 		float Radius;
 		DirectX::XMFLOAT3 Padding;
+		DirectX::XMFLOAT3 SampleKernel[64];
 	};
 }
 
@@ -21,13 +22,18 @@ public:
 	~PostProcessSSAO();
 
 	virtual void RenderControls() override;
+	
+	static void GenerateSamplePoints(DirectX::XMFLOAT3* SampleKernelDest);
 
 private:
 	void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV) override;
 
+	void GenerateNoiseTexture();
+
 private:
 	const char* m_psFilename;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_NoiseSRV;
 };
 
 #endif

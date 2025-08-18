@@ -10,7 +10,8 @@
 #include "GlobalCBuffer.hlsl"
 
 SamplerState LinearSampler : register(s0);
-SamplerState PointSampler : register(s1);
+SamplerState PointClampSampler : register(s1);
+SamplerState PointWrapSampler : register(s2);
 
 struct CameraInfo
 {

@@ -124,6 +124,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 		}
 		else if (Type == "SSAO")
 		{
+			PostProcessSSAO::GenerateSamplePoints(SSAOData.SampleKernel);
 			SSAOData.Radius = PPConfig.value("radius", 1.f);
 			bSSAOActive = PPConfig.value("active", true);
 		}
@@ -144,7 +145,7 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 		}
 		else
 		{
-			throw std::runtime_error("Post process type not found in config.json!");
+			throw std::runtime_error("Post process type " + Type + " not found in config.json!");
 		}
 	}
 

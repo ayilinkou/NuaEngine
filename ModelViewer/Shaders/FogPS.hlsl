@@ -40,7 +40,7 @@ float ExponentialSquaredFog(float Distance)
 
 float4 main(PS_In p) : SV_TARGET
 {
-	float3 Color = screenTexture.Sample(LinearSampler, p.TexCoord).xyz;
+	float3 Color = screenTexture.Sample(LinearSampler, p.TexCoord).rgb;
 	
 	float NonLinearDepth = depthTexture.Sample(LinearSampler, p.TexCoord);
 

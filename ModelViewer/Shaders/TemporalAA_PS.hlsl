@@ -22,13 +22,13 @@ struct PS_In
 
 float4 main(PS_In p) : SV_TARGET
 {
-    float2 MotionUV = VelocityTexture.Sample(PointSampler, p.TexCoord);
+    float2 MotionUV = VelocityTexture.Sample(PointClampSampler, p.TexCoord);
     float2 ReprojectedUV = bUseMotionVectors != 0 ? p.TexCoord - MotionUV : p.TexCoord;
     
     if (IsInRange(ReprojectedUV, 0.f, 1.f))
     {
         float4 CurrentPixel = ScreenTexture.Sample(LinearSampler, p.TexCoord);
-        float4 HistoryPixel = HistoryTexture.SampleLevel(PointSampler, ReprojectedUV, 0.f);
+        float4 HistoryPixel = HistoryTexture.SampleLevel(PointClampSampler, ReprojectedUV, 0.f);
 
         if (bUseColorClamping)
         {
@@ -42,7 +42,7 @@ float4 main(PS_In p) : SV_TARGET
                 for (int dy = -1; dy <= 1; ++dy)
                 {
                     float2 SampleUV = ReprojectedUV + float2(dx, dy) * TexelSize;
-                    float3 Neighbour = ScreenTexture.SampleLevel(PointSampler, SampleUV, 0.f);
+                    float3 Neighbour = ScreenTexture.SampleLevel(PointClampSampler, SampleUV, 0.f);
 
                     MinColor = min(MinColor, Neighbour);
                     MaxColor = max(MaxColor, Neighbour);

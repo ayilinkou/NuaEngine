@@ -133,7 +133,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterStateBackFaceCullOff;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_WireframeRasterState;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_LinearSampler;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_PointSampler;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_PointClampSampler;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_PointWrapSampler;
 	Microsoft::WRL::ComPtr<ID3D11Query> m_PipelineStatsQuery;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_GlobalCBuffer;
 

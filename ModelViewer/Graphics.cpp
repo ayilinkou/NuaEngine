@@ -338,16 +338,23 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 
 	SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 
-	ASSERT_NOT_FAILED(m_Device->CreateSamplerState(&SamplerDesc, &m_PointSampler));
-	m_PointSampler->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen("Point sampler state"), "Point sampler state");
+	ASSERT_NOT_FAILED(m_Device->CreateSamplerState(&SamplerDesc, &m_PointClampSampler));
+	m_PointClampSampler->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen("Point clamp sampler state"), "Point clamp sampler state");
 
-	ID3D11SamplerState* Samplers[2] = { m_LinearSampler.Get(), m_PointSampler.Get() };
-	m_DeviceContext->VSSetSamplers(0u, 2u, Samplers);
-	m_DeviceContext->HSSetSamplers(0u, 2u, Samplers);
-	m_DeviceContext->DSSetSamplers(0u, 2u, Samplers);
-	m_DeviceContext->GSSetSamplers(0u, 2u, Samplers);
-	m_DeviceContext->PSSetSamplers(0u, 2u, Samplers);
-	m_DeviceContext->CSSetSamplers(0u, 2u, Samplers);
+	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+	ASSERT_NOT_FAILED(m_Device->CreateSamplerState(&SamplerDesc, &m_PointWrapSampler));
+	m_PointWrapSampler->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen("Point wrap sampler state"), "Point wrap sampler state");
+
+	ID3D11SamplerState* Samplers[3] = { m_LinearSampler.Get(), m_PointClampSampler.Get(), m_PointWrapSampler.Get() };
+	m_DeviceContext->VSSetSamplers(0u, 3u, Samplers);
+	m_DeviceContext->HSSetSamplers(0u, 3u, Samplers);
+	m_DeviceContext->DSSetSamplers(0u, 3u, Samplers);
+	m_DeviceContext->GSSetSamplers(0u, 3u, Samplers);
+	m_DeviceContext->PSSetSamplers(0u, 3u, Samplers);
+	m_DeviceContext->CSSetSamplers(0u, 3u, Samplers);
 
 	D3D11_QUERY_DESC QueryDesc = {};
 	QueryDesc.Query = D3D11_QUERY_PIPELINE_STATISTICS;
@@ -424,7 +431,8 @@ void Graphics::Shutdown()
 	m_RasterStateBackFaceCullOn.Reset();
 	m_RasterStateBackFaceCullOff.Reset();
 	m_LinearSampler.Reset();
-	m_PointSampler.Reset();
+	m_PointClampSampler.Reset();
+	m_PointWrapSampler.Reset();
 	m_BackBufferRTV.Reset();
 	m_PostProcessRTVFirst.Reset();
 	m_PostProcessRTVSecond.Reset();
