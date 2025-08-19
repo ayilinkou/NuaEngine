@@ -10,7 +10,7 @@ cbuffer SSAOBuffer : register(b1)
 {
     float Radius;
     float3 Padding;
-    float3 SampleKernel[64];
+    float4 SampleKernel[64];
 };
 
 struct PS_In

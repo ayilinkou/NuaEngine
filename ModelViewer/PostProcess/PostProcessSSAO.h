@@ -11,7 +11,7 @@ namespace PostProcessData
 	{
 		float Radius;
 		DirectX::XMFLOAT3 Padding;
-		DirectX::XMFLOAT3 SampleKernel[64];
+		DirectX::XMFLOAT4 SampleKernel[64];
 	};
 }
 
@@ -23,7 +23,7 @@ public:
 
 	virtual void RenderControls() override;
 	
-	static void GenerateSamplePoints(DirectX::XMFLOAT3* SampleKernelDest);
+	static void GenerateSamplePoints(DirectX::XMFLOAT4* SampleKernelDest);
 
 private:
 	void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV,

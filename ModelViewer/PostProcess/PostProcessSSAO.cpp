@@ -29,7 +29,7 @@ void PostProcessSSAO::RenderControls()
 	IPostProcess::RenderControls();
 }
 
-void PostProcessSSAO::GenerateSamplePoints(DirectX::XMFLOAT3* SampleKernelDest)
+void PostProcessSSAO::GenerateSamplePoints(DirectX::XMFLOAT4* SampleKernelDest)
 {
 	std::uniform_real_distribution<float> FloatDist(0.f, 1.f);
 	std::default_random_engine Generator;
@@ -43,12 +43,12 @@ void PostProcessSSAO::GenerateSamplePoints(DirectX::XMFLOAT3* SampleKernelDest)
 			0.f
 		);
 
-		v = DirectX::XMVector4Normalize(v);
+		v = DirectX::XMVector3Normalize(v);
 
 		// cluster samples towards pixel origin
 		float Scale = float(i) / 64.f;
 		Scale = std::lerp(0.1f, 1.f, Scale * Scale);
-		DirectX::XMStoreFloat3(&SampleKernelDest[i], DirectX::XMVectorScale(v, Scale));
+		DirectX::XMStoreFloat4(&SampleKernelDest[i], DirectX::XMVectorScale(v, Scale));
 	}
 }
 
