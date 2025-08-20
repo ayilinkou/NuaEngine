@@ -29,11 +29,13 @@ void Node::ProcessNode(aiNode* ModelNode, const aiScene* Scene, const DirectX::X
 		{
 			m_pModel->GetOpaqueMeshes().emplace_back(std::make_unique<Mesh>(m_pModel, this));
 			m_pModel->GetOpaqueMeshes().back()->ProcessMesh(SceneMesh);
+			m_pModel->GetMeshes().push_back(m_pModel->GetOpaqueMeshes().back().get());
 		}
 		else
 		{
 			m_pModel->GetTransparentMeshes().emplace_back(std::make_unique<Mesh>(m_pModel, this));
 			m_pModel->GetTransparentMeshes().back()->ProcessMesh(SceneMesh);
+			m_pModel->GetMeshes().push_back(m_pModel->GetTransparentMeshes().back().get());
 		}
 	}
 

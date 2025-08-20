@@ -14,6 +14,8 @@
 #include "Camera.h"
 #include "Profiler.h"
 #include "AABB.h"
+#include "ModelData.h"
+#include "Mesh.h"
 
 bool FrustumCuller::ms_bStaticsInitialised = false;
 Microsoft::WRL::ComPtr<ID3D11Buffer> FrustumCuller::ms_DummyArgsBuffer;
@@ -73,9 +75,24 @@ std::array<UINT, 2> FrustumCuller::GetInstanceCounts()
 	return InstanceCounts;
 }
 
+void FrustumCuller::DispatchShaderNew(ModelData* pModel)
+{
+	ClearInstanceCount(pModel->GetInstanceCountUAV());
+
+	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
+	UINT SentInstanceCount = (UINT)pModel->GetTransforms().size();
+	UINT ThreadGroupCount[3] = { (UINT(pModel->GetTransforms().size()) + 31) / 32u, 1u, 1u};
+
+	pModel->UpdateBuffers();
+	UpdateCBuffer(pModel->GetBoundingBox(), ThreadGroupCount, SentInstanceCount);
+	DispatchShaderImplNew(pModel, ThreadGroupCount);
+	StoreInstanceCount(pModel);
+	SendInstanceCountsNew(pModel);
+}
+
 void FrustumCuller::DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox)
 {
-	ClearInstanceCount();
+	ClearInstanceCount(m_InstanceCountBufferUAV);
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_CullingShader, nullptr, 0u);
 
 	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
@@ -87,7 +104,7 @@ void FrustumCuller::DispatchShader(const std::vector<CullTransformData>& Transfo
 
 void FrustumCuller::DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox)
 {
-	ClearInstanceCount();
+	ClearInstanceCount(m_InstanceCountBufferUAV);
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_OffsetsCullingShader, nullptr, 0u);
 
 	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
@@ -103,7 +120,7 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const A
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	const UINT InitialCount = 0u;
 
-	ClearInstanceCount();
+	ClearInstanceCount(m_InstanceCountBufferUAV);
 	DeviceContext->CSSetShader(m_GrassCullingShader, nullptr, 0u);
 
 	const UINT ThreadsX = 32u;
@@ -130,10 +147,10 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const A
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
 }
 
-void FrustumCuller::ClearInstanceCount()
+void FrustumCuller::ClearInstanceCount(const Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> InstanceCountUAV)
 {
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_InstanceCountClearShader, nullptr, 0u);
-	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
+	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetUnorderedAccessViews(4u, 1u, InstanceCountUAV.GetAddressOf(), nullptr);
 	Graphics::GetSingletonPtr()->GetDeviceContext()->Dispatch(1u, 1u, 1u);
 	m_Profiler->AddComputeDispatch();
 	m_bGotInstanceCount = false;
@@ -143,10 +160,9 @@ void FrustumCuller::SendInstanceCounts(Microsoft::WRL::ComPtr<ID3D11UnorderedAcc
 {
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	
-	ID3D11UnorderedAccessView* UAVs[] = { FirstArgsBufferUAV.Get(), SecondArgsBufferUAV.Get() };
+	ID3D11UnorderedAccessView* UAVs[] = { m_InstanceCountBufferUAV.Get(), FirstArgsBufferUAV.Get(), SecondArgsBufferUAV.Get() };
 	DeviceContext->CSSetShader(m_InstanceCountTransferShader, nullptr, 0u);
-	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
-	DeviceContext->CSSetUnorderedAccessViews(5u, 2u, UAVs, nullptr);
+	DeviceContext->CSSetUnorderedAccessViews(4u, 3u, UAVs, nullptr);
 
 	DeviceContext->Dispatch(1u, 1u, 1u);
 	m_Profiler->AddComputeDispatch();
@@ -403,4 +419,54 @@ void FrustumCuller::DispatchShaderImpl(UINT* ThreadGroupCount)
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);
 	DeviceContext->CSSetUnorderedAccessViews(0u, 8u, NullUAVs, nullptr);
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
+}
+
+void FrustumCuller::DispatchShaderImplNew(ModelData* Model, UINT* ThreadGroupCount)
+{
+	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
+	const UINT InitialCount = 0u;
+
+	DeviceContext->CSSetUnorderedAccessViews(0u, 1u, Model->GetCulledTransformsUAV().GetAddressOf(), &InitialCount);
+	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, Model->GetInstanceCountUAV().GetAddressOf(), nullptr);
+	DeviceContext->CSSetShaderResources(0u, 1u, Model->GetTransformsSRV().GetAddressOf());
+	DeviceContext->CSSetConstantBuffers(1u, 1u, m_CBuffer.GetAddressOf());
+
+	DeviceContext->CSSetShader(m_CullingShader, nullptr, 0u);
+	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
+	m_Profiler->AddComputeDispatch();
+
+	DeviceContext->CSSetUnorderedAccessViews(0u, 1u, NullUAVs, &InitialCount);
+}
+
+void FrustumCuller::StoreInstanceCount(ModelData* pModel)
+{
+	HRESULT hResult;
+	D3D11_MAPPED_SUBRESOURCE Data = {};
+	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
+
+	DeviceContext->CopyResource(m_StagingBuffer.Get(), pModel->GetInstanceCountBuffer().Get());
+
+	std::array<UINT, 2> InstanceCounts;
+	ASSERT_NOT_FAILED(DeviceContext->Map(m_StagingBuffer.Get(), 0u, D3D11_MAP_READ, 0u, &Data));
+	memcpy(InstanceCounts.data(), Data.pData, sizeof(UINT) * 2);
+	DeviceContext->Unmap(m_StagingBuffer.Get(), 0u);
+
+	pModel->SetInstanceCount(InstanceCounts[0]);
+}
+
+void FrustumCuller::SendInstanceCountsNew(ModelData* pModel)
+{
+	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
+	DeviceContext->CSSetShader(m_InstanceCountTransferShader, nullptr, 0u);
+
+	for (Mesh* m : pModel->GetMeshes())
+	{
+		ID3D11UnorderedAccessView* UAVs[] = { pModel->GetInstanceCountUAV().Get(), m->GetArgsBufferUAV().Get(), nullptr};
+		DeviceContext->CSSetUnorderedAccessViews(4u, 3u, UAVs, nullptr);
+
+		DeviceContext->Dispatch(1u, 1u, 1u);
+		m_Profiler->AddComputeDispatch();
+
+		DeviceContext->CSSetUnorderedAccessViews(4u, 2u, NullUAVs, nullptr);
+	}
 }

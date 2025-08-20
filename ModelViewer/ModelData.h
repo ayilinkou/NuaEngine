@@ -36,10 +36,14 @@ public:
 	void Shutdown();
 	void Render();
 
+	void SetInstanceCount(UINT InstanceCount) { m_InstanceCount = InstanceCount; }
+	UINT GetInstanceCount() const { return m_InstanceCount; }
+
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer() const { return m_IndexBuffer; }
 	std::vector<Vertex>& GetVertices() { return m_Vertices; }
 	std::vector<UINT>& GetIndices() { return m_Indices; }
+	std::vector<Mesh*>& GetMeshes() { return m_Meshes; }
 	std::vector<std::unique_ptr<Mesh>>& GetOpaqueMeshes() { return m_OpaqueMeshes; }
 	std::vector<std::unique_ptr<Mesh>>& GetTransparentMeshes() { return m_TransparentMeshes; }
 	std::vector<std::shared_ptr<Material>>& GetMaterials() { return m_Materials; }
@@ -49,9 +53,16 @@ public:
 
 	std::vector<CullTransformData>& GetTransforms() { return m_Transforms; }
 	AABB& GetBoundingBox() { return m_BoundingBox; }
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GetTransformsSRV() { return m_TransformsSRV; };
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GetCulledTransformsSRV() { return m_CulledTransformsSRV; };
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>& GetCulledTransformsUAV() { return m_CulledTransformsUAV; };
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>& GetInstanceCountUAV() { return m_InstanceCountUAV; };
+	Microsoft::WRL::ComPtr<ID3D11Buffer>& GetInstanceCountBuffer() { return m_InstanceCountBuffer; };
 
 	std::string GetModelPath() const { return m_ModelPath; }
 	std::string GetTexturesPath() const { return m_TexturesPath; }
+
+	void UpdateBuffers();
 
 private:
 	void ShutdownBuffers();
@@ -61,6 +72,7 @@ private:
 	void Reset();
 
 	bool CreateBuffers();
+	bool CreateViews();
 	void LoadMaterials(const aiScene* Scene);
 
 	void RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes);
@@ -70,6 +82,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
 	std::vector<Vertex> m_Vertices;
 	std::vector<UINT> m_Indices;
+	std::vector<Mesh*> m_Meshes;
 	std::vector<std::unique_ptr<Mesh>> m_OpaqueMeshes;
 	std::vector<std::unique_ptr<Mesh>> m_TransparentMeshes;
 	std::unique_ptr<Node> m_RootNode;
@@ -78,8 +91,17 @@ private:
 	std::unordered_map<std::string, UINT> m_TextureIndexMap;
 	std::unordered_set<std::string> m_TexturePathsSet;
 
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_TransformsBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledTransformsBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_InstanceCountBuffer;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_TransformsSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledTransformsSRV;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledTransformsUAV;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_InstanceCountUAV;
+
 	std::vector<CullTransformData> m_Transforms;
 	AABB m_BoundingBox;
+	UINT m_InstanceCount;
 	
 	std::string m_ModelPath;
 	std::string m_TexturesPath;

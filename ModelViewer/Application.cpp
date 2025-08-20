@@ -300,12 +300,6 @@ bool Application::RenderScene()
 
 void Application::RenderModels()
 {	
-	DirectX::XMMATRIX View, Proj, ViewProj;
-	const std::shared_ptr<Camera>& ActiveCamera = m_CameraManager->GetActiveCamera();
-	ActiveCamera->GetViewMatrix(View);
-	Proj = m_CameraManager->GetCurrJitteredProjMatrix();
-	ViewProj = View * Proj;
-
 	std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
 
 	for (const auto& ModelPair : Models)
@@ -329,9 +323,9 @@ void Application::RenderModels()
 			continue;
 		
 		// AABB frustum culling on transforms
-		m_FrustumCuller->DispatchShader(pModelData->GetTransforms(), pModelData->GetBoundingBox());
+		m_FrustumCuller->DispatchShaderNew(pModelData);
 		
-		UINT InstanceCount = m_FrustumCuller->GetInstanceCounts()[0];
+		UINT InstanceCount = pModelData->GetInstanceCount();
 		if (InstanceCount == 0)
 			continue;
 		

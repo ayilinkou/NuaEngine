@@ -12,6 +12,7 @@
 #include "wrl.h"
 
 class Profiler;
+class ModelData;
 struct AABB;
 struct CullTransformData;
 
@@ -52,12 +53,14 @@ public:
 	bool Init(std::shared_ptr<Profiler> pProfiler);
 	void Shutdown();
 
+	void DispatchShaderNew(ModelData* Model);
 	void DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox);
 	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox);
 	void CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const AABB& BBox, const UINT GrassPerChunk, const UINT VisibleChunkCount,
 		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap);
-	void ClearInstanceCount();
+	void ClearInstanceCount(const Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> InstanceCountUAV);
 	void SendInstanceCounts(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> FirstArgsBufferUAV, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> SecondArgsBufferUAV = ms_DummyArgsBufferUAV);
+
 	std::array<UINT, 2> GetInstanceCounts();
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetCulledTransformsBuffer() const { return m_CulledTransformsBuffer; }
@@ -76,10 +79,14 @@ private:
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
 	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& Corners, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
-	void UpdateCBuffer(const AABB& BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk,
-		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold = 0.f);
+	void UpdateCBuffer(const AABB& BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk = 0u,
+		UINT PlaneDimension = 0u, float HeightDisplacement = 0.f, float LODDistanceThreshold = 0.f);
 
 	void DispatchShaderImpl(UINT* ThreadGroupCount);
+	void DispatchShaderImplNew(ModelData* Model, UINT* ThreadGroupCount);
+
+	void StoreInstanceCount(ModelData* pModel);
+	void SendInstanceCountsNew(ModelData* pModel);
 
 private:
 	ID3D11ComputeShader* m_CullingShader					= nullptr;
