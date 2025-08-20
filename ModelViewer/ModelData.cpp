@@ -72,6 +72,18 @@ void ModelData::Render()
 	DeviceContext->VSSetShaderResources(0u, 1u, NullSRVs);
 }
 
+std::shared_ptr<CullData> ModelData::GetCullData()
+{
+	auto Data = std::make_shared<CullData>();
+	Data->ArgsBufferUAVs = &m_ArgsBufferUAVs;
+	Data->CulledTransformsUAV = m_CulledTransformsUAV.Get();
+	Data->TransformsSRV = m_TransformsSRV.Get();
+	Data->BBox = &m_BoundingBox;
+	Data->SentInstanceCount = (UINT)m_Transforms.size();
+	Data->OutInstanceCount = &m_InstanceCount;
+	return Data;
+}
+
 void ModelData::ShutdownBuffers()
 {
 	m_VertexBuffer.Reset();
@@ -182,13 +194,6 @@ bool ModelData::CreateBuffers()
 	HFALSE_IF_FAILED(Device->CreateBuffer(&Desc, nullptr, &m_CulledTransformsBuffer));
 	NAME_D3D_RESOURCE(m_CulledTransformsBuffer, (m_ModelPath + " culled transforms buffer").c_str());
 
-	Desc.ByteWidth = sizeof(UINT) * 2;
-	Desc.StructureByteStride = sizeof(UINT);
-	Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-
-	HFALSE_IF_FAILED(Device->CreateBuffer(&Desc, nullptr, &m_InstanceCountBuffer));
-	NAME_D3D_RESOURCE(m_InstanceCountBuffer, (m_ModelPath + " instance count buffer").c_str());
-
 	return true;
 }
 
@@ -216,14 +221,6 @@ bool ModelData::CreateViews()
 
 	HFALSE_IF_FAILED(Device->CreateShaderResourceView(m_CulledTransformsBuffer.Get(), &SRVDesc, &m_CulledTransformsSRV));
 	NAME_D3D_RESOURCE(m_CulledTransformsSRV, (m_ModelPath + " culled transforms buffer SRV").c_str());
-
-	uavDesc = {};
-	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-	uavDesc.Buffer.NumElements = 2;
-
-	HFALSE_IF_FAILED(Device->CreateUnorderedAccessView(m_InstanceCountBuffer.Get(), &uavDesc, &m_InstanceCountUAV));
-	NAME_D3D_RESOURCE(m_InstanceCountUAV, (m_ModelPath + " instance count buffer UAV").c_str());
 
 	return true;
 }

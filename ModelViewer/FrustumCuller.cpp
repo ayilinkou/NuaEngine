@@ -14,8 +14,6 @@
 #include "Camera.h"
 #include "Profiler.h"
 #include "AABB.h"
-#include "ModelData.h"
-#include "Mesh.h"
 
 bool FrustumCuller::ms_bStaticsInitialised = false;
 Microsoft::WRL::ComPtr<ID3D11Buffer> FrustumCuller::ms_DummyArgsBuffer;
@@ -75,24 +73,22 @@ std::array<UINT, 2> FrustumCuller::GetInstanceCounts()
 	return InstanceCounts;
 }
 
-void FrustumCuller::DispatchShaderNew(ModelData* pModel)
+void FrustumCuller::DispatchShaderNew(const CullData& Data)
 {
-	ClearInstanceCount(pModel->GetInstanceCountUAV());
+	ClearInstanceCount();
 
 	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
-	UINT SentInstanceCount = (UINT)pModel->GetTransforms().size();
-	UINT ThreadGroupCount[3] = { (UINT(pModel->GetTransforms().size()) + 31) / 32u, 1u, 1u};
+	UINT ThreadGroupCount[3] = { Data.SentInstanceCount + 31u / 32u, 1u, 1u};
 
-	pModel->UpdateBuffers();
-	UpdateCBuffer(pModel->GetBoundingBox(), ThreadGroupCount, SentInstanceCount);
-	DispatchShaderImplNew(pModel, ThreadGroupCount);
-	StoreInstanceCount(pModel);
-	SendInstanceCountsNew(pModel);
+	UpdateCBuffer(*Data.BBox, ThreadGroupCount, Data.SentInstanceCount);
+	DispatchShaderImplNew(Data.TransformsSRV, Data.CulledTransformsUAV, ThreadGroupCount);
+	StoreInstanceCount(*Data.OutInstanceCount);
+	SendInstanceCountsNew(Data.ArgsBufferUAVs);
 }
 
 void FrustumCuller::DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox)
 {
-	ClearInstanceCount(m_InstanceCountBufferUAV);
+	ClearInstanceCount();
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_CullingShader, nullptr, 0u);
 
 	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
@@ -104,7 +100,7 @@ void FrustumCuller::DispatchShader(const std::vector<CullTransformData>& Transfo
 
 void FrustumCuller::DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox)
 {
-	ClearInstanceCount(m_InstanceCountBufferUAV);
+	ClearInstanceCount();
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_OffsetsCullingShader, nullptr, 0u);
 
 	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
@@ -120,7 +116,7 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const A
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	const UINT InitialCount = 0u;
 
-	ClearInstanceCount(m_InstanceCountBufferUAV);
+	ClearInstanceCount();
 	DeviceContext->CSSetShader(m_GrassCullingShader, nullptr, 0u);
 
 	const UINT ThreadsX = 32u;
@@ -147,10 +143,10 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const A
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
 }
 
-void FrustumCuller::ClearInstanceCount(const Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> InstanceCountUAV)
+void FrustumCuller::ClearInstanceCount()
 {
 	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_InstanceCountClearShader, nullptr, 0u);
-	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetUnorderedAccessViews(4u, 1u, InstanceCountUAV.GetAddressOf(), nullptr);
+	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
 	Graphics::GetSingletonPtr()->GetDeviceContext()->Dispatch(1u, 1u, 1u);
 	m_Profiler->AddComputeDispatch();
 	m_bGotInstanceCount = false;
@@ -421,14 +417,15 @@ void FrustumCuller::DispatchShaderImpl(UINT* ThreadGroupCount)
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
 }
 
-void FrustumCuller::DispatchShaderImplNew(ModelData* Model, UINT* ThreadGroupCount)
+void FrustumCuller::DispatchShaderImplNew(ID3D11ShaderResourceView* TransformsSRV, ID3D11UnorderedAccessView* CulledTransformsUAV,
+	UINT* ThreadGroupCount)
 {
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	const UINT InitialCount = 0u;
 
-	DeviceContext->CSSetUnorderedAccessViews(0u, 1u, Model->GetCulledTransformsUAV().GetAddressOf(), &InitialCount);
-	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, Model->GetInstanceCountUAV().GetAddressOf(), nullptr);
-	DeviceContext->CSSetShaderResources(0u, 1u, Model->GetTransformsSRV().GetAddressOf());
+	DeviceContext->CSSetUnorderedAccessViews(0u, 1u, &CulledTransformsUAV, &InitialCount);
+	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
+	DeviceContext->CSSetShaderResources(0u, 1u, &TransformsSRV);
 	DeviceContext->CSSetConstantBuffers(1u, 1u, m_CBuffer.GetAddressOf());
 
 	DeviceContext->CSSetShader(m_CullingShader, nullptr, 0u);
@@ -438,30 +435,30 @@ void FrustumCuller::DispatchShaderImplNew(ModelData* Model, UINT* ThreadGroupCou
 	DeviceContext->CSSetUnorderedAccessViews(0u, 1u, NullUAVs, &InitialCount);
 }
 
-void FrustumCuller::StoreInstanceCount(ModelData* pModel)
+void FrustumCuller::StoreInstanceCount(UINT& OutInstanceCount)
 {
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE Data = {};
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 
-	DeviceContext->CopyResource(m_StagingBuffer.Get(), pModel->GetInstanceCountBuffer().Get());
+	DeviceContext->CopyResource(m_StagingBuffer.Get(), m_InstanceCountBuffer.Get());
 
 	std::array<UINT, 2> InstanceCounts;
 	ASSERT_NOT_FAILED(DeviceContext->Map(m_StagingBuffer.Get(), 0u, D3D11_MAP_READ, 0u, &Data));
 	memcpy(InstanceCounts.data(), Data.pData, sizeof(UINT) * 2);
 	DeviceContext->Unmap(m_StagingBuffer.Get(), 0u);
 
-	pModel->SetInstanceCount(InstanceCounts[0]);
+	OutInstanceCount = InstanceCounts[0];
 }
 
-void FrustumCuller::SendInstanceCountsNew(ModelData* pModel)
+void FrustumCuller::SendInstanceCountsNew(const std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs)
 {
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	DeviceContext->CSSetShader(m_InstanceCountTransferShader, nullptr, 0u);
 
-	for (Mesh* m : pModel->GetMeshes())
+	for (auto ArgsBuffer : *ArgsBufferUAVs)
 	{
-		ID3D11UnorderedAccessView* UAVs[] = { pModel->GetInstanceCountUAV().Get(), m->GetArgsBufferUAV().Get(), nullptr};
+		ID3D11UnorderedAccessView* UAVs[] = { m_InstanceCountBufferUAV.Get(), ArgsBuffer, nullptr};
 		DeviceContext->CSSetUnorderedAccessViews(4u, 3u, UAVs, nullptr);
 
 		DeviceContext->Dispatch(1u, 1u, 1u);

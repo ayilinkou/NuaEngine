@@ -84,6 +84,7 @@ bool Mesh::CreateArgsBuffer()
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateUnorderedAccessView(m_ArgsBuffer.Get(), &uavDesc, &m_ArgsBufferUAV));
 	NAME_D3D_RESOURCE(m_ArgsBufferUAV, (m_pModel->GetModelPath() + " " + m_Name + " args buffer UAV").c_str());
 	
+	m_pModel->GetArgsBufferUAVs().push_back(m_ArgsBufferUAV.Get());
 	return true;
 }
 

@@ -22,6 +22,7 @@ class Node;
 class FrustumCuller;
 class Profiler;
 struct aiScene;
+struct CullData;
 
 class ModelData
 {
@@ -36,7 +37,7 @@ public:
 	void Shutdown();
 	void Render();
 
-	void SetInstanceCount(UINT InstanceCount) { m_InstanceCount = InstanceCount; }
+	std::shared_ptr<CullData> GetCullData();
 	UINT GetInstanceCount() const { return m_InstanceCount; }
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
@@ -48,6 +49,7 @@ public:
 	std::vector<std::unique_ptr<Mesh>>& GetTransparentMeshes() { return m_TransparentMeshes; }
 	std::vector<std::shared_ptr<Material>>& GetMaterials() { return m_Materials; }
 	std::vector<ID3D11ShaderResourceView*>& GetTextures() { return m_Textures; }
+	std::vector<ID3D11UnorderedAccessView*>& GetArgsBufferUAVs() { return m_ArgsBufferUAVs; }
 	std::unordered_map<std::string, UINT>& GetTextureIndexMap() { return m_TextureIndexMap; }
 	std::unordered_set<std::string>& GetTexturePathsSet() { return m_TexturePathsSet; }
 
@@ -56,8 +58,6 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GetTransformsSRV() { return m_TransformsSRV; };
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GetCulledTransformsSRV() { return m_CulledTransformsSRV; };
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>& GetCulledTransformsUAV() { return m_CulledTransformsUAV; };
-	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>& GetInstanceCountUAV() { return m_InstanceCountUAV; };
-	Microsoft::WRL::ComPtr<ID3D11Buffer>& GetInstanceCountBuffer() { return m_InstanceCountBuffer; };
 
 	std::string GetModelPath() const { return m_ModelPath; }
 	std::string GetTexturesPath() const { return m_TexturesPath; }
@@ -90,14 +90,13 @@ private:
 	std::vector<ID3D11ShaderResourceView*> m_Textures;
 	std::unordered_map<std::string, UINT> m_TextureIndexMap;
 	std::unordered_set<std::string> m_TexturePathsSet;
+	std::vector<ID3D11UnorderedAccessView*> m_ArgsBufferUAVs;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_TransformsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledTransformsBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_InstanceCountBuffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_TransformsSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledTransformsSRV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledTransformsUAV;
-	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_InstanceCountUAV;
 
 	std::vector<CullTransformData> m_Transforms;
 	AABB m_BoundingBox;
