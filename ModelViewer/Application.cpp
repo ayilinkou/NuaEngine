@@ -325,8 +325,7 @@ void Application::RenderModels()
 		pModelData->UpdateBuffers();
 
 		// AABB frustum culling on transforms
-		m_FrustumCuller->DispatchShaderNew(*pModelData->GetCullData().get());
-		// TODO: remove instance count buffers and views from model data
+		m_FrustumCuller->DispatchShaderNew(pModelData->GetCullData());
 		
 		UINT InstanceCount = pModelData->GetInstanceCount();
 		if (InstanceCount == 0)

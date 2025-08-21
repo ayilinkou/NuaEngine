@@ -21,8 +21,8 @@ class Material;
 class Node;
 class FrustumCuller;
 class Profiler;
+class CullData;
 struct aiScene;
-struct CullData;
 
 class ModelData
 {
@@ -37,7 +37,7 @@ public:
 	void Shutdown();
 	void Render();
 
-	std::shared_ptr<CullData> GetCullData();
+	CullData* GetCullData() { return m_CullData.get(); }
 	UINT GetInstanceCount() const { return m_InstanceCount; }
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
@@ -55,9 +55,6 @@ public:
 
 	std::vector<CullTransformData>& GetTransforms() { return m_Transforms; }
 	AABB& GetBoundingBox() { return m_BoundingBox; }
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GetTransformsSRV() { return m_TransformsSRV; };
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GetCulledTransformsSRV() { return m_CulledTransformsSRV; };
-	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>& GetCulledTransformsUAV() { return m_CulledTransformsUAV; };
 
 	std::string GetModelPath() const { return m_ModelPath; }
 	std::string GetTexturesPath() const { return m_TexturesPath; }
@@ -72,7 +69,6 @@ private:
 	void Reset();
 
 	bool CreateBuffers();
-	bool CreateViews();
 	void LoadMaterials(const aiScene* Scene);
 
 	void RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes);
@@ -90,13 +86,10 @@ private:
 	std::vector<ID3D11ShaderResourceView*> m_Textures;
 	std::unordered_map<std::string, UINT> m_TextureIndexMap;
 	std::unordered_set<std::string> m_TexturePathsSet;
-	std::vector<ID3D11UnorderedAccessView*> m_ArgsBufferUAVs;
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_TransformsBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledTransformsBuffer;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_TransformsSRV;
+	std::unique_ptr<CullData> m_CullData;
+	std::vector<ID3D11UnorderedAccessView*> m_ArgsBufferUAVs;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledTransformsSRV;
-	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledTransformsUAV;
 
 	std::vector<CullTransformData> m_Transforms;
 	AABB m_BoundingBox;

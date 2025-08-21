@@ -12,20 +12,9 @@
 #include "wrl.h"
 
 class Profiler;
+class CullData;
 struct AABB;
 struct CullTransformData;
-
-struct CullData
-{
-	CullData() {}
-
-	ID3D11ShaderResourceView* TransformsSRV;
-	ID3D11UnorderedAccessView* CulledTransformsUAV;
-	UINT SentInstanceCount;
-	UINT* OutInstanceCount;
-	AABB* BBox;
-	std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs;
-};
 
 class FrustumCuller
 {
@@ -64,7 +53,7 @@ public:
 	bool Init(std::shared_ptr<Profiler> pProfiler);
 	void Shutdown();
 
-	void DispatchShaderNew(const CullData& Data);
+	void DispatchShaderNew(CullData* Data);
 	void DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox);
 	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox);
 	void CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const AABB& BBox, const UINT GrassPerChunk, const UINT VisibleChunkCount,
@@ -98,7 +87,7 @@ private:
 		UINT* ThreadGroupCount);
 
 	void StoreInstanceCount(UINT& OutInstanceCount);
-	void SendInstanceCountsNew(const std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs);
+	void SendInstanceCountsNew(const std::vector<ID3D11UnorderedAccessView*>& ArgsBufferUAVs);
 
 private:
 	ID3D11ComputeShader* m_CullingShader					= nullptr;

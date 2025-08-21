@@ -14,6 +14,7 @@
 #include "Camera.h"
 #include "Profiler.h"
 #include "AABB.h"
+#include "CullData.h"
 
 bool FrustumCuller::ms_bStaticsInitialised = false;
 Microsoft::WRL::ComPtr<ID3D11Buffer> FrustumCuller::ms_DummyArgsBuffer;
@@ -73,17 +74,17 @@ std::array<UINT, 2> FrustumCuller::GetInstanceCounts()
 	return InstanceCounts;
 }
 
-void FrustumCuller::DispatchShaderNew(const CullData& Data)
+void FrustumCuller::DispatchShaderNew(CullData* Data)
 {
 	ClearInstanceCount();
 
 	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
-	UINT ThreadGroupCount[3] = { Data.SentInstanceCount + 31u / 32u, 1u, 1u};
+	UINT ThreadGroupCount[3] = { Data->GetSentInstanceCount() + 31u / 32u, 1u, 1u};
 
-	UpdateCBuffer(*Data.BBox, ThreadGroupCount, Data.SentInstanceCount);
-	DispatchShaderImplNew(Data.TransformsSRV, Data.CulledTransformsUAV, ThreadGroupCount);
-	StoreInstanceCount(*Data.OutInstanceCount);
-	SendInstanceCountsNew(Data.ArgsBufferUAVs);
+	UpdateCBuffer(Data->GetBoundingBox(), ThreadGroupCount, Data->GetSentInstanceCount());
+	DispatchShaderImplNew(Data->GetTransformsSRV(), Data->GetCulledTransformsUAV(), ThreadGroupCount);
+	StoreInstanceCount(Data->GetOutInstanceCount());
+	SendInstanceCountsNew(Data->GetArgsBufferUAVs());
 }
 
 void FrustumCuller::DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox)
@@ -451,12 +452,12 @@ void FrustumCuller::StoreInstanceCount(UINT& OutInstanceCount)
 	OutInstanceCount = InstanceCounts[0];
 }
 
-void FrustumCuller::SendInstanceCountsNew(const std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs)
+void FrustumCuller::SendInstanceCountsNew(const std::vector<ID3D11UnorderedAccessView*>& ArgsBufferUAVs)
 {
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	DeviceContext->CSSetShader(m_InstanceCountTransferShader, nullptr, 0u);
 
-	for (auto ArgsBuffer : *ArgsBufferUAVs)
+	for (auto ArgsBuffer : ArgsBufferUAVs)
 	{
 		ID3D11UnorderedAccessView* UAVs[] = { m_InstanceCountBufferUAV.Get(), ArgsBuffer, nullptr};
 		DeviceContext->CSSetUnorderedAccessViews(4u, 3u, UAVs, nullptr);
