@@ -78,10 +78,11 @@ PS_Out main(PS_In p)
 	
     float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
-    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
-    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
+    const float3 Ambient = Color.rgb * 0.2f;
+    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 0.2f);
+    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 0.2f);
 		
-    o.Color = float4(LightTotal.rgb, 1.f);
+    o.Color = float4(LightTotal.rgb + Ambient, 1.f);
     o.Normal = float4(p.ViewNormal, 0.f);
     o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
     return o;

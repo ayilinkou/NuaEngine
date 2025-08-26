@@ -221,40 +221,93 @@ bool IsInRange(float2 xy, float Min, float Max)
     return xy.x >= Min && xy.x <= Max && xy.y >= Min && xy.y <= Max;
 }
 
-float4 CalcDirectionalLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam)
+float4 _CalcDirectionalLight(const in DirectionalLight DirLight, float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+
+	float DiffuseFactor = saturate(dot(-DirLight.LightDir, WorldNormal));
+    float4 Diffuse = float4(DirLight.LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
+    LightTotal += Diffuse;
+
+    float3 HalfwayVec = normalize(PixelToCam - DirLight.LightDir);
+    float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), DirLight.SpecularPower);
+    float4 Specular = float4(DirLight.LightColor, 1.f) * SpecularFactor * Reflectance;
+    LightTotal += Specular;
+	
+    return LightTotal;
+}
+
+float4 CalcDirectionalLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
 {
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	for (int i = 0; i < GlobalBuffer.Lights.DirectionalLightCount; i++)
     {
-        float DiffuseFactor = saturate(dot(-GlobalBuffer.Lights.DirLights[i].LightDir, WorldNormal));
-        float4 Diffuse = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
-        LightTotal += Diffuse;
-
-        float3 HalfwayVec = normalize(PixelToCam - GlobalBuffer.Lights.DirLights[i].LightDir);
-        float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), GlobalBuffer.Lights.DirLights[i].SpecularPower);
-        float4 Specular = float4(GlobalBuffer.Lights.DirLights[i].LightColor, 1.f) * SpecularFactor;
-        LightTotal += Specular;
+        LightTotal += _CalcDirectionalLight(GlobalBuffer.Lights.DirLights[i], PixelColor, WorldPos, WorldNormal, PixelToCam, Reflectance);
     }
     return LightTotal;
 }
 
-float4 CalcPointLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam)
+// this is used to fake subsurface scattering by flipping the world normal to make the surface appear lit from both sides
+float4 CalcDirectionalLightsSSS(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
+{
+	float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+    for (int i = 0; i < GlobalBuffer.Lights.DirectionalLightCount; i++)
+    {
+        float3 AdjustedNormal = WorldNormal;
+        if (dot(-GlobalBuffer.Lights.DirLights[i].LightDir, AdjustedNormal) < 0.f)
+        {
+            AdjustedNormal = -WorldNormal;
+        }
+		
+		LightTotal += _CalcDirectionalLight(GlobalBuffer.Lights.DirLights[i], PixelColor, WorldPos, AdjustedNormal, PixelToCam, Reflectance);
+    }
+    return LightTotal;
+}
+
+float4 _CalcPointLight(const in PointLight PLight, float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+
+    float Distance = distance(WorldPos, PLight.LightPos);
+    float Attenuation = saturate(1.f - (Distance * Distance) / (PLight.Radius * PLight.Radius)); // less control than constant, linear and quadratic, but guaranteed to reach 0 past max radius
+	
+    float3 PixelToLight = normalize(PLight.LightPos - WorldPos);
+    float DiffuseFactor = saturate(dot(PixelToLight, WorldNormal));
+    float4 Diffuse = float4(PLight.LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
+    LightTotal += Diffuse * Attenuation;
+		
+    float3 HalfwayVec = normalize(PixelToCam + PixelToLight);
+    float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), PLight.SpecularPower);
+    float4 Specular = float4(PLight.LightColor, 1.f) * SpecularFactor * Reflectance;
+    LightTotal += Specular * Attenuation;
+	
+    return LightTotal;
+}
+
+float4 CalcPointLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
 {
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	for (int i = 0; i < GlobalBuffer.Lights.PointLightCount; i++)
     {
-        float Distance = distance(WorldPos, GlobalBuffer.Lights.PointLights[i].LightPos);
-        float Attenuation = saturate(1.f - (Distance * Distance) / (GlobalBuffer.Lights.PointLights[i].Radius * GlobalBuffer.Lights.PointLights[i].Radius)); // less control than constant, linear and quadratic, but guaranteed to reach 0 past max radius
-	
+        LightTotal += _CalcPointLight(GlobalBuffer.Lights.PointLights[i], PixelColor, WorldPos, WorldNormal, PixelToCam, Reflectance);
+    }
+    return LightTotal;
+}
+
+// this is used to fake subsurface scattering by flipping the world normal to make the surface appear lit from both sides
+float4 CalcPointLightsSSS(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+    for (int i = 0; i < GlobalBuffer.Lights.PointLightCount; i++)
+    {
+        float3 AdjustedNormal = WorldNormal;
         float3 PixelToLight = normalize(GlobalBuffer.Lights.PointLights[i].LightPos - WorldPos);
-        float DiffuseFactor = saturate(dot(PixelToLight, WorldNormal));
-        float4 Diffuse = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
-        LightTotal += Diffuse * Attenuation;
+        if (dot(PixelToLight, AdjustedNormal) < 0.f)
+        {
+            AdjustedNormal = -WorldNormal;
+        }
 		
-        float3 HalfwayVec = normalize(PixelToCam + PixelToLight);
-        float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), GlobalBuffer.Lights.PointLights[i].SpecularPower);
-        float4 Specular = float4(GlobalBuffer.Lights.PointLights[i].LightColor, 1.f) * SpecularFactor;
-        LightTotal += Specular * Attenuation;
+		LightTotal += _CalcPointLight(GlobalBuffer.Lights.PointLights[i], PixelColor, WorldPos, AdjustedNormal, PixelToCam, Reflectance);
     }
     return LightTotal;
 }

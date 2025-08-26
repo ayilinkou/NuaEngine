@@ -61,8 +61,8 @@ PS_Out main(PS_In p)
 	if (dot(GlobalBuffer.Camera.ActiveCameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
 		p.WorldNormal = -p.WorldNormal;
 	
-    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
-    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
+    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
+    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
 	
 	o.Color = Ambient + LightTotal;
     o.Normal = float4(p.ViewNormal, 0.f);
@@ -95,8 +95,8 @@ float4 mainTransparent(PS_In p) : SV_TARGET
     if (dot(GlobalBuffer.Camera.ActiveCameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
         p.WorldNormal = -p.WorldNormal;
 	
-    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
-    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam);
+    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
+    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
 		
     return Ambient + LightTotal;
 }
