@@ -4,7 +4,7 @@
 Light::Light()
 {
 	m_DiffuseColor = { 1.f, 1.f, 1.f };
-	m_SpecularPower = 256.f;
+	m_SpecularPower = 1024.f;
 	m_bActive = true;
 
 	m_ComponentName = "Light";
@@ -25,7 +25,7 @@ void Light::RenderControls()
 	ImGui::Text(m_ComponentName.c_str());
 	ImGui::Checkbox("Active", &m_bActive);
 	ImGui::ColorEdit3("Diffuse Color", reinterpret_cast<float*>(&m_DiffuseColor));
-	ImGui::SliderFloat("Specular Power", &m_SpecularPower, 0.f, 256.f, "%.f");
+	ImGui::SliderFloat("Specular Power", &m_SpecularPower, 0.f, 2048.f, "%.f");
 }
 
 void Light::SetDiffuseColor(float r, float g, float b)

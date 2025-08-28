@@ -288,12 +288,12 @@ bool Application::RenderScene()
 	ID3D11RenderTargetView* RTVs[3] = { m_Graphics->m_PostProcessRTVFirst.Get(), m_Graphics->GetNormalRTV().Get(), m_Graphics->GetVelocityRTV().Get() };
 	m_Graphics->GetDeviceContext()->OMSetRenderTargets(3u, RTVs, m_Graphics->GetDepthStencilView());
 
-	RenderModels();
-
 	if (m_Landscape.get() && m_Landscape->ShouldRender())
 	{
 		m_Landscape->Render();
 	}
+
+	RenderModels();
 	
 	return true;
 }
@@ -331,8 +331,20 @@ void Application::RenderModels()
 		if (InstanceCount == 0)
 			continue;
 		
-		pModelData->Render();
-		m_Profiler->AddInstancesRendered(pModelData->GetModelPath(), InstanceCount);
+		pModelData->RenderOpaque();
+	}
+
+	for (const auto& ModelPair : Models)
+	{
+		ModelData* pModelData = static_cast<ModelData*>(ModelPair.second->GetDataPtr());
+		if (!pModelData || pModelData->GetTransforms().empty())
+			continue;
+
+		UINT InstanceCount = pModelData->GetInstanceCount();
+		if (InstanceCount == 0)
+			continue;
+
+		pModelData->RenderTransparent();
 	}
 }
 

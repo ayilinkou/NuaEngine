@@ -45,8 +45,11 @@ void ModelData::Shutdown()
 	Reset();
 }
 
-void ModelData::Render()
+void ModelData::RenderOpaque()
 {
+	if (m_OpaqueMeshes.empty())
+		return;
+
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	UINT Strides[] = { sizeof(Vertex) };
 	UINT Offsets[] = { 0u, };
@@ -61,14 +64,32 @@ void ModelData::Render()
 	Graphics::GetSingletonPtr()->DisableBlending();
 	InstancedShader::ActivateShaderOpaque(DeviceContext);
 	RenderMeshes(m_OpaqueMeshes);
+	m_Profiler->AddInstancesRendered(m_ModelPath, m_InstanceCount);
 
-	if (!m_TransparentMeshes.empty())
-	{
-		Graphics::GetSingletonPtr()->DisableDepthWrite();
-		Graphics::GetSingletonPtr()->EnableBlending();
-		InstancedShader::ActivateShaderTransparent(DeviceContext);
-		RenderMeshes(m_TransparentMeshes);
-	}
+	ID3D11ShaderResourceView* NullSRVs[] = { nullptr };
+	DeviceContext->VSSetShaderResources(0u, 1u, NullSRVs);
+}
+
+void ModelData::RenderTransparent()
+{
+	if (m_TransparentMeshes.empty())
+		return;
+
+	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
+	UINT Strides[] = { sizeof(Vertex) };
+	UINT Offsets[] = { 0u, };
+
+	DeviceContext->IASetVertexBuffers(0u, 1u, m_VertexBuffer.GetAddressOf(), Strides, Offsets);
+	DeviceContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
+	DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	DeviceContext->VSSetShaderResources(0u, 1u, m_CulledTransformsSRV.GetAddressOf());
+
+	Graphics::GetSingletonPtr()->DisableDepthWrite();
+	Graphics::GetSingletonPtr()->EnableBlending();
+	InstancedShader::ActivateShaderTransparent(DeviceContext);
+	RenderMeshes(m_TransparentMeshes);
+	m_Profiler->AddInstancesRendered(m_ModelPath, m_InstanceCount);
 
 	ID3D11ShaderResourceView* NullSRVs[] = { nullptr };
 	DeviceContext->VSSetShaderResources(0u, 1u, NullSRVs);
