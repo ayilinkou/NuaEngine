@@ -18,7 +18,9 @@ void Node::ProcessNode(aiNode* ModelNode, const aiScene* Scene, const DirectX::X
 	
 	m_LocalTransform = ConvertToXMMATRIX(ModelNode->mTransformation);
 	m_AccumulatedTransform = AccumulatedTransform * m_LocalTransform;
-	CreateConstantBuffer();
+
+	if (ModelNode->mNumMeshes > 0)
+		CreateConstantBuffer();
 	
 	for (size_t i = 0; i < ModelNode->mNumMeshes; i++)
 	{

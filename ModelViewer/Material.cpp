@@ -18,10 +18,7 @@ void Material::LoadTextures(aiMaterial* MeshMat)
 	MeshMat->Get(AI_MATKEY_TWOSIDED, m_bTwoSided);
 	float Opacity = 0.f;
 	MeshMat->Get(AI_MATKEY_OPACITY, Opacity);
-	if (Opacity >= 1.f)
-	{
-		m_bOpaque = true;
-	}
+	m_bOpaque = Opacity >= 1.f;
 	
 	if (m_pOwner->GetTexturesPath().empty())
 	{
@@ -49,9 +46,7 @@ void Material::LoadTextures(aiMaterial* MeshMat)
 	}
 	else if (MeshMat->Get(AI_MATKEY_COLOR_SPECULAR, Color) == AI_SUCCESS)
 	{
-		m_Specular.x = Color.r;
-		m_Specular.y = Color.g;
-		m_Specular.z = Color.b;
+		m_Specular = Color.r;
 	}
 }
 

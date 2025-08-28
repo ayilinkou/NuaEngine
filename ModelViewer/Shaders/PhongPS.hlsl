@@ -8,8 +8,9 @@ struct MaterialData
 {
 	float3 DiffuseColor;
 	int DiffuseSRV;
-	float3 Specular;
+	float Specular;
 	int SpecularSRV;
+    float2 Padding;
 };
 
 cbuffer Material : register(b1)
@@ -48,8 +49,17 @@ PS_Out main(PS_In p)
 	{
 		Color = float4(Mat.DiffuseColor, 1.f);
 	}
-	
 	clip(Color.a < 0.1f ? -1.f : 1.f); // play around with this number
+	
+    float Reflectance;
+    if (Mat.SpecularSRV >= 0)
+    {
+        Reflectance = specularTexture.Sample(LinearSampler, p.TexCoord).r;
+    }
+    else
+    {
+        Reflectance = Mat.Specular;
+    }
 	
 	float BaseAlpha = Color.a;
 	float AmbientFactor = 0.5f;
@@ -58,11 +68,11 @@ PS_Out main(PS_In p)
 	float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
 	float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
-	if (dot(GlobalBuffer.Camera.ActiveCameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
+	if (dot(PixelToCam, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
 		p.WorldNormal = -p.WorldNormal;
 	
-    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
-    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
+    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance);
+    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance);
 	
 	o.Color = Ambient + LightTotal;
     o.Normal = float4(p.ViewNormal, 0.f);
@@ -82,8 +92,17 @@ float4 mainTransparent(PS_In p) : SV_TARGET
     {
         Color = float4(Mat.DiffuseColor, 1.f);
     }
-	
     clip(Color.a < 0.1f ? -1.f : 1.f); // play around with this number
+    
+    float Reflectance;
+    if (Mat.SpecularSRV >= 0)
+    {
+        Reflectance = specularTexture.Sample(LinearSampler, p.TexCoord).r;
+    }
+    else
+    {
+        Reflectance = Mat.Specular;
+    }
 	
     float BaseAlpha = Color.a;
     float AmbientFactor = 0.5f;
@@ -92,11 +111,12 @@ float4 mainTransparent(PS_In p) : SV_TARGET
     float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 	
-    if (dot(GlobalBuffer.Camera.ActiveCameraPos, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
+    if (dot(PixelToCam, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
         p.WorldNormal = -p.WorldNormal;
 	
-    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
-    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 1.f);
-		
-    return Ambient + LightTotal;
+    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance);
+    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance);
+	
+    //return Ambient + LightTotal;
+    return LightTotal;
 }
