@@ -3,7 +3,7 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-#include <vector>
+#include <unordered_map>
 #include <string>
 #include <utility>
 
@@ -15,8 +15,8 @@ typedef unsigned long long UINT64;
 
 struct RenderStats
 {
-	std::vector<std::pair<std::string, UINT64>> TrianglesRendered;
-	std::vector<std::pair<std::string, UINT64>> InstancesRendered;
+	std::unordered_map<std::string, UINT64> TrianglesRendered;
+	std::unordered_map<std::string, UINT64> InstancesRendered;
 	UINT64 DrawCalls = 0u;
 	UINT64 ComputeDispatches = 0u;
 	double PostProcessPipelineTime = 0.0;
@@ -32,8 +32,8 @@ public:
 	void Tick(double DeltaTime);
 
 	void SetPostProcessPipelineTime(double PostProcessPipelineTime) { m_RenderStats.PostProcessPipelineTime = PostProcessPipelineTime; }
-	void AddTrianglesRendered(const std::string& Name, UINT64 TriangleCount) { m_RenderStats.TrianglesRendered.push_back({ Name, TriangleCount }); }
-	void AddInstancesRendered(const std::string& Name, UINT64 InstanceCount) { m_RenderStats.InstancesRendered.push_back({ Name, InstanceCount }); }
+	void AddTrianglesRendered(const std::string& Name, UINT64 TriangleCount) { m_RenderStats.TrianglesRendered[Name] += TriangleCount; }
+	void AddInstancesRendered(const std::string& Name, UINT64 InstanceCount) { m_RenderStats.InstancesRendered[Name] += InstanceCount; }
 	void AddDrawCall() { m_RenderStats.DrawCalls++; }
 	void AddComputeDispatch() { m_RenderStats.ComputeDispatches++; }
 
