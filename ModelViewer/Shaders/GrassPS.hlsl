@@ -31,14 +31,6 @@ PS_Out main(PS_In p)
 {
     PS_Out o;
 	
-	/*if (p.LOD == 1u)
-	{
-		o.Color = float4(1.f, 0.f, 0.f, 1.f);
-        o.Normal = float4(p.ViewNormal, 0.f);
-        o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
-        return 0;
-    }*/
-	
     float3 Color = MidColor;
     float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);

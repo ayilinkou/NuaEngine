@@ -33,7 +33,6 @@ bool FrustumCuller::Init(std::shared_ptr<Profiler> pProfiler)
 	m_Profiler = pProfiler;
 
 	m_CullingShader							= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCull");
-	m_OffsetsCullingShader					= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullOffsets");
 	m_GrassCullingShader					= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullGrass");
 	m_InstanceCountClearShader				= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "ClearInstanceCount");
 	m_InstanceCountTransferShader			= ResourceManager::GetSingletonPtr()->LoadShader<ID3D11ComputeShader>(m_csFilename, "TransferInstanceCount");
@@ -49,7 +48,6 @@ bool FrustumCuller::Init(std::shared_ptr<Profiler> pProfiler)
 void FrustumCuller::Shutdown()
 {
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCull");
-	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullOffsets");
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "FrustumCullGrass");
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "ClearInstanceCount");
 	ResourceManager::GetSingletonPtr()->UnloadShader<ID3D11ComputeShader>(m_csFilename, "TransferInstanceCount");
@@ -83,7 +81,7 @@ void FrustumCuller::DispatchShaderNew(CullData* Data)
 
 	UpdateCBuffer(Data->GetBoundingBox(), ThreadGroupCount, Data->GetSentInstanceCount());
 	DispatchShaderImplNew(Data->GetTransformsSRV(), Data->GetCulledTransformsUAV(), ThreadGroupCount);
-	StoreInstanceCount(Data->GetOutInstanceCount());
+	StoreInstanceCounts(Data->GetOutInstanceCounts());
 	SendInstanceCountsNew(Data->GetArgsBufferUAVs());
 }
 
@@ -99,20 +97,9 @@ void FrustumCuller::DispatchShader(const std::vector<CullTransformData>& Transfo
 	DispatchShaderImpl(ThreadGroupCount);
 }
 
-void FrustumCuller::DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox)
-{
-	ClearInstanceCount();
-	Graphics::GetSingletonPtr()->GetDeviceContext()->CSSetShader(m_OffsetsCullingShader, nullptr, 0u);
-
-	// As each thread group will have 32 threads (as defined in shader), calculate how many thread groups we need using integer division
-	UINT ThreadGroupCount[3] = { (UINT(Offsets.size()) + 31) / 32u, 1u, 1u };
-
-	UpdateBuffers(Offsets, BBox, ThreadGroupCount, (UINT)Offsets.size());
-	DispatchShaderImpl(ThreadGroupCount);
-}
-
-void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const AABB& BBox, const UINT GrassPerChunk, const UINT VisibleChunkCount,
-	UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap)
+void FrustumCuller::CullGrass(CullData& Data, const UINT GrassPerChunk, const UINT VisibleChunkCount,
+	UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap,
+	ID3D11ShaderResourceView* CulledTransformsSRV, ID3D11ShaderResourceView* GrassOffsetsSRV)
 {
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	const UINT InitialCount = 0u;
@@ -126,13 +113,13 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const A
 	const UINT DispatchY = (VisibleChunkCount + ThreadsY - 1) / ThreadsY;
 	UINT ThreadGroupCount[3] = { DispatchX, DispatchY, 1u };
 
-	UpdateCBuffer(BBox, ThreadGroupCount, VisibleChunkCount, GrassPerChunk, PlaneDimension, HeightDisplacement, LODDistanceThreshold);
+	UpdateCBuffer(Data.GetBoundingBox(), ThreadGroupCount, VisibleChunkCount, GrassPerChunk, PlaneDimension, HeightDisplacement, LODDistanceThreshold);
 
-	ID3D11ShaderResourceView* SRVs[] = { GrassOffsetsSRV, m_CulledOffsetsSRV.Get(), Heightmap };
+	ID3D11ShaderResourceView* SRVs[] = { CulledTransformsSRV, GrassOffsetsSRV, Heightmap};
 	DeviceContext->CSSetUnorderedAccessViews(2u, 1u, m_CulledGrassDataUAV.GetAddressOf(), &InitialCount);
 	DeviceContext->CSSetUnorderedAccessViews(3u, 1u, m_CulledGrassLODDataUAV.GetAddressOf(), &InitialCount);
 	DeviceContext->CSSetUnorderedAccessViews(4u, 1u, m_InstanceCountBufferUAV.GetAddressOf(), nullptr);
-	DeviceContext->CSSetShaderResources(1u, 3u, SRVs);
+	DeviceContext->CSSetShaderResources(0u, 3u, SRVs);
 	DeviceContext->CSSetConstantBuffers(1u, 1u, m_CBuffer.GetAddressOf());
 
 	DeviceContext->Dispatch(ThreadGroupCount[0], ThreadGroupCount[1], ThreadGroupCount[2]);
@@ -142,6 +129,10 @@ void FrustumCuller::CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const A
 	DeviceContext->CSSetShaderResources(0u, 8u, NullSRVs);
 	DeviceContext->CSSetUnorderedAccessViews(0u, 8u, NullUAVs, nullptr);
 	DeviceContext->CSSetShader(nullptr, nullptr, 0u);
+
+	StoreInstanceCounts(Data.GetOutInstanceCounts());
+	auto& UAVs = *Data.GetArgsBufferUAVs();
+	SendInstanceCounts(UAVs[0], UAVs[1]);
 }
 
 void FrustumCuller::ClearInstanceCount()
@@ -355,7 +346,7 @@ void FrustumCuller::UpdateBuffers(const std::vector<CullTransformData>& Transfor
 	memcpy(MappedResource.pData, Transforms.data(), sizeof(CullTransformData) * Transforms.size());
 	DeviceContext->Unmap(m_TransformsBuffer.Get(), 0u);
 
-	UpdateCBuffer(BBox, ThreadGroupCount, SentInstanceCount, GrassPerChunk, PlaneDimension, HeightDisplacement);
+	UpdateCBuffer(&BBox, ThreadGroupCount, SentInstanceCount, GrassPerChunk, PlaneDimension, HeightDisplacement);
 }
 
 void FrustumCuller::UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox, UINT* ThreadGroupCount, UINT SentInstanceCount,
@@ -371,10 +362,10 @@ void FrustumCuller::UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets,
 	memcpy(MappedResource.pData, Offsets.data(), sizeof(DirectX::XMFLOAT2) * Offsets.size());
 	DeviceContext->Unmap(m_OffsetsBuffer.Get(), 0u);
 
-	UpdateCBuffer(BBox, ThreadGroupCount, SentInstanceCount, GrassPerChunk, PlaneDimension, HeightDisplacement);
+	UpdateCBuffer(&BBox, ThreadGroupCount, SentInstanceCount, GrassPerChunk, PlaneDimension, HeightDisplacement);
 }
 
-void FrustumCuller::UpdateCBuffer(const AABB& BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk,
+void FrustumCuller::UpdateCBuffer(const AABB* BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk,
 	UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold)
 {
 	HRESULT hResult;
@@ -390,8 +381,8 @@ void FrustumCuller::UpdateCBuffer(const AABB& BBox, UINT* ThreadGroupCount, UINT
 	CBufferDataPtr->PlaneDimension = PlaneDimension;
 	CBufferDataPtr->HeightDisplacement = HeightDisplacement;
 	CBufferDataPtr->LODDistanceThreshold = LODDistanceThreshold;
-	CBufferDataPtr->Min = BBox.Min;
-	CBufferDataPtr->Max = BBox.Max;
+	CBufferDataPtr->Min = BBox->Min;
+	CBufferDataPtr->Max = BBox->Max;
 	CBufferDataPtr->Padding = {};
 	CBufferDataPtr->Padding1 = {};
 	DeviceContext->Unmap(m_CBuffer.Get(), 0u);
@@ -436,7 +427,7 @@ void FrustumCuller::DispatchShaderImplNew(ID3D11ShaderResourceView* TransformsSR
 	DeviceContext->CSSetUnorderedAccessViews(0u, 1u, NullUAVs, &InitialCount);
 }
 
-void FrustumCuller::StoreInstanceCount(UINT& OutInstanceCount)
+void FrustumCuller::StoreInstanceCounts(std::array<UINT*, 2> OutInstanceCounts)
 {
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE Data = {};
@@ -449,15 +440,17 @@ void FrustumCuller::StoreInstanceCount(UINT& OutInstanceCount)
 	memcpy(InstanceCounts.data(), Data.pData, sizeof(UINT) * 2);
 	DeviceContext->Unmap(m_StagingBuffer.Get(), 0u);
 
-	OutInstanceCount = InstanceCounts[0];
+	*OutInstanceCounts[0] = InstanceCounts[0];
+	if (OutInstanceCounts[1] != nullptr)
+		*OutInstanceCounts[1] = InstanceCounts[1];
 }
 
-void FrustumCuller::SendInstanceCountsNew(const std::vector<ID3D11UnorderedAccessView*>& ArgsBufferUAVs)
+void FrustumCuller::SendInstanceCountsNew(std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs)
 {
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	DeviceContext->CSSetShader(m_InstanceCountTransferShader, nullptr, 0u);
 
-	for (auto ArgsBuffer : ArgsBufferUAVs)
+	for (auto ArgsBuffer : *ArgsBufferUAVs)
 	{
 		ID3D11UnorderedAccessView* UAVs[] = { m_InstanceCountBufferUAV.Get(), ArgsBuffer, nullptr};
 		DeviceContext->CSSetUnorderedAccessViews(4u, 3u, UAVs, nullptr);

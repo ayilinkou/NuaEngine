@@ -2,11 +2,9 @@
 
 StructuredBuffer<CullTransformData> Transforms : register(t0);
 StructuredBuffer<float2> Offsets : register(t1);
-StructuredBuffer<float2> CulledOffsets : register(t2);
-Texture2D Heightmap : register(t3);
+Texture2D Heightmap : register(t2);
 
 AppendStructuredBuffer<CullTransformData> CulledTransforms : register(u0);
-AppendStructuredBuffer<float2> CulledOffsetsAppend : register(u1);
 AppendStructuredBuffer<GrassData> CulledGrassData : register(u2);
 AppendStructuredBuffer<GrassData> CulledGrassLODData : register(u3);
 RWStructuredBuffer<uint> InstanceCounts : register(u4);
@@ -57,6 +55,10 @@ void FrustumCull( uint3 DTid : SV_DispatchThreadID )
     
     if (FlattenedID >= SentInstanceCount)
         return;
+    
+    CulledTransforms.Append(Transforms[FlattenedID]);
+    InterlockedAdd(InstanceCounts[0], 1u);
+    return; // remove when done updating grass culling
 	
 	const float4x4 t = Transforms[FlattenedID].CurrTransform;
     float3 TransformedMin = mul(float4(BBoxMin, 1.f), t).xyz;
@@ -65,25 +67,6 @@ void FrustumCull( uint3 DTid : SV_DispatchThreadID )
     if (IsAABBInside(TransformedMin, TransformedMax))
     {
         CulledTransforms.Append(Transforms[FlattenedID]);
-        InterlockedAdd(InstanceCounts[0], 1u);
-        return;
-    }
-}
-
-[numthreads(tx, ty, tz)]
-void FrustumCullOffsets(uint3 DTid : SV_DispatchThreadID)
-{
-	uint FlattenedID = DTid.z * ThreadGroupCounts.x * ThreadGroupCounts.y * tx * ty +
-                       DTid.y * ThreadGroupCounts.x * tx +
-                       DTid.x;
-	
-	if (FlattenedID >= SentInstanceCount)
-		return;
-	
-    const float3 o = float4(Offsets[FlattenedID].x, 0.f, Offsets[FlattenedID].y, 0.f);
-    if (IsAABBInside(BBoxMin + o, BBoxMax + o))
-    {
-        CulledOffsetsAppend.Append(Offsets[FlattenedID]);
         InterlockedAdd(InstanceCounts[0], 1u);
         return;
     }
@@ -102,7 +85,7 @@ void FrustumCullGrass(uint3 DTid : SV_DispatchThreadID)
 	if (GrassID >= GrassPerChunk || ChunkID >= SentInstanceCount)
 		return;
 	
-	const float3 ChunkOffset = float3(CulledOffsets[ChunkID].x, 0.f, CulledOffsets[ChunkID].y);
+    const float3 ChunkOffset = mul(float4(0.f, 0.f, 0.f, 1.f), Transforms[ChunkID].CurrTransform).xyz; // culled chunk transforms
 	const float3 GrassOffset = float3(Offsets[GrassID].x, 0.f, Offsets[GrassID].y);
 	const float3 WorldOffset = float3(ChunkOffset + GrassOffset);
 	
@@ -120,7 +103,7 @@ void FrustumCullGrass(uint3 DTid : SV_DispatchThreadID)
     {
         GrassData Grass;
         Grass.Offset = WorldOffset.xz;
-        Grass.ChunkID = HashFloat2ToUint(CulledOffsets[ChunkID]);
+        Grass.ChunkID = HashFloat2ToUint(ChunkOffset.xz);
 			
         if (bHighLOD)
         {

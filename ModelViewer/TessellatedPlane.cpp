@@ -61,8 +61,6 @@ bool TessellatedPlane::Init(float TessellationScale, Landscape* pLandscape, std:
 
 void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 {
-	m_FrustumCuller->SendInstanceCounts(m_ArgsBufferUAV);
-
 	Graphics::GetSingletonPtr()->EnableDepthWrite();
 	Graphics::GetSingletonPtr()->DisableBlending();
 	UpdateBuffers(CamManager);
@@ -77,7 +75,7 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->IASetVertexBuffers(0u, 1u, m_VertexBuffer.GetAddressOf(), Strides, Offsets);
 	DeviceContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 
-	ID3D11ShaderResourceView* vsSRVs[] = { m_pLandscape->m_HeightmapSRV, m_FrustumCuller->GetCulledOffsetsSRV().Get() };
+	ID3D11ShaderResourceView* vsSRVs[] = { m_pLandscape->m_HeightmapSRV, m_pLandscape->GetCulledTransformsSRV().Get() };
 	DeviceContext->VSSetShader(m_VertexShader, nullptr, 0u);
 	DeviceContext->VSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->VSSetShaderResources(0u, 2u, vsSRVs);
@@ -89,10 +87,6 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->DSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->DSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
 
-	// this doesn't actually do that much now since chunk culling is so effective
-	//DeviceContext->GSSetShader(m_GeometryShader, nullptr, 0u);
-	//DeviceContext->GSSetConstantBuffers(1u, 1u, m_pLandscape->m_CullingCBuffer.GetAddressOf());
-
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 	DeviceContext->PSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->PSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
@@ -102,13 +96,6 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->End(pGraphics->GetPipelineStatsQuery().Get());
 	m_Profiler->AddDrawCall();
 
-	D3D11_QUERY_DATA_PIPELINE_STATISTICS Stats = {};
-	while (DeviceContext->GetData(pGraphics->GetPipelineStatsQuery().Get(), &Stats, sizeof(Stats), 0) != S_OK)
-	{
-		// sleep or maybe do it on next frame
-	}
-
-	m_Profiler->AddTrianglesRendered("Tessellated Plane", Stats.GSPrimitives);
 	m_Profiler->AddInstancesRendered("Tessellated Plane chunks", m_pLandscape->m_ChunkInstanceCount);
 
 	ID3D11ShaderResourceView* NullSRVs[] = { nullptr, nullptr };

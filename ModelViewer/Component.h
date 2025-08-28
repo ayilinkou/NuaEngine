@@ -39,7 +39,6 @@ public:
 	const DirectX::XMFLOAT3 GetRotation() const { return m_Transform.Rotation; }
 	const DirectX::XMFLOAT3 GetScale() const { return m_Transform.Scale; }
 	const Transform& GetTransform() const { return m_Transform; }
-	Transform& GetTransformRef()  { return m_Transform; }
 	const DirectX::XMMATRIX GetWorldMatrix() const;
 	const DirectX::XMMATRIX GetAccumulatedWorldMatrix() const;
 	const DirectX::XMMATRIX GetPrevWorldMatrix() const;

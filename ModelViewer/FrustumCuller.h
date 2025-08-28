@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <memory>
+#include <array>
 
 #include "DirectXMath.h"
 #include "d3d11.h"
@@ -55,9 +56,9 @@ public:
 
 	void DispatchShaderNew(CullData* Data);
 	void DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox);
-	void DispatchShader(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& BBox);
-	void CullGrass(ID3D11ShaderResourceView* GrassOffsetsSRV, const AABB& BBox, const UINT GrassPerChunk, const UINT VisibleChunkCount,
-		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap);
+	void CullGrass(CullData& Data, const UINT GrassPerChunk, const UINT VisibleChunkCount,
+		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap,
+		ID3D11ShaderResourceView* CulledTransformsSRV, ID3D11ShaderResourceView* GrassOffsetsSRV);
 	void ClearInstanceCount();
 	void SendInstanceCounts(Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> FirstArgsBufferUAV, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> SecondArgsBufferUAV = ms_DummyArgsBufferUAV);
 
@@ -79,19 +80,18 @@ private:
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
 	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& Corners, UINT* ThreadGroupCount,
 		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
-	void UpdateCBuffer(const AABB& BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk = 0u,
+	void UpdateCBuffer(const AABB* BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk = 0u,
 		UINT PlaneDimension = 0u, float HeightDisplacement = 0.f, float LODDistanceThreshold = 0.f);
 
 	void DispatchShaderImpl(UINT* ThreadGroupCount);
 	void DispatchShaderImplNew(ID3D11ShaderResourceView* TransformsSRV, ID3D11UnorderedAccessView* CulledTransformsUAV,
 		UINT* ThreadGroupCount);
 
-	void StoreInstanceCount(UINT& OutInstanceCount);
-	void SendInstanceCountsNew(const std::vector<ID3D11UnorderedAccessView*>& ArgsBufferUAVs);
+	void StoreInstanceCounts(std::array<UINT*, 2> OutInstanceCounts);
+	void SendInstanceCountsNew(std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs);
 
 private:
 	ID3D11ComputeShader* m_CullingShader					= nullptr;
-	ID3D11ComputeShader* m_OffsetsCullingShader				= nullptr;
 	ID3D11ComputeShader* m_GrassCullingShader				= nullptr;
 	ID3D11ComputeShader* m_InstanceCountClearShader			= nullptr;
 	ID3D11ComputeShader* m_InstanceCountTransferShader		= nullptr;

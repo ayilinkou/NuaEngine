@@ -10,6 +10,7 @@
 
 #include "GameObject.h"
 #include "AABB.h"
+#include "CullData.h"
 
 class CameraManager;
 
@@ -49,6 +50,8 @@ public:
 	void SetHeightDisplacement(float NewHeight);
 	std::vector<DirectX::XMFLOAT2>& GetChunkOffsets() { return m_ChunkOffsets; }
 	std::vector<DirectX::XMFLOAT2>& GetGrassOffsets() { return m_GrassOffsets; }
+	std::vector<CullTransformData>& GetChunkTransforms() { return m_ChunkTransforms; }
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetCulledTransformsSRV() { return m_CulledTransformsSRV; }
 	UINT GetChunkInstanceCount() const { return m_ChunkInstanceCount; }
 	UINT GetChunkDimension() const { return m_ChunkDimension; }
 
@@ -72,13 +75,17 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_LandscapeInfoCBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_ChunkOffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ChunkOffsetsSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledTransformsSRV;
 
 	std::shared_ptr<TessellatedPlane> m_Plane;
 	std::shared_ptr<Grass> m_Grass;
 	std::vector<DirectX::XMFLOAT2> m_ChunkOffsets;
 	std::vector<DirectX::XMFLOAT2> m_GrassOffsets;
+	std::vector<CullTransformData> m_ChunkTransforms;
 
 	AABB m_BoundingBox;
+	std::unique_ptr<CullData> m_PlaneCullData;
+	std::vector<ID3D11UnorderedAccessView*> m_ArgsBufferUAVs;
 
 	ID3D11ShaderResourceView* m_HeightmapSRV;
 	std::string m_HeightMapFilepath;

@@ -100,6 +100,9 @@ bool Grass::Init(Landscape* pLandscape, UINT GrassDimensionPerChunk, std::shared
 
 	GenerateAABB();
 
+	m_CullData = CullData();
+	m_CullData.InitGrass(&m_BBox, &m_InstanceCount, &m_InstanceCountLOD, &m_ArgsBufferUAVs, &GetName());
+
 	return true;
 }
 
@@ -114,17 +117,16 @@ void Grass::Render()
 	Graphics* pGraphics = Graphics::GetSingletonPtr();
 	ID3D11DeviceContext* pContext = pGraphics->GetDeviceContext();
 	m_FrustumCuller->CullGrass(
-		m_GrassOffsetsSRV.Get(),
-		m_BBox,
+		m_CullData,
 		m_GrassPerChunk,
-		m_pLandscape->GetChunkInstanceCount(),
+		m_pLandscape->m_ChunkInstanceCount,
 		m_pLandscape->GetChunkDimension(),
 		m_pLandscape->GetHeightDisplacement(),
 		m_LODDistanceThreshold,
-		m_pLandscape->GetHeightmapSRV()
+		m_pLandscape->GetHeightmapSRV(),
+		m_pLandscape->m_CulledTransformsSRV.Get(),
+		m_GrassOffsetsSRV.Get()
 	);
-	m_GrassInstanceCounts = m_FrustumCuller->GetInstanceCounts();
-	m_FrustumCuller->SendInstanceCounts(m_ArgsBufferUAV, m_LODArgsBufferUAV);
 	
 	pGraphics->SetRasterStateBackFaceCull(false);
 
@@ -143,29 +145,32 @@ void Grass::Render()
 	ID3D11Buffer* NullBuffers[] = { nullptr };
 	pContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0u);
 	pContext->IASetVertexBuffers(0u, 1u, NullBuffers, Strides, Offsets);
+	
+	UINT HighLODCount = *m_CullData.GetOutInstanceCounts()[0];
+	UINT LowLODCount = *m_CullData.GetOutInstanceCounts()[1];
 
 	// high LOD
-	if (m_GrassInstanceCounts[0] > 0u)
+	if (HighLODCount > 0u)
 	{
 		pContext->VSSetShaderResources(1u, 1u, m_FrustumCuller->GetCulledGrassDataSRV().GetAddressOf());
 
 		pContext->DrawInstancedIndirect(m_ArgsBuffer.Get(), 0u);
 		m_Profiler->AddDrawCall();
 
-		m_Profiler->AddTrianglesRendered("Grass", m_GrassInstanceCounts[0] * (_countof(GrassVertices) - 2));
-		m_Profiler->AddInstancesRendered("Grass", m_GrassInstanceCounts[0]);
+		m_Profiler->AddTrianglesRendered("Grass", HighLODCount * (_countof(GrassVertices) - 2));
+		m_Profiler->AddInstancesRendered("Grass", HighLODCount);
 	}
 
 	// low LOD
-	if (m_GrassInstanceCounts[1] > 0u)
+	if (LowLODCount > 0u)
 	{
 		pContext->VSSetShaderResources(1u, 1u, m_FrustumCuller->GetCulledGrassLODDataSRV().GetAddressOf());
 
 		pContext->DrawInstancedIndirect(m_LODArgsBuffer.Get(), 0u);
 		m_Profiler->AddDrawCall();
 
-		m_Profiler->AddTrianglesRendered("Grass LOD", m_GrassInstanceCounts[1] * (_countof(GrassVerticesLOD) - 2));
-		m_Profiler->AddInstancesRendered("Grass LOD", m_GrassInstanceCounts[1]);
+		m_Profiler->AddTrianglesRendered("Grass LOD", LowLODCount * (_countof(GrassVerticesLOD) - 2));
+		m_Profiler->AddInstancesRendered("Grass LOD", LowLODCount);
 	}
 
 	ID3D11ShaderResourceView* NullSRVs[] = { nullptr, nullptr };
@@ -312,6 +317,9 @@ bool Grass::CreateBuffers()
 
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateUnorderedAccessView(m_LODArgsBuffer.Get(), &uavDesc, &m_LODArgsBufferUAV));
 	NAME_D3D_RESOURCE(m_LODArgsBufferUAV, "Grass LOD args buffer UAV");
+
+	m_ArgsBufferUAVs.push_back(m_ArgsBufferUAV.Get());
+	m_ArgsBufferUAVs.push_back(m_LODArgsBufferUAV.Get());
 	
 	return true;
 }

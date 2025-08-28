@@ -15,7 +15,6 @@
 #include "Common.h"
 #include "FrustumCuller.h"
 #include "Profiler.h"
-#include "CullData.h"
 
 ModelData::ModelData(const std::string& ModelPath, FrustumCuller* pFrustumCuller, std::shared_ptr<Profiler> pProfiler,
 	const std::string& TexturesPath) : m_FrustumCuller(pFrustumCuller), m_Profiler(pProfiler)
@@ -35,7 +34,8 @@ bool ModelData::Initialise(ID3D11Device* Device, ID3D11DeviceContext* DeviceCont
 	m_TexturesPath = TexturesPath;
 
 	FALSE_IF_FAILED(LoadModel());
-	m_CullData = std::make_unique<CullData>(m_BoundingBox, m_InstanceCount, m_ArgsBufferUAVs, m_ModelPath, m_CulledTransformsSRV, m_Transforms);
+	m_CullData = std::make_unique<CullData>();
+	m_CullData->Init(&m_BoundingBox, &m_InstanceCount, &m_ArgsBufferUAVs, &m_ModelPath, &m_CulledTransformsSRV, &m_Transforms);
 
 	return true;
 }

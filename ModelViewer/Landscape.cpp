@@ -46,6 +46,17 @@ bool Landscape::Init(const std::string& HeightMapFilepath, float TessellationSca
 
 	m_Plane = std::make_shared<TessellatedPlane>();
 	FALSE_IF_FAILED(m_Plane->Init(TessellationScale, this, pApp->GetFrustumCuller(), pApp->GetProfiler()));
+	m_ArgsBufferUAVs.push_back(m_Plane->m_ArgsBufferUAV.Get());
+	m_PlaneCullData = std::make_unique<CullData>();
+	m_PlaneCullData->Init(
+		&m_BoundingBox,
+		&m_ChunkInstanceCount,
+		&m_ArgsBufferUAVs,
+		&GetName(),
+		&m_CulledTransformsSRV,
+		&m_ChunkTransforms
+	);
+	m_PlaneCullData->UpdateBuffers(); // ideally we'd set the buffer to immutable but this is fine for now
 
 	m_Grass = std::make_shared<Grass>();
 	FALSE_IF_FAILED(m_Grass->Init(this, GrassDimensionPerChunk, pApp->GetFrustumCuller(), pApp->GetProfiler()));
@@ -60,16 +71,15 @@ bool Landscape::Init(const std::string& HeightMapFilepath, float TessellationSca
 
 void Landscape::SetupAABB()
 {
-	m_BoundingBox.Min = { -0.5f * m_Transform.Scale.x, 0.f, -0.5f * m_Transform.Scale.z };
-	m_BoundingBox.Max = { 0.5f * m_Transform.Scale.x, m_HeightDisplacement, 0.5f * m_Transform.Scale.z };
+	m_BoundingBox.Min = { -0.5f, 0.f, -0.5f };
+	m_BoundingBox.Max = { 0.5f, m_HeightDisplacement / m_ChunkSize, 0.5f }; // divided by chunk size since it will be scaled back up by transform
 	m_BoundingBox.CalcCorners();
 }
 
 void Landscape::Render()
 {	
 	Application* pApp = Application::GetSingletonPtr();
-	pApp->GetFrustumCuller()->DispatchShader(m_ChunkOffsets, m_BoundingBox);
-	m_ChunkInstanceCount = pApp->GetFrustumCuller()->GetInstanceCounts()[0];
+	pApp->GetFrustumCuller()->DispatchShaderNew(m_PlaneCullData.get());
 	
 	if (m_ChunkInstanceCount == 0u)
 		return;
@@ -149,7 +159,7 @@ bool Landscape::CreateBuffers()
 	SRVDesc.Buffer.NumElements = m_NumChunks;
 
 	HFALSE_IF_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateShaderResourceView(m_ChunkOffsetsBuffer.Get(), &SRVDesc, &m_ChunkOffsetsSRV));
-	NAME_D3D_RESOURCE(m_ChunkOffsetsSRV, "Chunk offsets buffer SRV");
+	NAME_D3D_RESOURCE(m_ChunkOffsetsSRV, "Landscape chunk offsets buffer SRV");
 
 	Desc = {};
 	Desc.Usage = D3D11_USAGE_DYNAMIC;
@@ -185,11 +195,11 @@ void Landscape::UpdateBuffers()
 
 void Landscape::GenerateChunkOffsets()
 {
-	float ChunkHalf = m_ChunkSize / 2.f;
 	float HalfCount = (float)m_ChunkDimension / 2.f;
-	int chunkID = 0;
+	int ChunkID = 0;
 
 	m_ChunkOffsets.resize(m_NumChunks, { 0.f, 0.f });
+	m_ChunkTransforms.resize(m_NumChunks, { DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity() });
 	for (UINT z = 0; z < m_ChunkDimension; z++)
 	{
 		float WorldZ = ((int)z - HalfCount) * m_ChunkSize + m_ChunkSize * 0.5f;
@@ -197,7 +207,11 @@ void Landscape::GenerateChunkOffsets()
 		{
 			float WorldX = ((int)x - HalfCount) * m_ChunkSize + m_ChunkSize * 0.5f;
 
-			m_ChunkOffsets[chunkID++] = { WorldX, WorldZ };
+			m_ChunkOffsets[ChunkID] = { WorldX, WorldZ };
+			DirectX::XMMATRIX m = DirectX::XMMatrixTranspose(DirectX::XMMatrixMultiply(DirectX::XMMatrixScaling(m_ChunkSize, m_ChunkSize, m_ChunkSize),
+				DirectX::XMMatrixTranslation(WorldX, 0.f, WorldZ)));
+			m_ChunkTransforms[ChunkID] = { m, m };
+			ChunkID++;
 		}
 	}
 }

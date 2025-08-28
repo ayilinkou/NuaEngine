@@ -13,6 +13,7 @@
 
 #include "GameObject.h"
 #include "AABB.h"
+#include "CullData.h"
 
 class Landscape;
 class FrustumCuller;
@@ -67,13 +68,17 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_GrassOffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_GrassCBuffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_GrassOffsetsSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledTransformsSRV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_ArgsBufferUAV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_LODArgsBufferUAV;
+
+	std::vector<ID3D11UnorderedAccessView*> m_ArgsBufferUAVs;
 
 	Landscape* m_pLandscape;
 	AABB m_BBox;
 	UINT m_GrassPerChunk;
-	std::array<UINT, 2> m_GrassInstanceCounts;
+	UINT m_InstanceCount;
+	UINT m_InstanceCountLOD;
 	bool m_bShouldRender;
 	float m_LODDistanceThreshold;
 	float m_Freq;
@@ -88,6 +93,8 @@ private:
 
 	const char* m_vsFilepath;
 	const char* m_psFilepath;
+
+	CullData m_CullData;
 
 	std::shared_ptr<FrustumCuller> m_FrustumCuller;
 	std::shared_ptr<Profiler> m_Profiler;

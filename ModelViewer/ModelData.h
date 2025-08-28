@@ -13,7 +13,7 @@
 #include "d3d11.h"
 #include "DirectXMath.h"
 
-#include "Common.h"
+#include "CullData.h"
 #include "AABB.h"
 
 class Mesh;
@@ -21,8 +21,8 @@ class Material;
 class Node;
 class FrustumCuller;
 class Profiler;
-class CullData;
 struct aiScene;
+struct Vertex;
 
 class ModelData
 {

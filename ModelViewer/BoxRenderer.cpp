@@ -89,6 +89,8 @@ void BoxRenderer::Render()
 		InstanceOffset += InstanceCount;
 		InstancesLeft -= InstanceCount;
 	}
+
+	m_Profiler->AddInstancesRendered("Bounding boxes", (UINT)m_Boxes.size());
 }
 
 bool BoxRenderer::CreateShaders()

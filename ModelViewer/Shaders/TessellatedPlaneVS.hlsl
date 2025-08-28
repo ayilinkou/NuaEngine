@@ -1,7 +1,7 @@
 #include "Common.hlsl"
 
 Texture2D Heightmap : register(t0);
-StructuredBuffer<float2> Offsets : register(t1);
+StructuredBuffer<CullTransformData> Transforms : register(t1);
 
 cbuffer PlaneInfoBuffer : register(b1)
 {
@@ -30,13 +30,15 @@ struct VS_Out
 VS_Out main(VS_In v)
 {
 	VS_Out o;
-	o.Pos = mul(float4(v.Pos, 1.f), ChunkScaleMatrix).xyz + float3(Offsets[v.InstanceID].x, 0.f, Offsets[v.InstanceID].y);
+	o.Pos = mul(float4(v.Pos, 1.f), Transforms[v.InstanceID].CurrTransform).xyz;
 	o.UV = GetHeightmapUV(o.Pos.xz, PlaneDimension);
 	
 	float Height = Heightmap.SampleLevel(LinearSampler, o.UV, 0.f).r * HeightDisplacement;
 	o.Pos.y = Height;
 	
-	o.ChunkID = HashFloat2ToUint(Offsets[v.InstanceID]);
+    float4 ChunkOrigin = float4(0.f, 0.f, 0.f, 1.f);
+    ChunkOrigin = mul(ChunkOrigin, Transforms[v.InstanceID].CurrTransform);
+    o.ChunkID = HashFloat2ToUint(ChunkOrigin.xz);
 	
 	return o;
 }

@@ -20,12 +20,6 @@ struct Vertex
 	DirectX::XMFLOAT2 TexCoord;
 };
 
-struct CullTransformData
-{
-	DirectX::XMMATRIX CurrTransform;
-	DirectX::XMMATRIX PrevTransform;
-};
-
 inline struct ID3D11Buffer* NullBuffers[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 inline struct ID3D11RenderTargetView* NullRTVs[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 inline struct ID3D11ShaderResourceView* NullSRVs[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
