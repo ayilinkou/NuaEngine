@@ -60,6 +60,8 @@ void ModelData::RenderOpaque()
 
 	DeviceContext->VSSetShaderResources(0u, 1u, m_CulledTransformsSRV.GetAddressOf());
 
+	//Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(!Mat->m_bTwoSided); // TODO: this doesn't actually work in some cases, investigate
+	Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(true);
 	Graphics::GetSingletonPtr()->EnableDepthWrite();
 	Graphics::GetSingletonPtr()->DisableBlending();
 	InstancedShader::ActivateShaderOpaque(DeviceContext);
@@ -85,6 +87,7 @@ void ModelData::RenderTransparent()
 
 	DeviceContext->VSSetShaderResources(0u, 1u, m_CulledTransformsSRV.GetAddressOf());
 
+	Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(false);
 	Graphics::GetSingletonPtr()->DisableDepthWrite();
 	Graphics::GetSingletonPtr()->EnableBlending();
 	InstancedShader::ActivateShaderTransparent(DeviceContext);
@@ -225,12 +228,7 @@ void ModelData::RenderMeshes(const std::vector<std::unique_ptr<Mesh>>& Meshes)
 			DeviceContext->PSSetShaderResources(1u, 1u, &m_Textures[Mat->m_SpecularSRV]);
 		}
 
-		//Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(!Mat->m_bTwoSided); // TODO: this doesn't actually work in some cases, investigate
-		Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(true);
-		//Graphics::GetSingletonPtr()->SetWireframeRasterState(); // swap back to line above when done or refactor to support switching
-
 		// ensure the dispatch is finished before drawing
-
 		DeviceContext->DrawIndexedInstancedIndirect(m->GetArgsBuffer().Get(), 0u);
 		m_Profiler->AddDrawCall();
 	}
