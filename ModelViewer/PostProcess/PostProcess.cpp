@@ -6,6 +6,7 @@ ID3D11VertexShader* IPostProcess::ms_QuadVertexShader = nullptr;
 Microsoft::WRL::ComPtr<ID3D11InputLayout> IPostProcess::ms_QuadInputLayout;
 Microsoft::WRL::ComPtr<ID3D11Buffer> IPostProcess::ms_QuadVertexBuffer;
 Microsoft::WRL::ComPtr<ID3D11Buffer> IPostProcess::ms_QuadIndexBuffer;
+UINT IPostProcess::ms_QuadVertexBufferStride = 0u;
 std::shared_ptr<PostProcessEmpty> IPostProcess::ms_EmptyPostProcess;
 std::shared_ptr<Profiler> IPostProcess::ms_Profiler;
 const char* IPostProcess::ms_vsFilename = "Shaders/QuadVS.hlsl";
@@ -35,7 +36,7 @@ void IPostProcess::InitStatics(std::shared_ptr<Profiler> Profiler)
 {
 	HRESULT hResult;
 	Microsoft::WRL::ComPtr<ID3D10Blob> vsBuffer;
-	D3D11_INPUT_ELEMENT_DESC VertexLayout[3] = {};
+	D3D11_INPUT_ELEMENT_DESC VertexLayout[2] = {};
 	D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
 	unsigned int NumElements;
 
@@ -50,21 +51,13 @@ void IPostProcess::InitStatics(std::shared_ptr<Profiler> Profiler)
 	VertexLayout[0].AlignedByteOffset = 0;
 	VertexLayout[0].InstanceDataStepRate = 0;
 
-	VertexLayout[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	VertexLayout[1].SemanticName = "NORMAL";
+	VertexLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+	VertexLayout[1].SemanticName = "TEXCOORD";
 	VertexLayout[1].SemanticIndex = 0;
 	VertexLayout[1].InputSlot = 0;
 	VertexLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	VertexLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	VertexLayout[1].InstanceDataStepRate = 0;
-
-	VertexLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
-	VertexLayout[2].SemanticName = "TEXCOORD";
-	VertexLayout[2].SemanticIndex = 0;
-	VertexLayout[2].InputSlot = 0;
-	VertexLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	VertexLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	VertexLayout[2].InstanceDataStepRate = 0;
 
 	NumElements = sizeof(VertexLayout) / sizeof(VertexLayout[0]);
 	ASSERT_NOT_FAILED(Graphics::GetSingletonPtr()->GetDevice()->CreateInputLayout(VertexLayout, NumElements, vsBuffer->GetBufferPointer(),
@@ -72,11 +65,12 @@ void IPostProcess::InitStatics(std::shared_ptr<Profiler> Profiler)
 	NAME_D3D_RESOURCE(ms_QuadInputLayout, "Post process quad input layout");
 
 	Vertex QuadVertices[] = {
-		{ DirectX::XMFLOAT3(-1.0f,  1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), },
-		{ DirectX::XMFLOAT3(1.0f,  1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), },
-		{ DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), },
-		{ DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), },
+		{ DirectX::XMFLOAT3(-1.0f,  1.0f, 0.0f), DirectX::XMFLOAT2(0.0f, 0.0f), },
+		{ DirectX::XMFLOAT3( 1.0f,  1.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 0.0f), },
+		{ DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f), DirectX::XMFLOAT2(0.0f, 1.0f), },
+		{ DirectX::XMFLOAT3( 1.0f, -1.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f), },
 	};
+	ms_QuadVertexBufferStride = sizeof(QuadVertices) / 4;
 
 	D3D11_BUFFER_DESC BufferDesc = {};
 	BufferDesc.Usage = D3D11_USAGE_IMMUTABLE;

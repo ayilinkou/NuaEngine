@@ -36,7 +36,8 @@ public:
 	static void ShutdownStatics();
 
 	static ID3D11VertexShader* GetQuadVertexShader() { return IPostProcess::ms_QuadVertexShader; }
-	static Microsoft::WRL::ComPtr<ID3D11Buffer> GetQuadVertexBuffer() {	return IPostProcess::ms_QuadVertexBuffer; }
+	static Microsoft::WRL::ComPtr<ID3D11Buffer> GetQuadVertexBuffer() { return IPostProcess::ms_QuadVertexBuffer; }
+	static UINT GetQuadVertexBufferStride() { return IPostProcess::ms_QuadVertexBufferStride; }
 	static Microsoft::WRL::ComPtr<ID3D11Buffer> GetQuadIndexBuffer() { return IPostProcess::ms_QuadIndexBuffer;	}
 	static Microsoft::WRL::ComPtr<ID3D11InputLayout> GetQuadInputLayout() {	return IPostProcess::ms_QuadInputLayout; }
 	static std::shared_ptr<Profiler>& GetProfiler() { return IPostProcess::ms_Profiler;	}
@@ -66,7 +67,6 @@ protected:
 	struct Vertex
 	{
 		DirectX::XMFLOAT3 Pos;
-		DirectX::XMFLOAT3 Normal;
 		DirectX::XMFLOAT2 TexCoord;
 	};
 
@@ -84,6 +84,7 @@ private:
 	static Microsoft::WRL::ComPtr<ID3D11InputLayout> ms_QuadInputLayout;
 	static Microsoft::WRL::ComPtr<ID3D11Buffer> ms_QuadVertexBuffer;
 	static Microsoft::WRL::ComPtr<ID3D11Buffer> ms_QuadIndexBuffer;
+	static UINT ms_QuadVertexBufferStride;
 	static std::shared_ptr<PostProcessEmpty> ms_EmptyPostProcess;
 	static std::shared_ptr<Profiler> ms_Profiler;
 	static const char* ms_vsFilename;

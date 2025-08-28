@@ -16,7 +16,6 @@ cbuffer SSAOBuffer : register(b1)
 struct PS_In
 {
     float4 Pos : SV_POSITION;
-    float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
 };
 

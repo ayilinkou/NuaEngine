@@ -213,7 +213,7 @@ bool Application::Render()
 	// apply post processes (if any) and keep track of which shader resource view is the latest
 	DrawingForward = !DrawingForward;
 	unsigned int Stride, Offset;
-	Stride = sizeof(Vertex);
+	Stride = IPostProcess::GetQuadVertexBufferStride();
 	Offset = 0u;
 	m_Graphics->GetDeviceContext()->IASetVertexBuffers(0u, 1u, IPostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
 	m_Graphics->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
