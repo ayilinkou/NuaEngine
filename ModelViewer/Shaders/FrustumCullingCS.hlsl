@@ -55,10 +55,6 @@ void FrustumCull( uint3 DTid : SV_DispatchThreadID )
     
     if (FlattenedID >= SentInstanceCount)
         return;
-    
-    CulledTransforms.Append(Transforms[FlattenedID]);
-    InterlockedAdd(InstanceCounts[0], 1u);
-    return; // remove when done updating grass culling
 	
 	const float4x4 t = Transforms[FlattenedID].CurrTransform;
     float3 TransformedMin = mul(float4(BBoxMin, 1.f), t).xyz;
