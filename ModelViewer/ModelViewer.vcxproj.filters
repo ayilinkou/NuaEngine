@@ -153,6 +153,9 @@
     <ClCompile Include="CullData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DeferredShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SystemClass.h">
@@ -299,6 +302,9 @@
     <ClInclude Include="CullData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DeferredShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BasicPS.hlsl">
@@ -389,5 +395,9 @@
     <None Include="Shaders\SSAO_PS.hlsl">
       <Filter>Shader Files\Post Process</Filter>
     </None>
+    <None Include="Shaders\DeferredGeoPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="Shaders\LightingPassPS.hlsl" />
   </ItemGroup>
 </Project>

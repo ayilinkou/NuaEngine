@@ -22,7 +22,7 @@ public:
 	~Skybox();
 
 	bool Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Profiler> pProfiler);
-	void Render();
+	void Render(const Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& RTV);
 	void Shutdown();
 
 	const DirectX::XMFLOAT3& GetAverageSkyColor() const { return m_AverageSkyColor; }

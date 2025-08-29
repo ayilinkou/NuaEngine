@@ -1,5 +1,6 @@
 #include <random>
 #include <cmath>
+#include <functional>
 
 #include "PostProcessSSAO.h"
 #include "ResourceManager.h"
@@ -8,7 +9,10 @@ PostProcessSSAO::PostProcessSSAO(bool bActive, const PostProcessData::SSAOData& 
 	: PostProcess(bActive, Data, "SSAO"), m_psFilename("Shaders/SSAO_PS.hlsl")
 {
 	GenerateNoiseTexture();
+	GenerateVisibilityTexture();
 	SetupPixelShader(m_PixelShader, m_psFilename);
+
+	m_OnDeactivated.Bind(std::bind(&PostProcessSSAO::ClearVisibilityTexture, this));
 }
 
 PostProcessSSAO::~PostProcessSSAO()
@@ -58,16 +62,15 @@ void PostProcessSSAO::ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, M
 	Graphics* pGraphics = Graphics::GetSingletonPtr();
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 
-	ID3D11ShaderResourceView* SRVs[4] = {
-		SRV.Get(),
+	ID3D11ShaderResourceView* SRVs[3] = {
 		pGraphics->GetDepthStencilSRV().Get(),
 		pGraphics->GetNormalSRV().Get(),
 		m_NoiseSRV.Get()
 	};
-	DeviceContext->PSSetShaderResources(0u, 4u, SRVs);
+	DeviceContext->PSSetShaderResources(0u, 3u, SRVs);
 	DeviceContext->PSSetConstantBuffers(1u, 1u, m_ConstantBuffer.GetAddressOf());
 
-	DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), nullptr);
+	DeviceContext->OMSetRenderTargets(1u, m_VisibilityRTV.GetAddressOf(), nullptr);
 	DeviceContext->DrawIndexed(6u, 0u, 0);
 	GetProfiler()->AddDrawCall();
 }
@@ -108,4 +111,34 @@ void PostProcessSSAO::GenerateNoiseTexture()
 
 	ASSERT_NOT_FAILED(pGraphics->GetDevice()->CreateTexture2D(&Desc, &Data, &NoiseTexture));
 	ASSERT_NOT_FAILED(pGraphics->GetDevice()->CreateShaderResourceView(NoiseTexture.Get(), nullptr, &m_NoiseSRV));
+}
+
+void PostProcessSSAO::GenerateVisibilityTexture()
+{
+	HRESULT hResult;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> VisTexture;
+	Graphics* pGraphics = Graphics::GetSingletonPtr();
+	constexpr UINT WIDTH = 1920u; // TODO: magic number
+	constexpr UINT HEIGHT = 1080u;
+
+	D3D11_TEXTURE2D_DESC Desc = {};
+	Desc.Format = DXGI_FORMAT_R32_FLOAT;
+	Desc.Width = WIDTH;
+	Desc.Height = HEIGHT;
+	Desc.MipLevels = 1u;
+	Desc.ArraySize = 1u;
+	Desc.SampleDesc.Count = 1u;
+	Desc.Usage = D3D11_USAGE_DEFAULT;
+	Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+
+	ASSERT_NOT_FAILED(pGraphics->GetDevice()->CreateTexture2D(&Desc, nullptr, &VisTexture));
+	ASSERT_NOT_FAILED(pGraphics->GetDevice()->CreateShaderResourceView(VisTexture.Get(), nullptr, &m_VisibilitySRV));
+	ASSERT_NOT_FAILED(pGraphics->GetDevice()->CreateRenderTargetView(VisTexture.Get(), nullptr, &m_VisibilityRTV));
+	ClearVisibilityTexture();
+}
+
+void PostProcessSSAO::ClearVisibilityTexture()
+{
+	float ClearColor[4] = { 1.f, 1.f, 1.f, 1.f };
+	Graphics::GetSingletonPtr()->GetDeviceContext()->ClearRenderTargetView(m_VisibilityRTV.Get(), ClearColor);
 }

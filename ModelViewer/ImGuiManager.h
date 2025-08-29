@@ -12,6 +12,7 @@
 
 class CameraManager;
 class IPostProcess;
+class PostProcessSSAO;
 struct RenderStats;
 
 class ImGuiManager
@@ -20,7 +21,7 @@ public:
 	ImGuiManager();
 	~ImGuiManager();
 
-	static void RenderPostProcessWindow(double PipelineTime, std::vector<std::unique_ptr<IPostProcess>>& PostProcesses);
+	static void RenderPostProcessWindow(double PipelineTime, std::vector<std::unique_ptr<IPostProcess>>& PostProcesses, PostProcessSSAO* pSSAO);
 	static void RenderWorldHierarchyWindow();
 	static void RenderCamerasWindow(std::shared_ptr<CameraManager>& CamManager);
 	static void RenderStatsWindow(const RenderStats& Stats);

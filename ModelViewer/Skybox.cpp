@@ -132,14 +132,14 @@ bool Skybox::Init(std::shared_ptr<CameraManager> CamManager, std::shared_ptr<Pro
 	return true;
 }
 
-void Skybox::Render()
+void Skybox::Render(const Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& RTV)
 {
 	UINT Strides[] = { sizeof(CubeVertex) };
 	UINT Offsets[] = { 0u };
 
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
 	Graphics* pGraphics = Graphics::GetSingletonPtr();
-	DeviceContext->OMSetRenderTargets(1u, pGraphics->m_PostProcessRTVFirst.GetAddressOf(), pGraphics->GetDepthStencilView());
+	DeviceContext->OMSetRenderTargets(1u, RTV.GetAddressOf(), pGraphics->GetDepthStencilView());
 	DeviceContext->IASetInputLayout(m_InputLayout.Get());
 	DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	DeviceContext->IASetVertexBuffers(0u, 1u, m_VertexBuffer.GetAddressOf(), Strides, Offsets);

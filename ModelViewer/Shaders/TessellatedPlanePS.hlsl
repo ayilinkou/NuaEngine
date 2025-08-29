@@ -57,32 +57,20 @@ PS_Out main(PS_In p)
 {
     PS_Out o;
 	
+	float Height = Heightmap.Sample(LinearSampler, p.UV).r;
 	if (bVisualiseChunks)
     {
 		o.Color = float4(RandomRGB(p.ChunkID), 1.f);
-        o.Normal = float4(p.ViewNormal, 0.f);
-        o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
-        return o;
     }
-
-    float4 Color;
-	float Height = Heightmap.Sample(LinearSampler, p.UV).r;
-	if (Height < 0.03)
+	else if (Height < 0.03)
 	{
-		Color = float4(50.f / 256.f, 123.f / 256.f, 191.f / 256.f, 1.f);
+		o.Color = float4(50.f / 256.f, 123.f / 256.f, 191.f / 256.f, 1.f);
 	}
 	else
     {
-		Color = lerp(BotColor, TopColor, Height);
+		o.Color = lerp(BotColor, TopColor, Height);
     }
 	
-    float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - p.WorldPos);
-    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
-    const float3 Ambient = Color.rgb * 0.2f;
-    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 0.2f);
-    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, 0.2f);
-		
-    o.Color = float4(LightTotal.rgb + Ambient, 1.f);
     o.Normal = float4(p.ViewNormal, 0.f);
     o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
     return o;

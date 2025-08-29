@@ -25,15 +25,21 @@ public:
 	
 	static void GenerateSamplePoints(DirectX::XMFLOAT4* SampleKernelDest);
 
+	ID3D11ShaderResourceView* GetVisibilitySRV() { return m_VisibilitySRV.Get(); }
+
 private:
 	void ApplyPostProcessImpl(ID3D11DeviceContext* DeviceContext, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTV,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV) override;
 
 	void GenerateNoiseTexture();
+	void GenerateVisibilityTexture();
+	void ClearVisibilityTexture();
 
 private:
 	const char* m_psFilename;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_NoiseSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_VisibilitySRV;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_VisibilityRTV;
 };
 
 #endif

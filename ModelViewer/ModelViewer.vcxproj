@@ -22,6 +22,7 @@
     <ClCompile Include="AABB.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="CullData.cpp" />
+    <ClCompile Include="DeferredShader.cpp" />
     <ClCompile Include="PostProcess\PostProcessSSAO.cpp" />
     <ClCompile Include="PostProcess\PostProcessBoxBlur.cpp" />
     <ClCompile Include="PostProcess\PostProcessPixelation.cpp" />
@@ -67,6 +68,7 @@
     <ClInclude Include="AABB.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="CullData.h" />
+    <ClInclude Include="DeferredShader.h" />
     <ClInclude Include="PostProcess\PostProcessSSAO.h" />
     <ClInclude Include="PostProcess\PostProcessBoxBlur.h" />
     <ClInclude Include="PostProcess\PostProcessPixelation.h" />
@@ -356,6 +358,24 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SSAO_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\DeferredGeoPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\LightingPassPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

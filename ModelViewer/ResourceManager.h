@@ -114,7 +114,13 @@ inline T* ResourceManager::LoadShader(const std::string& Filepath, const std::st
 template<typename T>
 inline UINT ResourceManager::UnloadShader(const std::string& Filepath, const std::string& Entry)
 {
-	Resource* ResourceToUnload = m_ShadersMap[Filepath][Entry]->ShaderRes.get();
+	auto& pShader = m_ShadersMap[Filepath][Entry];
+	if (!pShader.get() || !pShader->ShaderRes.get())
+	{
+		__debugbreak(); // attempting to unload a shader which isn't loaded
+	}
+
+	Resource* ResourceToUnload = pShader->ShaderRes.get();
 	if (!ResourceToUnload)
 	{
 		__debugbreak(); // attempting to unload a shader which isn't loaded

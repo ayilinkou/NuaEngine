@@ -114,8 +114,8 @@ float4 mainTransparent(PS_In p) : SV_TARGET
     if (dot(PixelToCam, p.WorldNormal) < 0.f) // checking if surface we are looking at is on the opposite side of the normal vector and flipping if that's the case
         p.WorldNormal = -p.WorldNormal;
 	
-    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance);
-    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance);
+    LightTotal += CalcDirectionalLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance * BaseAlpha);
+    LightTotal += CalcPointLights(Color.rgb, p.WorldPos, p.WorldNormal, PixelToCam, Reflectance * BaseAlpha);
 	
     //return Ambient + LightTotal;
     return LightTotal;

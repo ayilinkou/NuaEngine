@@ -48,8 +48,8 @@ public:
 	void ResetToInitialActive();
 
 	void SetActive(bool bNewActive) { bNewActive ? Activate() : Deactivate(); }
-	void Activate() { m_bActive = true; m_bRecentlyActivated = true; }
-	void Deactivate() { m_bActive = false; }
+	void Activate() { m_bActive = true; m_bRecentlyActivated = true; m_OnActivated.Broadcast(); }
+	void Deactivate() { m_bActive = false; m_OnDeactivated.Broadcast(); }
 	void SetOwner(IPostProcess* pOwner) { m_pOwner = pOwner; }
 	bool IsActive() const { return m_bActive; }
 	bool& GetIsActive() { return m_bActive; }
@@ -78,6 +78,8 @@ protected:
 	std::string m_Name = "";
 	IPostProcess* m_pOwner = nullptr;
 	std::vector<IPostProcess*> m_OwnedPostProcesses;
+	Delegate<void()> m_OnActivated;
+	Delegate<void()> m_OnDeactivated;
 
 private:
 	static ID3D11VertexShader* ms_QuadVertexShader;

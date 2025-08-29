@@ -10,6 +10,7 @@
 #include "Graphics.h"
 #include "ResourceManager.h"
 #include "InstancedShader.h"
+#include "DeferredShader.h"
 #include "Node.h"
 #include "Material.h"
 #include "Common.h"
@@ -64,9 +65,8 @@ void ModelData::RenderOpaque()
 	Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(true);
 	Graphics::GetSingletonPtr()->EnableDepthWrite();
 	Graphics::GetSingletonPtr()->DisableBlending();
-	InstancedShader::ActivateShaderOpaque(DeviceContext);
+	DeferredShader::ActivateGeoPassShader(DeviceContext);
 	RenderMeshes(m_OpaqueMeshes);
-	m_Profiler->AddInstancesRendered(m_ModelPath, m_InstanceCount);
 
 	ID3D11ShaderResourceView* NullSRVs[] = { nullptr };
 	DeviceContext->VSSetShaderResources(0u, 1u, NullSRVs);
@@ -92,7 +92,6 @@ void ModelData::RenderTransparent()
 	Graphics::GetSingletonPtr()->EnableBlending();
 	InstancedShader::ActivateShaderTransparent(DeviceContext);
 	RenderMeshes(m_TransparentMeshes);
-	m_Profiler->AddInstancesRendered(m_ModelPath, m_InstanceCount);
 
 	ID3D11ShaderResourceView* NullSRVs[] = { nullptr };
 	DeviceContext->VSSetShaderResources(0u, 1u, NullSRVs);

@@ -18,6 +18,7 @@ constexpr float SCREEN_FAR = 2000.f;
 constexpr float SCREEN_NEAR = 0.1f;
 
 class InstancedShader;
+class DeferredShader;
 class Model;
 class ModelData;
 class Light;
@@ -71,9 +72,12 @@ public:
 
 private:
 	bool Render();
-	bool RenderScene();
-	void RenderModels();
-	//bool RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView);
+	void RenderGeometryPass();
+	void RenderLightingPass();
+	void RenderTransparencyPass();
+	void RenderOpaqueModels();
+	void RenderTransparentModels();
+	void CullModels();
 
 	// Depending on how many windows are open, this can actually have a significant cost to frame times
 	void RenderImGui();
@@ -96,6 +100,7 @@ private:
 	std::shared_ptr<Profiler> m_Profiler;
 
 	std::unique_ptr<InstancedShader> m_InstancedShader;
+	std::unique_ptr<DeferredShader> m_DeferredShader;
 	std::unique_ptr<Skybox> m_Skybox;
 	std::shared_ptr<BoxRenderer> m_BoxRenderer;
 	std::shared_ptr<FrustumCuller> m_FrustumCuller;
@@ -110,11 +115,6 @@ private:
 	bool m_bShowCursor = false;
 	bool m_bCursorToggleReleased = true;
 	bool m_bShowBoundingBoxes = false;
-
-	const char* m_QuadTexturePath = "Textures/image_gamma_linear.png";
-	ID3D11ShaderResourceView* m_TextureResourceView;
-
-	bool m_bRight = true;
 };
 
 #endif

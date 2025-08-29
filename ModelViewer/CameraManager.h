@@ -42,6 +42,8 @@ public:
 	const CameraSettings& GetCameraSettings() const { return m_CameraSettings; }
 	void SetCameraSpeed(float NewCameraSpeed) { m_CameraSettings.CameraSpeed = NewCameraSpeed; }
 
+	void GetInverseViewMatrix(DirectX::XMMATRIX& Matrix) { Matrix = m_InverseView; }
+	DirectX::XMMATRIX GetInverseViewMatrix() const { return m_InverseView; }
 	void GetInverseProjMatrix(DirectX::XMMATRIX& Matrix) { Matrix = m_InverseProj; }
 	DirectX::XMMATRIX GetInverseProjMatrix() const { return m_InverseProj; }
 
@@ -82,6 +84,7 @@ private:
 	DirectX::XMMATRIX m_PrevJitteredProjMatrix;
 	DirectX::XMMATRIX m_CurrJitteredViewProjMatrix;
 	DirectX::XMMATRIX m_PrevJitteredViewProjMatrix;
+	DirectX::XMMATRIX m_InverseView;
 	DirectX::XMMATRIX m_InverseProj;
 
 	CameraSettings m_CameraSettings;

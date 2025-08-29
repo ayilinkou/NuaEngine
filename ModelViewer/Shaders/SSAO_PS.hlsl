@@ -1,10 +1,9 @@
 #include "Common.hlsl"
 #include "GlobalCBuffer.hlsl"
 
-Texture2D ScreenTexture : register(t0);
-Texture2D DepthTexture : register(t1);
-Texture2D NormalTexture : register(t2);
-Texture2D NoiseTexture : register(t3);
+Texture2D DepthTexture : register(t0);
+Texture2D NormalTexture : register(t1);
+Texture2D NoiseTexture : register(t2);
 
 cbuffer SSAOBuffer : register(b1)
 {
@@ -42,7 +41,7 @@ float4 main(PS_In p) : SV_TARGET
     for (int i = 0; i < KERNEL_SIZE; ++i)
     {
         // from tangent to view space
-        float3 SampleOffset = mul(SampleKernel[i], TBN);
+        float3 SampleOffset = mul(SampleKernel[i].xyz, TBN);
         
         // view to UV space
         float4 SampleView = float4(ViewPos.xyz + SampleOffset * Radius, 1.f);

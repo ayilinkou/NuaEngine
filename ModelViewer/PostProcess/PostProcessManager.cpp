@@ -150,7 +150,8 @@ bool PostProcessManager::Init(std::shared_ptr<Profiler> pProfiler, std::shared_p
 	}
 
 	// this is the order the post processes will be carried out in
-	m_PostProcesses.emplace_back(std::make_unique<PostProcessSSAO>(bSSAOActive, SSAOData));
+	m_pSSAO = std::make_unique<PostProcessSSAO>(bSSAOActive, SSAOData); // calculated just before lighting pass, not part of normal post process chain
+
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessFog>(bFogActive, FogData));
 	m_PostProcesses.emplace_back(std::make_unique<PostProcessTemporalAA>(bTAAActive, TAAData, pCameraManager));
 	m_pTAA = m_PostProcesses.back().get();

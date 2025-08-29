@@ -12,6 +12,7 @@
 #include "Common.h"
 #include "Camera.h"
 #include "InstancedShader.h"
+#include "DeferredShader.h"
 #include "Model.h"
 #include "Light.h"
 #include "ResourceManager.h"
@@ -40,7 +41,6 @@ Application::Application()
 	m_FrameIndex = 0u;
 	m_AppTime = 0.0;
 	m_hWnd = {};
-	m_TextureResourceView = {};
 }
 
 bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
@@ -68,6 +68,10 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	m_InstancedShader = std::make_unique<InstancedShader>();
 	bResult = m_InstancedShader->Initialise(m_Graphics->GetDevice());
+	assert(bResult);
+
+	m_DeferredShader = std::make_unique<DeferredShader>();
+	bResult = m_DeferredShader->Initialise(m_Graphics->GetDevice());
 	assert(bResult);
 
 	m_BoxRenderer = std::make_unique<BoxRenderer>();
@@ -109,7 +113,6 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 		}
 	}
 
-	m_TextureResourceView = static_cast<ID3D11ShaderResourceView*>(ResourceManager::GetSingletonPtr()->LoadTexture(m_QuadTexturePath));
 
 	return true;
 }
@@ -120,15 +123,14 @@ void Application::Shutdown()
 
 	m_Skybox.reset();
 	m_InstancedShader.reset();
+	m_DeferredShader.reset();
 	m_Landscape.reset();
 	m_FrustumCuller.reset();
 	m_BoxRenderer.reset();
 	m_CameraManager.reset();
 	m_PostProcessManager.reset();
 
-	ResourceManager::GetSingletonPtr()->UnloadTexture(m_QuadTexturePath);
 	ResourceManager::GetSingletonPtr()->Shutdown();
-	m_TextureResourceView = nullptr;
 
 	if (m_Graphics)
 	{
@@ -162,26 +164,6 @@ bool Application::Tick()
 	// frame time can differ significantly depending on if ImGui windows are shown
 	std::cout << m_Profiler->GetRenderStats().FrameTime << std::endl;
 
-	{
-		// temp while testing how well motion vectors and color clamping are working for TAA
-		const auto& Pos = m_GameObjects[3]->GetPosition();
-		float BoundaryX = 5.f;
-
-		if (Pos.x > BoundaryX)
-		{
-			m_GameObjects[3]->SetPosition(BoundaryX, Pos.y, Pos.z);
-			m_bRight = false;
-		}
-		else if (Pos.x < -BoundaryX)
-		{
-			m_GameObjects[3]->SetPosition(-BoundaryX, Pos.y, Pos.z);
-			m_bRight = true;
-		}
-
-		float Offset = m_bRight ? 1.f : -1.f;
-		m_GameObjects[3]->SetPosition(Pos.x + Offset * (float)m_DeltaTime, Pos.y, Pos.z);
-	}*/
-
 	UpdateGlobalConstantBuffer();
 
 	bool Result = Render();
@@ -195,8 +177,6 @@ bool Application::Tick()
 
 bool Application::Render()
 {			
-	bool Result;
-	
 	// set first post process render target here
 	bool DrawingForward = false; // true if drawing to RTV2 or from SRV1, false if drawing to RTV1 or from SRV2
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> CurrentRTV = m_Graphics->m_PostProcessRTVFirst;
@@ -207,12 +187,22 @@ bool Application::Render()
 	m_Graphics->BeginScene(0.f, 0.f, 0.f, 1.f);
 	m_Graphics->GetDeviceContext()->PSSetShaderResources(0u, 1u, NullSRVs);
 
-	FALSE_IF_FAILED(RenderScene());
-	//FALSE_IF_FAILED(RenderTexture(m_TextureResourceView));
+	CullModels();
+
+	RenderGeometryPass();
+	RenderLightingPass(); // lighting pass needs to read from g buffer, so drawing direction will be flipped
+	DrawingForward = !DrawingForward;
+
+	RenderTransparencyPass();
+
+	if (m_Skybox.get())
+	{
+		m_Skybox->Render(DrawingForward ? SecondaryRTV : CurrentRTV);
+	}
 	
 	// apply post processes (if any) and keep track of which shader resource view is the latest
 	DrawingForward = !DrawingForward;
-	unsigned int Stride, Offset;
+	UINT Stride, Offset;
 	Stride = IPostProcess::GetQuadVertexBufferStride();
 	Offset = 0u;
 	m_Graphics->GetDeviceContext()->IASetVertexBuffers(0u, 1u, IPostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
@@ -220,7 +210,7 @@ bool Application::Render()
 	m_Graphics->GetDeviceContext()->IASetInputLayout(IPostProcess::GetQuadInputLayout().Get());
 	m_Graphics->GetDeviceContext()->IASetIndexBuffer(IPostProcess::GetQuadIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0u);
 	m_Graphics->GetDeviceContext()->VSSetShader(IPostProcess::GetQuadVertexShader(), nullptr, 0u);
-	m_Graphics->DisableDepthWriteAlwaysPass(); // simpler for now but might need to refactor when wanting to use depth data in post processes
+	m_Graphics->DisableDepthWriteAlwaysPass();
 	ApplyPostProcesses(CurrentRTV, SecondaryRTV, CurrentSRV, SecondarySRV, DrawingForward);
 
 	// set back buffer as render target
@@ -277,9 +267,8 @@ bool Application::Render()
 	return true;
 }
 
-bool Application::RenderScene()
+void Application::RenderGeometryPass()
 {
-
 	m_Graphics->EnableDepthWrite();
 	ID3D11RenderTargetView* RTVs[3] = { m_Graphics->m_PostProcessRTVFirst.Get(), m_Graphics->GetNormalRTV().Get(), m_Graphics->GetVelocityRTV().Get() };
 	m_Graphics->GetDeviceContext()->OMSetRenderTargets(3u, RTVs, m_Graphics->GetDepthStencilView());
@@ -289,18 +278,79 @@ bool Application::RenderScene()
 		m_Landscape->Render();
 	}
 
-	RenderModels();
-
-	if (m_Skybox.get())
-	{
-		m_Skybox->Render();
-	}
-
-	return true;
+	RenderOpaqueModels();
 }
 
-void Application::RenderModels()
+void Application::RenderLightingPass()
+{
+	ID3D11DeviceContext* pContext = m_Graphics->GetDeviceContext();
+
+	// TODO: this is being copied
+	UINT Stride, Offset;
+	Stride = IPostProcess::GetQuadVertexBufferStride();
+	Offset = 0u;
+	pContext->IASetVertexBuffers(0u, 1u, IPostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pContext->IASetInputLayout(IPostProcess::GetQuadInputLayout().Get());
+	pContext->IASetIndexBuffer(IPostProcess::GetQuadIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0u);
+	pContext->VSSetShader(IPostProcess::GetQuadVertexShader(), nullptr, 0u);
+	m_Graphics->DisableDepthWriteAlwaysPass();
+
+	if (m_PostProcessManager->GetSSAO()->IsActive())
+	{
+		m_PostProcessManager->GetSSAO()->ApplyPostProcess(pContext, nullptr, nullptr);
+	}
+	
+	pContext->OMSetRenderTargets(1u, m_Graphics->m_PostProcessRTVSecond.GetAddressOf(), nullptr);
+	
+	DeferredShader::ActivateLightingPassShader(m_Graphics->GetDeviceContext());
+	ID3D11ShaderResourceView* SRVs[4] = { m_Graphics->m_PostProcessSRVFirst.Get(), m_Graphics->GetNormalSRV().Get(),
+		m_PostProcessManager->GetSSAO()->GetVisibilitySRV(), m_Graphics->GetDepthStencilSRV().Get()};
+	pContext->PSSetShaderResources(0u, 4u, SRVs);
+
+	m_Graphics->GetDeviceContext()->DrawIndexed(6u, 0u, 0);
+	m_Profiler->AddDrawCall();
+
+	pContext->PSSetShaderResources(0u, 8u, NullSRVs);
+}
+
+void Application::RenderTransparencyPass()
+{
+	ID3D11RenderTargetView* RTVs[3] = { m_Graphics->m_PostProcessRTVSecond.Get(), m_Graphics->GetNormalRTV().Get(), m_Graphics->GetVelocityRTV().Get() };
+	m_Graphics->GetDeviceContext()->OMSetRenderTargets(3u, RTVs, m_Graphics->GetDepthStencilView());
+	RenderTransparentModels();
+}
+
+void Application::RenderOpaqueModels()
 {	
+	std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
+	
+	for (const auto& ModelPair : Models)
+	{		
+		ModelData* pModelData = static_cast<ModelData*>(ModelPair.second->GetDataPtr());
+		if (!pModelData || pModelData->GetInstanceCount() == 0)
+			continue;
+		
+		pModelData->RenderOpaque();
+	}
+}
+
+void Application::RenderTransparentModels()
+{
+	std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
+
+	for (const auto& ModelPair : Models)
+	{
+		ModelData* pModelData = static_cast<ModelData*>(ModelPair.second->GetDataPtr());
+		if (!pModelData || pModelData->GetInstanceCount() == 0)
+			continue;
+
+		pModelData->RenderTransparent();
+	}
+}
+
+void Application::CullModels()
+{
 	std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
 
 	for (const auto& ModelPair : Models)
@@ -316,24 +366,6 @@ void Application::RenderModels()
 	{
 		Object->SendTransformToModels();
 	}
-	
-	for (const auto& ModelPair : Models)
-	{		
-		ModelData* pModelData = static_cast<ModelData*>(ModelPair.second->GetDataPtr());
-		if (!pModelData || pModelData->GetTransforms().empty())
-			continue;
-		
-		pModelData->UpdateBuffers();
-
-		// AABB frustum culling on transforms
-		m_FrustumCuller->DispatchShaderNew(pModelData->GetCullData());
-		
-		UINT InstanceCount = pModelData->GetInstanceCount();
-		if (InstanceCount == 0)
-			continue;
-		
-		pModelData->RenderOpaque();
-	}
 
 	for (const auto& ModelPair : Models)
 	{
@@ -341,34 +373,13 @@ void Application::RenderModels()
 		if (!pModelData || pModelData->GetTransforms().empty())
 			continue;
 
-		UINT InstanceCount = pModelData->GetInstanceCount();
-		if (InstanceCount == 0)
-			continue;
+		pModelData->UpdateBuffers();
 
-		pModelData->RenderTransparent();
+		// AABB frustum culling on transforms
+		m_FrustumCuller->DispatchShaderNew(pModelData->GetCullData());
+		m_Profiler->AddInstancesRendered(pModelData->GetModelPath(), pModelData->GetInstanceCount());
 	}
 }
-
-/*bool Application::RenderTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureView)
-{
-	unsigned int Stride, Offset;
-	Stride = sizeof(Vertex);
-	Offset = 0u;
-
-	m_Graphics->GetDeviceContext()->IASetVertexBuffers(0u, 1u, IPostProcess::GetQuadVertexBuffer().GetAddressOf(), &Stride, &Offset);
-	m_Graphics->GetDeviceContext()->IASetIndexBuffer(IPostProcess::GetQuadIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0u);
-	m_Graphics->GetDeviceContext()->VSSetShader(IPostProcess::GetQuadVertexShader(), nullptr, 0u);
-	
-	m_Graphics->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_Graphics->GetDeviceContext()->IASetInputLayout(m_Shader->GetInputLayout().Get());
-	m_Graphics->GetDeviceContext()->PSSetShader(IPostProcess::GetEmptyPostProcess()->GetPixelShader().Get(), nullptr, 0u);
-	m_Graphics->GetDeviceContext()->PSSetShaderResources(0, 1, TextureView.GetAddressOf());
-
-	m_Graphics->GetDeviceContext()->DrawIndexed(6u, 0u, 0);
-	m_Profiler->AddDrawCall();
-
-	return true;
-}*/
 
 void Application::RenderImGui()
 {
@@ -376,7 +387,8 @@ void Application::RenderImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGuiManager::RenderPostProcessWindow(m_Profiler->GetRenderStats().PostProcessPipelineTime, m_PostProcessManager->GetPostProcesses());
+	ImGuiManager::RenderPostProcessWindow(m_Profiler->GetRenderStats().PostProcessPipelineTime, m_PostProcessManager->GetPostProcesses(),
+		m_PostProcessManager->GetSSAO());
 	ImGuiManager::RenderWorldHierarchyWindow();
 	ImGuiManager::RenderCamerasWindow(m_CameraManager);
 	ImGuiManager::RenderStatsWindow(m_Profiler->GetRenderStats());
@@ -419,6 +431,7 @@ void Application::UpdateGlobalConstantBuffer()
 	ActiveCamera->GetViewProjMatrix(NewGlobalCBuffer.CameraData.CurrViewProj);
 	m_CameraManager->GetCurrJitteredProjMatrix(NewGlobalCBuffer.CameraData.CurrProjJittered);
 	m_CameraManager->GetCurrJitteredViewProjMatrix(NewGlobalCBuffer.CameraData.CurrViewProjJittered);
+	m_CameraManager->GetInverseViewMatrix(NewGlobalCBuffer.CameraData.InverseView);
 	m_CameraManager->GetInverseProjMatrix(NewGlobalCBuffer.CameraData.InverseProj);
 	m_CameraManager->ExtractFrustumPlanes(NewGlobalCBuffer.CameraData.FrustumPlanes);
 	NewGlobalCBuffer.CameraData.ActiveCameraPos = ActiveCamera->GetPosition();

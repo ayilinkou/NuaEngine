@@ -91,9 +91,7 @@ void TessellatedPlane::Render(const std::shared_ptr<CameraManager>& CamManager)
 	DeviceContext->PSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 	DeviceContext->PSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
 
-	DeviceContext->Begin(pGraphics->GetPipelineStatsQuery().Get());
 	DeviceContext->DrawIndexedInstancedIndirect(m_ArgsBuffer.Get(), 0u);
-	DeviceContext->End(pGraphics->GetPipelineStatsQuery().Get());
 	m_Profiler->AddDrawCall();
 
 	m_Profiler->AddInstancesRendered("Tessellated Plane chunks", m_pLandscape->m_ChunkInstanceCount);

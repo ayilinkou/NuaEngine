@@ -9,6 +9,7 @@
 #include "CameraManager.h"
 #include "Profiler.h"
 #include "Camera.h"
+#include "PostProcess/PostProcessSSAO.h"
 
 static int s_SelectedId = -1;
 
@@ -24,22 +25,42 @@ ImGuiManager::~ImGuiManager()
 	ImGui::DestroyContext();
 }
 
-void ImGuiManager::RenderPostProcessWindow(double PipelineTime, std::vector<std::unique_ptr<IPostProcess>>& PostProcesses)
+void ImGuiManager::RenderPostProcessWindow(double PipelineTime, std::vector<std::unique_ptr<IPostProcess>>& PostProcesses, PostProcessSSAO* pSSAO)
 {
 	Application* pApp = Application::GetSingletonPtr();
 	
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-	if (ImGui::Begin("Post Processes", nullptr, ImGuiWindowFlags_NoMove) && !PostProcesses.empty())
+	if (ImGui::Begin("Post Processes", nullptr, ImGuiWindowFlags_NoMove))
 	{
+		ImGui::PushID(0);
+		
+		bool bPreActive = pSSAO->GetIsActive();
+		bool bPostActive = bPreActive;
+		ImGui::Checkbox("", &bPostActive);
+		if (bPreActive != bPostActive)
+		{
+			bPostActive ? pSSAO->Activate() : pSSAO->Deactivate();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::CollapsingHeader(pSSAO->GetName().c_str()))
+		{
+			pSSAO->RenderControls();
+		}
+
 		for (int i = 0; i < PostProcesses.size(); i++)
 		{
-			if (i != 0)
+			ImGui::Dummy(ImVec2(0.f, 10.f));
+			ImGui::PushID(i + 1);
+
+			bPreActive = PostProcesses[i]->GetIsActive();
+			bPostActive = bPreActive;
+			ImGui::Checkbox("", &bPostActive);
+			if (bPreActive != bPostActive)
 			{
-				ImGui::Dummy(ImVec2(0.f, 10.f));
+				bPostActive ? PostProcesses[i]->Activate() : PostProcesses[i]->Deactivate();
 			}
 
-			ImGui::PushID(i);
-			ImGui::Checkbox("", &PostProcesses[i]->GetIsActive());
 			ImGui::SameLine();
 			if (ImGui::CollapsingHeader(PostProcesses[i]->GetName().c_str()))
 			{
@@ -47,6 +68,7 @@ void ImGuiManager::RenderPostProcessWindow(double PipelineTime, std::vector<std:
 			}
 			ImGui::PopID();
 		}
+		ImGui::PopID();
 	}
 
 	ImGui::Dummy(ImVec2(0.f, 10.f));
@@ -59,7 +81,7 @@ void ImGuiManager::RenderPostProcessWindow(double PipelineTime, std::vector<std:
 		}
 	}
 
-	ImGui::Text("Post process pipeline time: %.3f ms", PipelineTime);
+	ImGui::Text("Post process pipeline time: %.3f ms", PipelineTime); // this does not include SSAO
 	ImGui::End();
 }
 
