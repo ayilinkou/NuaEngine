@@ -8,7 +8,8 @@ PostProcessTemporalAA::PostProcessTemporalAA(bool bActive, PostProcessData::Temp
 {
 	HRESULT hResult;
 	Microsoft::WRL::ComPtr<ID3D11Resource> TexResource;
-	Graphics::GetSingletonPtr()->m_PostProcessSRVFirst->GetResource(&TexResource);
+	auto& SRV = Graphics::GetSingletonPtr()->m_PostProcessSRVFirst;
+	SRV->GetResource(&TexResource);
 	assert(TexResource.Get());
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> PostProcessTexture;
