@@ -138,7 +138,8 @@ void Skybox::Render()
 	UINT Offsets[] = { 0u };
 
 	ID3D11DeviceContext* DeviceContext = Graphics::GetSingletonPtr()->GetDeviceContext();
-	DeviceContext->OMSetRenderTargets(1u, Graphics::GetSingletonPtr()->m_PostProcessRTVFirst.GetAddressOf(), nullptr);
+	Graphics* pGraphics = Graphics::GetSingletonPtr();
+	DeviceContext->OMSetRenderTargets(1u, pGraphics->m_PostProcessRTVFirst.GetAddressOf(), pGraphics->GetDepthStencilView());
 	DeviceContext->IASetInputLayout(m_InputLayout.Get());
 	DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	DeviceContext->IASetVertexBuffers(0u, 1u, m_VertexBuffer.GetAddressOf(), Strides, Offsets);
@@ -148,7 +149,7 @@ void Skybox::Render()
 	DeviceContext->PSSetShader(m_PixelShader, nullptr, 0u);
 	DeviceContext->PSSetShaderResources(0u, 1u, m_SRV.GetAddressOf());
 
-	Graphics::GetSingletonPtr()->DisableDepthWriteAlwaysPass();
+	Graphics::GetSingletonPtr()->DisableDepthWritePassLessEqual();
 	Graphics::GetSingletonPtr()->SetRasterStateBackFaceCull(true);
 
 	HRESULT hResult;

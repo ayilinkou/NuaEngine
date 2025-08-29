@@ -227,6 +227,10 @@ bool Graphics::Initialise(int ScreenWidth, int ScreenHeight, bool VSync, HWND hw
 	ASSERT_NOT_FAILED(m_Device->CreateDepthStencilState(&DepthStencilDesc, &m_DepthStencilStateWriteDisabledAlwaysPass));
 	m_DepthStencilStateWriteDisabledAlwaysPass->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen("Depth stencil state write disabled always pass"), "Depth stencil state write disabled always pass");
 
+	DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	ASSERT_NOT_FAILED(m_Device->CreateDepthStencilState(&DepthStencilDesc, &m_DepthStencilStateWriteDisabledPassLessEqual));
+	NAME_D3D_RESOURCE(m_DepthStencilStateWriteDisabledPassLessEqual, "Depth stencil state write disabled always pass");
+
 	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteEnabled.Get(), 1);
 
 	DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -425,6 +429,7 @@ void Graphics::Shutdown()
 	m_DepthStencilStateWriteEnabled.Reset();
 	m_DepthStencilStateWriteDisabled.Reset();
 	m_DepthStencilStateWriteDisabledAlwaysPass.Reset();
+	m_DepthStencilStateWriteDisabledPassLessEqual.Reset();
 	m_DepthStencilView.Reset();
 	m_BlendStateOpaque.Reset();
 	m_BlendStateTransparent.Reset();
@@ -497,17 +502,22 @@ void Graphics::SetBackBufferRenderTarget()
 
 void Graphics::EnableDepthWrite()
 {
-	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteEnabled.Get(), 1);
+	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteEnabled.Get(), 1u);
 }
 
 void Graphics::DisableDepthWrite()
 {
-	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteDisabled.Get(), 1);
+	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteDisabled.Get(), 1u);
 }
 
 void Graphics::DisableDepthWriteAlwaysPass()
 {
-	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteDisabledAlwaysPass.Get(), 1);
+	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteDisabledAlwaysPass.Get(), 1u);
+}
+
+void Graphics::DisableDepthWritePassLessEqual()
+{
+	m_DeviceContext->OMSetDepthStencilState(m_DepthStencilStateWriteDisabledPassLessEqual.Get(), 1u);
 }
 
 void Graphics::EnableBlending()

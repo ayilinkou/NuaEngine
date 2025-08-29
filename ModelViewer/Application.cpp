@@ -279,10 +279,6 @@ bool Application::Render()
 
 bool Application::RenderScene()
 {
-	if (m_Skybox.get())
-	{
-		m_Skybox->Render(); // this should probably be rendered last to reduce overdraw
-	}
 
 	m_Graphics->EnableDepthWrite();
 	ID3D11RenderTargetView* RTVs[3] = { m_Graphics->m_PostProcessRTVFirst.Get(), m_Graphics->GetNormalRTV().Get(), m_Graphics->GetVelocityRTV().Get() };
@@ -294,7 +290,12 @@ bool Application::RenderScene()
 	}
 
 	RenderModels();
-	
+
+	if (m_Skybox.get())
+	{
+		m_Skybox->Render();
+	}
+
 	return true;
 }
 

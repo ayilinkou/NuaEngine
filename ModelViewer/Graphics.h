@@ -98,6 +98,7 @@ public:
 	void EnableDepthWrite();
 	void DisableDepthWrite();
 	void DisableDepthWriteAlwaysPass();
+	void DisableDepthWritePassLessEqual();
 	void EnableBlending();
 	void DisableBlending();
 	void ResetViewport();
@@ -123,6 +124,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilStateWriteEnabled;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilStateWriteDisabled;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilStateWriteDisabledAlwaysPass;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilStateWriteDisabledPassLessEqual;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_DepthStencilSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_NormalSRV;
