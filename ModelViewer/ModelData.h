@@ -36,6 +36,7 @@ public:
 	bool Initialise(ID3D11Device* Device, ID3D11DeviceContext* DeviceContext, const std::string& ModelFilename, const std::string& TexturesPath);
 	void Shutdown();
 
+	void ClearForCulling();
 	void RenderOpaque();
 	void RenderTransparent();
 

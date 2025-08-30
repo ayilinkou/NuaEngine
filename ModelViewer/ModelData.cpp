@@ -46,6 +46,12 @@ void ModelData::Shutdown()
 	Reset();
 }
 
+void ModelData::ClearForCulling()
+{
+	m_Transforms.clear();
+	m_InstanceCount = 0u;
+}
+
 void ModelData::RenderOpaque()
 {
 	if (m_OpaqueMeshes.empty())

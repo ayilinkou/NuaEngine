@@ -416,7 +416,7 @@ void Application::CullModels()
 		if (!pModelData)
 			continue;
 
-		pModelData->GetTransforms().clear();
+		pModelData->ClearForCulling();
 	}
 
 	for (auto& Object : m_GameObjects)
