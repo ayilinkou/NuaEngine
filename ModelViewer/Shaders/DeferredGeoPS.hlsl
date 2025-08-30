@@ -41,7 +41,8 @@ PS_Out main(PS_In p)
 	
     if (Mat.DiffuseSRV >= 0)
     {
-        o.Color = float4(diffuseTexture.Sample(LinearSampler, p.TexCoord).rgb, 1.f);
+        o.Color = diffuseTexture.Sample(LinearSampler, p.TexCoord);
+        clip(o.Color.a < 1.f ? -1.f : 1.f);
     }
     else
     {
