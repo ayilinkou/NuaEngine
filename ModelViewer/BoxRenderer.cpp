@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <algorithm>
 
 #include "d3dcompiler.h"
@@ -79,7 +81,6 @@ void BoxRenderer::Render()
 
 	for (UINT i = 0; i < DrawCallsNeeded; i++)
 	{
-#undef min
 		UINT InstanceCount = std::min(InstancesLeft, (UINT)MAX_INSTANCE_COUNT);
 
 		UpdateCornersBuffer(InstanceOffset);

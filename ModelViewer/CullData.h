@@ -24,14 +24,14 @@ struct CullTransformData;
 class CullData
 {
 public:	
-	CullData() {}
+	CullData();
 	void Init(AABB* BBox, UINT* OutInstanceCount, std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs, const std::string* Name,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>* OutCulledTransformsSRV, std::vector<CullTransformData>* Transforms);
 	void InitGrass(AABB* BBox, UINT* OutInstanceCount, UINT* OutInstanceCountLOD, std::vector<ID3D11UnorderedAccessView*>* ArgsBufferUAVs,
 		const std::string* Name);
 
 	bool CreateBuffers();
-	bool CreateViews(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>* OutCulledTransformsSRV);
+	bool CreateViews();
 	void UpdateBuffers();
 
 	UINT GetSentInstanceCount() const { return (UINT)m_Transforms->size(); }
@@ -42,6 +42,9 @@ public:
 	std::vector<ID3D11UnorderedAccessView*>* GetArgsBufferUAVs() { return m_ArgsBufferUAVs; }
 
 private:
+	bool GrowBuffersToFit();
+
+private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_TransformsSRV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledTransformsUAV;
 	std::array<UINT*, 2> m_OutInstanceCounts { nullptr, nullptr };
@@ -49,10 +52,14 @@ private:
 	std::vector<ID3D11UnorderedAccessView*>* m_ArgsBufferUAVs;
 	std::vector<CullTransformData>* m_Transforms;
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>* m_OutCulledTransformsSRV = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_TransformsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledTransformsBuffer;
 
 	const std::string* m_Name;
+
+	static const UINT ms_INITIAL_BUFFER_INSTANCE_COUNT;
+	UINT m_BufferSize;
 };
 
 #endif
