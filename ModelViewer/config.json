@@ -3,8 +3,8 @@
     {
       "type": "Bloom",
       "active": false,
-      "luminanceThreshold": 1.0,
-      "BlurStrength": 10,
+      "luminanceThreshold": 2.5,
+      "blurStrength": 28,
       "sigma": 8.0
     },
     {
@@ -22,7 +22,7 @@
       "active": true,
       "contrast": 1.0,
       "brightness": 0.0,
-      "saturation": 1.15
+      "saturation": 1.0
     },
     {
       "type": "Fog",
@@ -54,7 +54,7 @@
     },
     {
       "type": "TAA",
-      "active": true,
+      "active": false,
       "alpha": 0.9,
       "bUseMotionVectors": true,
       "bUseColorClamping": true

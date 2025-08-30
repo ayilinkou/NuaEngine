@@ -45,6 +45,8 @@ struct PointLightData
 	DirectX::XMFLOAT3 LightPos;
 	float SpecularPower;
 	DirectX::XMFLOAT3 LightColor;
+	float Intensity;
+	DirectX::XMFLOAT3 Padding;
 };
 
 struct DirectionalLightData
@@ -52,7 +54,7 @@ struct DirectionalLightData
 	DirectX::XMFLOAT3 LightDir;
 	float SpecularPower;
 	DirectX::XMFLOAT3 LightColor;
-	float Padding = 0.f;
+	float Intensity;
 };
 
 struct LightingBuffer

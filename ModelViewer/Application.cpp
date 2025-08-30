@@ -80,6 +80,7 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	m_Skybox = std::make_unique<Skybox>();
 	bResult = m_Skybox->Init(m_CameraManager, m_Profiler);
+	DirectX::XMFLOAT3 SkyColor = m_Skybox->GetAverageSkyColor();
 	assert(bResult);
 
 	UINT NumChunks = 16u;
@@ -101,11 +102,31 @@ bool Application::Initialise(int ScreenWidth, int ScreenHeight, HWND hWnd)
 
 	m_GameObjects.emplace_back(std::make_shared<GameObject>());
 	m_GameObjects.back()->SetName("Directional Light");
-	m_GameObjects.back()->AddComponent(std::make_shared<DirectionalLight>());
+	auto DirLight = std::make_shared<DirectionalLight>();
+	DirLight->SetDiffuseColor(SkyColor.x, SkyColor.y, SkyColor.z);
+	m_GameObjects.back()->AddComponent(DirLight);
 
-	for (int i = 0; i < 5; i++)
+	for (size_t i = 0; i < 1; i++)
 	{
-		for (int j = 0; j < 5; j++)
+		m_GameObjects.emplace_back(std::make_shared<GameObject>());
+		m_GameObjects.back()->SetName("Point Light_" + std::to_string(i));
+		auto PLight = std::make_shared<PointLight>();
+		PLight->SetIntensity(2.f);
+		m_GameObjects.back()->AddComponent(PLight);
+		m_GameObjects.back()->SetPosition(1.f, 3.f, 1.f);
+		//m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/sphere.obj"));
+		//auto& m = m_GameObjects.back()->GetModels()[0];
+		//m->SetScale(0.1f); // TODO: still being set to 1.0 in ImGui for some reason, investigate more
+	}
+
+	m_GameObjects.emplace_back(std::make_shared<GameObject>());
+	m_GameObjects.back()->SetPosition(0.f, 0.f, 0.f);
+	m_GameObjects.back()->SetName("Car");
+	m_GameObjects.back()->AddComponent(std::make_shared<Model>("Models/american_fullsize_73/scene.gltf", "Models/american_fullsize_73/"));
+
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
 		{
 			m_GameObjects.emplace_back(std::make_shared<GameObject>());
 			m_GameObjects.back()->SetPosition((float)i * 2.f, 15.f, (float)j * 2.f);

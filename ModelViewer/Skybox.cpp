@@ -261,6 +261,7 @@ void Skybox::CalculateAverageSkyColor(const std::vector<std::vector<BYTE>>& Text
 	DirectX::XMFLOAT3 TotalColor = { 0.f, 0.f, 0.f };
 	size_t TotalPixels = 0;
 
+	// TODO: only sample upper hemisphere
 	for (const auto& Face : TextureData)
 	{
 		for (size_t i = 0; i < Face.size(); i += 4)

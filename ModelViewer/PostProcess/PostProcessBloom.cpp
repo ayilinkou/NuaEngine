@@ -71,7 +71,7 @@ void PostProcessBloom::RenderControls()
 {
 	bool bDirty = false;
 
-	if (ImGui::SliderFloat("Luminance Threshold", &m_CurrentSettings.LuminanceThreshold, 0.f, 1.f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+	if (ImGui::SliderFloat("Luminance Threshold", &m_CurrentSettings.LuminanceThreshold, 0.f, 5.f, "%.2f"))
 		bDirty = true;
 
 	if (bDirty)

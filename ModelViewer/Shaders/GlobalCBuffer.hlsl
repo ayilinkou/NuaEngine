@@ -31,6 +31,8 @@ struct PointLight
     float3 LightPos;
     float SpecularPower;
     float3 LightColor;
+    float Intensity;
+    float3 Padding;
 };
 
 struct DirectionalLight
@@ -38,7 +40,7 @@ struct DirectionalLight
     float3 LightDir;
     float SpecularPower;
     float3 LightColor;
-    float Padding;
+    float Intensity;
 };
 
 struct LightData

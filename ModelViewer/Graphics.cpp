@@ -612,6 +612,7 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 		m_GlobalCBufferData.LightData.DirLights[NumDirLights].LightColor = DirLights[NumDirLights]->GetDiffuseColor();
 		m_GlobalCBufferData.LightData.DirLights[NumDirLights].LightDir = DirLights[NumDirLights]->GetDirection();
 		m_GlobalCBufferData.LightData.DirLights[NumDirLights].SpecularPower = DirLights[NumDirLights]->GetSpecularPower();
+		m_GlobalCBufferData.LightData.DirLights[NumDirLights].Intensity = DirLights[NumDirLights]->GetIntensity();
 
 		NumDirLights++;
 		continue;
@@ -626,6 +627,7 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 		m_GlobalCBufferData.LightData.PointLights[NumPointLights].LightPos = PointLights[NumPointLights]->GetPosition();
 		m_GlobalCBufferData.LightData.PointLights[NumPointLights].Radius = PointLights[NumPointLights]->GetRadius();
 		m_GlobalCBufferData.LightData.PointLights[NumPointLights].SpecularPower = PointLights[NumPointLights]->GetSpecularPower();
+		m_GlobalCBufferData.LightData.PointLights[NumPointLights].Intensity = PointLights[NumPointLights]->GetIntensity();
 
 		NumPointLights++;
 		continue;

@@ -16,11 +16,13 @@ public:
 
 	virtual void RenderControls() override;
 
-	void SetDiffuseColor(float r, float g, float b);
-	void SetSpecularPower(float Power);
+	void SetDiffuseColor(float r, float g, float b) { m_DiffuseColor = DirectX::XMFLOAT3(r, g, b); }
+	void SetSpecularPower(float Power) { m_SpecularPower = Power; }
+	void SetIntensity(float Intensity) { m_Intensity = Intensity; }
 
 	const DirectX::XMFLOAT3 GetDiffuseColor() const { return m_DiffuseColor; }
 	float GetSpecularPower() const { return m_SpecularPower; }
+	float GetIntensity() const { return m_Intensity; }
 	bool IsActive() const { return m_bActive; }
 	static std::vector<Light*>& GetLights() { return m_Lights; }
 
@@ -30,6 +32,7 @@ protected:
 private:
 	DirectX::XMFLOAT3 m_DiffuseColor;
 	float m_SpecularPower;
+	float m_Intensity;
 	bool m_bActive;
 
 	inline static std::vector<Light*> m_Lights;

@@ -234,7 +234,7 @@ float4 _CalcDirectionalLight(const in DirectionalLight DirLight, float3 PixelCol
     float4 Specular = float4(DirLight.LightColor, 1.f) * SpecularFactor * Reflectance;
     LightTotal += Specular;
 	
-    return LightTotal;
+    return LightTotal * DirLight.Intensity;
 }
 
 float4 CalcDirectionalLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
@@ -281,7 +281,7 @@ float4 _CalcPointLight(const in PointLight PLight, float3 PixelColor, float3 Wor
     float4 Specular = float4(PLight.LightColor, 1.f) * SpecularFactor * Reflectance;
     LightTotal += Specular * Attenuation;
 	
-    return LightTotal;
+    return LightTotal * PLight.Intensity;
 }
 
 float4 CalcPointLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
