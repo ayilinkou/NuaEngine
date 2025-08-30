@@ -5,13 +5,15 @@ Texture2D Heightmap : register(t0);
 
 cbuffer PlaneInfoBuffer : register(b1)
 {
-	float PlaneDimension;
-	float HeightDisplacement;
-	uint ChunkInstanceCount;
-	bool bVisualiseChunks;
-	float4x4 ChunkScaleMatrix;
-	uint GrassPerChunk;
-	float3 Padding;
+    float PlaneDimension;
+    float HeightDisplacement;
+    uint ChunkInstanceCount;
+    bool bVisualiseChunks;
+    float4x4 ChunkScaleMatrix;
+    uint GrassPerChunk;
+    float PlaneSpecular;
+    float GrassSpecular;
+    float Padding;
 };
 
 struct PS_In
@@ -29,7 +31,7 @@ struct PS_In
 struct PS_Out
 {
     float4 Color : SV_TARGET0;
-    float4 Normal : SV_TARGET1;
+    float4 NormalSpec : SV_TARGET1;
     float2 Velocity : SV_TARGET2;
 };
 
@@ -71,7 +73,7 @@ PS_Out main(PS_In p)
 		o.Color = lerp(BotColor, TopColor, Height);
     }
 	
-    o.Normal = float4(p.ViewNormal, 0.f);
+    o.NormalSpec = float4(normalize(p.ViewNormal), PlaneSpecular);
     o.Velocity = CalculateMotionVector(p.CurrClipPos, p.PrevClipPos);
     return o;
 }

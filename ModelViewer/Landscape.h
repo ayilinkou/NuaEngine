@@ -28,7 +28,9 @@ private:
 		BOOL bVisualiseChunks;
 		DirectX::XMMATRIX ChunkScaleMatrix;
 		UINT GrassPerChunk;
-		DirectX::XMFLOAT3 Padding;
+		float PlaneSpecular;
+		float GrassSpecular;
+		float Padding;
 	};
 
 public:
@@ -98,6 +100,8 @@ private:
 	UINT m_ChunkDimension;
 	UINT m_NumChunks;
 	UINT m_ChunkInstanceCount;
+	float m_PlaneSpecular;
+	float m_GrassSpecular;
 
 	std::shared_ptr<CameraManager> m_CameraManager;
 };

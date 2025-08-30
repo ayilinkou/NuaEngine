@@ -25,6 +25,8 @@ Landscape::Landscape(UINT ChunkDimension, float ChunkSize, float HeightDisplacem
 	m_bVisualiseChunks = false;
 	m_HeightmapSRV = nullptr;
 	m_ChunkInstanceCount = 0u;
+	m_PlaneSpecular = 1.f;
+	m_GrassSpecular = 1.f;
 	assert(m_NumChunks >= 0 && m_NumChunks <= MAX_PLANE_CHUNKS);
 }
 
@@ -187,6 +189,8 @@ void Landscape::UpdateBuffers()
 	LandscapeInfoCBufferPtr->bVisualiseChunks = m_bVisualiseChunks;
 	LandscapeInfoCBufferPtr->ChunkInstanceCount = m_ChunkInstanceCount;
 	LandscapeInfoCBufferPtr->GrassPerChunk = m_Grass->GetGrassPerChunk();
+	LandscapeInfoCBufferPtr->PlaneSpecular = m_PlaneSpecular;
+	LandscapeInfoCBufferPtr->GrassSpecular = m_GrassSpecular;
 	LandscapeInfoCBufferPtr->Padding = {};
 	LandscapeInfoCBufferPtr->ChunkScaleMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixScaling(m_ChunkSize, m_ChunkSize, m_ChunkSize));
 

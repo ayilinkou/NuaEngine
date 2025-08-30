@@ -118,8 +118,9 @@ void PostProcessSSAO::GenerateVisibilityTexture()
 	HRESULT hResult;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> VisTexture;
 	Graphics* pGraphics = Graphics::GetSingletonPtr();
-	constexpr UINT WIDTH = 1920u; // TODO: magic number
-	constexpr UINT HEIGHT = 1080u;
+	const auto& Dimensions = pGraphics->GetRenderTargetDimensions();
+	const UINT WIDTH = (UINT)Dimensions.first;
+	const UINT HEIGHT = (UINT)Dimensions.second;
 
 	D3D11_TEXTURE2D_DESC Desc = {};
 	Desc.Format = DXGI_FORMAT_R32_FLOAT;

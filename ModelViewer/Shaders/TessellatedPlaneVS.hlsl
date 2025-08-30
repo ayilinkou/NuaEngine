@@ -5,13 +5,15 @@ StructuredBuffer<CullTransformData> Transforms : register(t1);
 
 cbuffer PlaneInfoBuffer : register(b1)
 {
-	float PlaneDimension;
-	float HeightDisplacement;
-	uint ChunkInstanceCount;
-	bool bVisualiseChunks;
-	float4x4 ChunkScaleMatrix;
-	uint GrassPerChunk;
-	float3 Padding;
+    float PlaneDimension;
+    float HeightDisplacement;
+    uint ChunkInstanceCount;
+    bool bVisualiseChunks;
+    float4x4 ChunkScaleMatrix;
+    uint GrassPerChunk;
+    float PlaneSpecular;
+    float GrassSpecular;
+    float Padding;
 };
 
 struct VS_In

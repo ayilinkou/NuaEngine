@@ -141,6 +141,7 @@ void Grass::Render()
 	pContext->VSSetShaderResources(0u, 1u, &m_pLandscape->m_HeightmapSRV);
 
 	pContext->PSSetShader(m_PixelShader, nullptr, 0u);
+	pContext->PSSetConstantBuffers(1u, 1u, m_pLandscape->m_LandscapeInfoCBuffer.GetAddressOf());
 
 	ID3D11Buffer* NullBuffers[] = { nullptr };
 	pContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0u);

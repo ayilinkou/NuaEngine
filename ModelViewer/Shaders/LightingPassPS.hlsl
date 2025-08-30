@@ -26,7 +26,7 @@ float4 main(PS_In p) : SV_TARGET
     ViewPos /= ViewPos.w;
     float3 WorldPos = mul(ViewPos, GlobalBuffer.Camera.InverseView).xyz;
     float3 WorldNormal = normalize(mul(float4(ViewNormal, 0.f), GlobalBuffer.Camera.InverseView).xyz);
-    float3 PixelToCam = GlobalBuffer.Camera.ActiveCameraPos - WorldPos;
+    float3 PixelToCam = normalize(GlobalBuffer.Camera.ActiveCameraPos - WorldPos);
     
     float3 Light = float3(0.f, 0.f, 0.f);
     Light += CalcPointLights(Diffuse, WorldPos, WorldNormal, PixelToCam, Reflectance).rgb;

@@ -12,7 +12,9 @@ cbuffer PlaneInfoBuffer : register(b1)
 	bool bVisualiseChunks;
 	float4x4 ChunkScaleMatrix;
 	uint GrassPerChunk;
-	float3 Padding;
+    float PlaneSpecular;
+    float GrassSpecular;
+	float Padding;
 };
 
 cbuffer WindBuffer : register(b2)

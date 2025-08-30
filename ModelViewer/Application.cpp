@@ -226,36 +226,11 @@ bool Application::Render()
 	for (const std::shared_ptr<Camera>& c : m_CameraManager->GetCameras())
 	{
 		if (c->ShouldVisualiseFrustum() && c.get() != m_CameraManager->GetActiveCamera().get())
-		{
 			m_BoxRenderer->LoadFrustumCorners(c);
-		}
 	}
 
 	if (m_bShowBoundingBoxes)
-	{
-		// TODO: refactor this to also use the culled transforms
-		std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
-		for (const auto& ModelPair : Models)
-		{
-			ModelData* pModelData = static_cast<ModelData*>(ModelPair.second->GetDataPtr());
-			if (!pModelData)
-				continue;
-
-			for (const auto& t : pModelData->GetTransforms())
-			{
-				m_BoxRenderer->LoadBoxCorners(pModelData->GetBoundingBox(), DirectX::XMMatrixTranspose(t.CurrTransform)); // back to column major
-			}
-		}
-
-		if (m_Landscape->GetShouldRenderBBoxes())
-		{
-			const AABB& BBox = m_Landscape->GetBoundingBox();
-			for (const DirectX::XMFLOAT2& o : m_Landscape->GetChunkOffsets())
-			{
-				m_BoxRenderer->LoadBoxCorners(BBox, DirectX::XMMatrixTranslation(o.x, 0.f, o.y));
-			}
-		}
-	}
+		RenderBoundingBoxes();
 
 	m_BoxRenderer->Render();
 
@@ -346,6 +321,67 @@ void Application::RenderTransparentModels()
 			continue;
 
 		pModelData->RenderTransparent();
+	}
+}
+
+void Application::RenderBoundingBoxes()
+{
+	// TODO: refactor this to also use the culled transforms
+	std::unordered_map<std::string, std::unique_ptr<Resource>>& Models = ResourceManager::GetSingletonPtr()->GetModelsMap();
+	for (const auto& ModelPair : Models)
+	{
+		ModelData* pModelData = static_cast<ModelData*>(ModelPair.second->GetDataPtr());
+		if (!pModelData)
+			continue;
+
+		for (const auto& t : pModelData->GetTransforms())
+		{
+			m_BoxRenderer->LoadBoxCorners(pModelData->GetBoundingBox(), DirectX::XMMatrixTranspose(t.CurrTransform)); // back to column major
+		}
+	}
+
+	if (m_Landscape->GetShouldRenderBBoxes())
+	{
+		float Scale = m_Landscape->GetScale().x;
+		const AABB& BBox = m_Landscape->GetBoundingBox();
+		/*for (const CullTransformData& Data : m_Landscape->GetChunkTransforms())
+		{
+			auto m = DirectX::XMMatrixTranspose(Data.CurrTransform); // back to column major
+			m_BoxRenderer->LoadBoxCorners(BBox, m);
+
+			const AABB& GrassBBox = m_Landscape->GetGrass()->GetBoundingBox();
+			auto Origin = DirectX::XMVectorSet(0.f, 0.f, 0.f, 1.f / Scale);
+			DirectX::XMFLOAT3 ChunkOffset;
+			DirectX::XMStoreFloat3(&ChunkOffset, DirectX::XMVector4Transform(Origin, m));
+			for (const DirectX::XMFLOAT2& GrassData : m_Landscape->GetGrassOffsets())
+			{
+				auto WorldOffset = DirectX::XMMatrixTranslation(GrassData.x + ChunkOffset.x, 0.f, GrassData.y + ChunkOffset.z);
+				auto InverseScale = DirectX::XMMatrixScaling(1.f / Scale, 1.f / Scale, 1.f / Scale);
+				auto Final = DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(WorldOffset, InverseScale), m); // doesn't account for height displacement
+
+				m_BoxRenderer->LoadBoxCorners(GrassBBox, Final);
+			}
+		}*/
+
+		for (int i = 0; i < m_Landscape->GetChunkOffsets().size(); ++i)
+		{
+			const DirectX::XMFLOAT2& Data = m_Landscape->GetChunkOffsets()[i];
+			auto m = DirectX::XMMatrixMultiply(DirectX::XMMatrixScaling(Scale, 1.f, Scale), DirectX::XMMatrixTranslation(Data.x, 0.f, Data.y));
+			m_BoxRenderer->LoadBoxCorners(BBox, m);
+
+			const AABB& GrassBBox = m_Landscape->GetGrass()->GetBoundingBox();
+			auto Origin = DirectX::XMVectorSet(0.f, 0.f, 0.f, 1.f / Scale);
+			DirectX::XMFLOAT3 ChunkOffset;
+			DirectX::XMStoreFloat3(&ChunkOffset, DirectX::XMVector4Transform(Origin, m));
+			for (const DirectX::XMFLOAT2& GrassData : m_Landscape->GetGrassOffsets())
+			{
+				auto WorldOffset = DirectX::XMMatrixTranslation(GrassData.x + ChunkOffset.x, 0.f, GrassData.y + ChunkOffset.z);
+				auto InverseScale = DirectX::XMMatrixScaling(1.f / Scale, 1.f / Scale, 1.f / Scale);
+				auto Final = DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(WorldOffset, InverseScale), m); // works but everything is scaled, doesn't account for height displacement
+
+				m_BoxRenderer->LoadBoxCorners(GrassBBox, Final);
+			}
+		}
 	}
 }
 

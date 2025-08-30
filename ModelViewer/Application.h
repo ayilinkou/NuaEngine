@@ -77,6 +77,7 @@ private:
 	void RenderTransparencyPass();
 	void RenderOpaqueModels();
 	void RenderTransparentModels();
+	void RenderBoundingBoxes();
 	void CullModels();
 
 	// Depending on how many windows are open, this can actually have a significant cost to frame times
