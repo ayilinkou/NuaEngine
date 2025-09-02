@@ -585,6 +585,7 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 
 	std::vector<PointLight*> PointLights;
 	std::vector<DirectionalLight*> DirLights;
+	std::vector<SpotLight*> SpotLights;
 	for (Light* pLight : Light::GetLights())
 	{
 		if (pLight && pLight->IsActive())
@@ -602,6 +603,13 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 				DirLights.push_back(pDirLight);
 				continue;
 			}
+
+			SpotLight* pSpotLight = dynamic_cast<SpotLight*>(pLight);
+			if (pSpotLight)
+			{
+				SpotLights.push_back(pSpotLight);
+				continue;
+			}
 		}
 	}
 
@@ -609,7 +617,7 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 	for (int i = 0; i < DirLights.size(); i++)
 	{
 		assert(NumDirLights < MAX_POINT_LIGHTS);
-		m_GlobalCBufferData.LightData.DirLights[NumDirLights].LightColor = DirLights[NumDirLights]->GetDiffuseColor();
+		m_GlobalCBufferData.LightData.DirLights[NumDirLights].LightColor = DirLights[NumDirLights]->GetColor();
 		m_GlobalCBufferData.LightData.DirLights[NumDirLights].LightDir = DirLights[NumDirLights]->GetDirection();
 		m_GlobalCBufferData.LightData.DirLights[NumDirLights].SpecularPower = DirLights[NumDirLights]->GetSpecularPower();
 		m_GlobalCBufferData.LightData.DirLights[NumDirLights].Intensity = DirLights[NumDirLights]->GetIntensity();
@@ -623,7 +631,7 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 	for (int i = 0; i < PointLights.size(); i++)
 	{
 		assert(NumPointLights < MAX_POINT_LIGHTS);
-		m_GlobalCBufferData.LightData.PointLights[NumPointLights].LightColor = PointLights[NumPointLights]->GetDiffuseColor();
+		m_GlobalCBufferData.LightData.PointLights[NumPointLights].LightColor = PointLights[NumPointLights]->GetColor();
 		m_GlobalCBufferData.LightData.PointLights[NumPointLights].LightPos = PointLights[NumPointLights]->GetPosition();
 		m_GlobalCBufferData.LightData.PointLights[NumPointLights].Radius = PointLights[NumPointLights]->GetRadius();
 		m_GlobalCBufferData.LightData.PointLights[NumPointLights].SpecularPower = PointLights[NumPointLights]->GetSpecularPower();
@@ -633,6 +641,26 @@ void Graphics::UpdateGlobalConstantBuffer(const GlobalCBuffer& NewGlobalCBufferD
 		continue;
 	}
 	m_GlobalCBufferData.LightData.PointLightCount = NumPointLights;
+
+	int NumSpotLights = 0;
+	for (int i = 0; i < SpotLights.size(); i++)
+	{
+		assert(NumSpotLights < MAX_SPOT_LIGHTS);
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].LightColor = SpotLights[NumSpotLights]->GetColor();
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].LightPos = SpotLights[NumSpotLights]->GetPosition();
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].Radius = SpotLights[NumSpotLights]->GetRadius();
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].SpecularPower = SpotLights[NumSpotLights]->GetSpecularPower();
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].Intensity = SpotLights[NumSpotLights]->GetIntensity();
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].Dir = SpotLights[NumSpotLights]->GetDirection();
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].CosInnerAngle =
+			(float)cos(DirectX::XMConvertToRadians(SpotLights[NumSpotLights]->GetConeInnerAngle()));
+		m_GlobalCBufferData.LightData.SpotLights[NumSpotLights].CosOuterAngle =
+			(float)cos(DirectX::XMConvertToRadians(SpotLights[NumSpotLights]->GetConeOuterAngle()));
+
+		NumSpotLights++;
+		continue;
+	}
+	m_GlobalCBufferData.LightData.SpotLightCount = NumSpotLights;
 
 	HRESULT hResult;
 	D3D11_MAPPED_SUBRESOURCE MappedSubresource = {};

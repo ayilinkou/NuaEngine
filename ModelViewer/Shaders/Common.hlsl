@@ -225,13 +225,13 @@ float4 _CalcDirectionalLight(const in DirectionalLight DirLight, float3 PixelCol
 {
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 
-	float DiffuseFactor = saturate(dot(-DirLight.LightDir, WorldNormal));
-    float4 Diffuse = float4(DirLight.LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
+	float DiffuseFactor = saturate(dot(-DirLight.Dir, WorldNormal));
+    float4 Diffuse = float4(DirLight.Color, 1.f) * float4(PixelColor, 1.f) * DiffuseFactor;
     LightTotal += Diffuse;
 
-    float3 HalfwayVec = normalize(PixelToCam - DirLight.LightDir);
+    float3 HalfwayVec = normalize(PixelToCam - DirLight.Dir);
     float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), DirLight.SpecularPower);
-    float4 Specular = float4(DirLight.LightColor, 1.f) * SpecularFactor * Reflectance;
+    float4 Specular = float4(DirLight.Color, 1.f) * SpecularFactor * Reflectance;
     LightTotal += Specular;
 	
     return LightTotal * DirLight.Intensity;
@@ -254,7 +254,7 @@ float4 CalcDirectionalLightsSSS(float3 PixelColor, float3 WorldPos, float3 World
     for (int i = 0; i < GlobalBuffer.Lights.DirectionalLightCount; i++)
     {
         float3 AdjustedNormal = WorldNormal;
-        if (dot(-GlobalBuffer.Lights.DirLights[i].LightDir, AdjustedNormal) < 0.f)
+        if (dot(-GlobalBuffer.Lights.DirLights[i].Dir, AdjustedNormal) < 0.f)
         {
             AdjustedNormal = -WorldNormal;
         }
@@ -268,17 +268,17 @@ float4 _CalcPointLight(const in PointLight PLight, float3 PixelColor, float3 Wor
 {
     float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
 
-    float Distance = distance(WorldPos, PLight.LightPos);
+    float Distance = distance(WorldPos, PLight.Pos);
     float Attenuation = saturate(1.f - (Distance * Distance) / (PLight.Radius * PLight.Radius)); // less control than constant, linear and quadratic, but guaranteed to reach 0 past max radius
 	
-    float3 PixelToLight = normalize(PLight.LightPos - WorldPos);
+    float3 PixelToLight = normalize(PLight.Pos - WorldPos);
     float DiffuseFactor = saturate(dot(PixelToLight, WorldNormal));
-    float4 Diffuse = float4(PLight.LightColor, 1.f) * float4(PixelColor, 0.5f) * DiffuseFactor;
+    float4 Diffuse = float4(PLight.Color, 1.f) * float4(PixelColor, 1.f) * DiffuseFactor;
     LightTotal += Diffuse * Attenuation;
 		
     float3 HalfwayVec = normalize(PixelToCam + PixelToLight);
     float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), PLight.SpecularPower);
-    float4 Specular = float4(PLight.LightColor, 1.f) * SpecularFactor * Reflectance;
+    float4 Specular = float4(PLight.Color, 1.f) * SpecularFactor * Reflectance;
     LightTotal += Specular * Attenuation;
 	
     return LightTotal * PLight.Intensity;
@@ -301,7 +301,7 @@ float4 CalcPointLightsSSS(float3 PixelColor, float3 WorldPos, float3 WorldNormal
     for (int i = 0; i < GlobalBuffer.Lights.PointLightCount; i++)
     {
         float3 AdjustedNormal = WorldNormal;
-        float3 PixelToLight = normalize(GlobalBuffer.Lights.PointLights[i].LightPos - WorldPos);
+        float3 PixelToLight = normalize(GlobalBuffer.Lights.PointLights[i].Pos - WorldPos);
         if (dot(PixelToLight, AdjustedNormal) < 0.f)
         {
             AdjustedNormal = -WorldNormal;
@@ -309,6 +309,62 @@ float4 CalcPointLightsSSS(float3 PixelColor, float3 WorldPos, float3 WorldNormal
 		
 		LightTotal += _CalcPointLight(GlobalBuffer.Lights.PointLights[i], PixelColor, WorldPos, AdjustedNormal, PixelToCam, Reflectance);
     }
+    return LightTotal;
+}
+
+float4 _CalcSpotLight(const in SpotLight SpotLight, float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+
+    float Distance = distance(WorldPos, SpotLight.Pos);
+    float DistAttenuation = saturate(1.f - (Distance * Distance) / (SpotLight.Radius * SpotLight.Radius));
+    
+    float3 LightToPixel = normalize(WorldPos - SpotLight.Pos);
+    float CosToPixel = dot(LightToPixel, SpotLight.Dir);
+    float Denom = max(SpotLight.CosInnerAngle - SpotLight.CosOuterAngle, 1e-5f); // guards against dividing by zero
+    float ConeAttenuation = saturate((CosToPixel - SpotLight.CosOuterAngle) / Denom);
+    
+    float DiffuseFactor = saturate(dot(-LightToPixel, WorldNormal));
+    float4 Diffuse = float4(SpotLight.Color, 1.f) * float4(PixelColor, 1.f) * DiffuseFactor;
+    LightTotal += Diffuse * DistAttenuation * ConeAttenuation;
+
+    float3 PixelToLight = -LightToPixel;
+    float3 HalfwayVec = normalize(PixelToCam + PixelToLight);
+    float SpecularFactor = pow(saturate(dot(WorldNormal, HalfwayVec)), SpotLight.SpecularPower);
+    float4 Specular = float4(SpotLight.Color, 1.f) * SpecularFactor * Reflectance;
+    LightTotal += Specular * DistAttenuation * ConeAttenuation;
+	
+    return LightTotal * SpotLight.Intensity;
+}
+
+float4 CalcSpotLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+    for (int i = 0; i < GlobalBuffer.Lights.SpotLightCount; i++)
+    {
+        LightTotal += _CalcSpotLight(GlobalBuffer.Lights.SpotLights[i], PixelColor, WorldPos, WorldNormal, PixelToCam, Reflectance);
+    }
+    return LightTotal;
+}
+
+float4 CalcLights(float3 PixelColor, float3 WorldPos, float3 WorldNormal, float3 PixelToCam, float Reflectance)
+{
+    float4 LightTotal = float4(0.f, 0.f, 0.f, 0.f);
+    for (int i = 0; i < GlobalBuffer.Lights.DirectionalLightCount; i++)
+    {
+        LightTotal += _CalcDirectionalLight(GlobalBuffer.Lights.DirLights[i], PixelColor, WorldPos, WorldNormal, PixelToCam, Reflectance);
+    }
+    
+    for (int i = 0; i < GlobalBuffer.Lights.PointLightCount; i++)
+    {
+        LightTotal += _CalcPointLight(GlobalBuffer.Lights.PointLights[i], PixelColor, WorldPos, WorldNormal, PixelToCam, Reflectance);
+    }
+    
+    for (int i = 0; i < GlobalBuffer.Lights.SpotLightCount; i++)
+    {
+        LightTotal += _CalcSpotLight(GlobalBuffer.Lights.SpotLights[i], PixelColor, WorldPos, WorldNormal, PixelToCam, Reflectance);
+    }
+    
     return LightTotal;
 }
 

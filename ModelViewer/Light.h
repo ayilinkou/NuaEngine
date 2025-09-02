@@ -16,11 +16,14 @@ public:
 
 	virtual void RenderControls() override;
 
-	void SetDiffuseColor(float r, float g, float b) { m_DiffuseColor = DirectX::XMFLOAT3(r, g, b); }
+	void SetColor(float r, float g, float b) { m_Color = DirectX::XMFLOAT3(r, g, b); }
+	void SetColor(DirectX::XMFLOAT3 Color) { m_Color = Color; }
 	void SetSpecularPower(float Power) { m_SpecularPower = Power; }
 	void SetIntensity(float Intensity) { m_Intensity = Intensity; }
+	void SetDirection(float x, float y, float z);
 
-	const DirectX::XMFLOAT3 GetDiffuseColor() const { return m_DiffuseColor; }
+	DirectX::XMFLOAT3 GetColor() const { return m_Color; }
+	DirectX::XMFLOAT3 GetDirection() const { return m_Dir; }
 	float GetSpecularPower() const { return m_SpecularPower; }
 	float GetIntensity() const { return m_Intensity; }
 	bool IsActive() const { return m_bActive; }
@@ -29,8 +32,9 @@ public:
 protected:
 	Light();
 
-private:
-	DirectX::XMFLOAT3 m_DiffuseColor;
+protected:
+	DirectX::XMFLOAT3 m_Color;
+	DirectX::XMFLOAT3 m_Dir;
 	float m_SpecularPower;
 	float m_Intensity;
 	bool m_bActive;
@@ -45,15 +49,13 @@ public:
 
 	virtual void RenderControls() override;
 
-	void SetRadius(float Radius);
+	void SetRadius(float Radius) { m_Radius = Radius; }
 
 	DirectX::XMFLOAT3 GetPosition() const { return GetOwner()->GetPosition(); }
 	float GetRadius() const { return m_Radius; }
 
 private:
-	// DirectX::XMFLOAT3 m_Position; // can add this back when adding accumulated transform
 	float m_Radius;
-
 };
 
 class DirectionalLight : public Light
@@ -62,14 +64,26 @@ public:
 	DirectionalLight();
 
 	virtual void RenderControls() override;
+};
 
-	void SetDirection(float x, float y, float z);
+class SpotLight : public Light
+{
+public:
+	SpotLight();
 
-	const DirectX::XMFLOAT3 GetDirection() const { return m_Dir; }
+	virtual void RenderControls() override;
+
+	void SetRadius(float Radius) { m_Radius = Radius; }
+
+	DirectX::XMFLOAT3 GetPosition() const { return GetOwner()->GetPosition(); }
+	float GetRadius() const { return m_Radius; }
+	float GetConeInnerAngle() const { return m_ConeInnerAngle; }
+	float GetConeOuterAngle() const { return m_ConeOuterAngle; }
 
 private:
-	DirectX::XMFLOAT3 m_Dir;
-
+	float m_Radius;
+	float m_ConeInnerAngle;
+	float m_ConeOuterAngle;
 };
 
 #endif

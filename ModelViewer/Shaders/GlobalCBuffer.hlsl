@@ -3,6 +3,7 @@
 
 #define MAX_POINT_LIGHTS 8
 #define MAX_DIRECTIONAL_LIGHTS 1
+#define MAX_SPOT_LIGHTS 8
 
 struct CameraData
 {
@@ -28,29 +29,44 @@ struct CameraData
 struct PointLight
 {
     float Radius;
-    float3 LightPos;
+    float3 Pos;
     float SpecularPower;
-    float3 LightColor;
+    float3 Color;
     float Intensity;
     float3 Padding;
 };
 
 struct DirectionalLight
 {
-    float3 LightDir;
+    float3 Dir;
     float SpecularPower;
-    float3 LightColor;
+    float3 Color;
     float Intensity;
+};
+
+struct SpotLight
+{
+    float Radius;
+    float3 Pos;
+    float SpecularPower;
+    float3 Color;
+    float Intensity;
+    float3 Dir;
+    float CosInnerAngle;
+    float CosOuterAngle;
+    float2 Padding;
 };
 
 struct LightData
 {
     PointLight PointLights[MAX_POINT_LIGHTS];
     DirectionalLight DirLights[MAX_DIRECTIONAL_LIGHTS];
+    SpotLight SpotLights[MAX_SPOT_LIGHTS];
     float3 SkylightColor;
     int PointLightCount;
     int DirectionalLightCount;
-    float3 Padding;
+    int SpotLightCount;
+    float2 Padding;
 };
 
 struct GlobalCBuffer

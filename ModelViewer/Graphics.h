@@ -57,14 +57,29 @@ struct DirectionalLightData
 	float Intensity;
 };
 
+struct SpotLightData
+{
+	float Radius;
+	DirectX::XMFLOAT3 LightPos;
+	float SpecularPower;
+	DirectX::XMFLOAT3 LightColor;
+	float Intensity;
+	DirectX::XMFLOAT3 Dir;
+	float CosInnerAngle;
+	float CosOuterAngle;
+	DirectX::XMFLOAT2 Padding;
+};
+
 struct LightingBuffer
 {
 	PointLightData PointLights[MAX_POINT_LIGHTS];
 	DirectionalLightData DirLights[MAX_DIRECTIONAL_LIGHTS];
+	SpotLightData SpotLights[MAX_SPOT_LIGHTS];
 	DirectX::XMFLOAT3 SkylightColor = { 1.f, 1.f, 1.f };
 	int PointLightCount = 0;
 	int DirLightCount = 0;
-	DirectX::XMFLOAT3 Padding;
+	int SpotLightCount = 0;
+	DirectX::XMFLOAT2 Padding;
 };
 
 struct GlobalCBuffer
