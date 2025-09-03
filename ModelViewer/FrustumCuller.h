@@ -55,7 +55,6 @@ public:
 	void Shutdown();
 
 	void DispatchShaderNew(CullData* Data);
-	void DispatchShader(const std::vector<CullTransformData>& Transforms, const AABB& BBox);
 	void CullGrass(CullData& Data, const UINT GrassPerChunk, const UINT VisibleChunkCount,
 		UINT PlaneDimension, float HeightDisplacement, float LODDistanceThreshold, ID3D11ShaderResourceView* Heightmap,
 		ID3D11ShaderResourceView* CulledTransformsSRV, ID3D11ShaderResourceView* GrassOffsetsSRV);
@@ -64,10 +63,6 @@ public:
 
 	std::array<UINT, 2> GetInstanceCounts();
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> GetCulledTransformsBuffer() const { return m_CulledTransformsBuffer; }
-	Microsoft::WRL::ComPtr<ID3D11Buffer> GetCulledOffsetsBuffer() const { return m_CulledOffsetsBuffer; }
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetCulledTransformsSRV() const { return m_CulledTransformsSRV; }
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetCulledOffsetsSRV() const { return m_CulledOffsetsSRV; }
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetCulledGrassDataSRV() const { return m_CulledGrassDataSRV; }
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetCulledGrassLODDataSRV() const { return m_CulledGrassLODDataSRV; }
 
@@ -76,14 +71,9 @@ private:
 	bool CreateBufferViews();
 	bool InitialiseStatics();
 
-	void UpdateBuffers(const std::vector<CullTransformData>& Transforms, const AABB& BBox, UINT* ThreadGroupCount,
-		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
-	void UpdateBuffers(const std::vector<DirectX::XMFLOAT2>& Offsets, const AABB& Corners, UINT* ThreadGroupCount,
-		UINT SentInstanceCount, UINT GrassPerChunk = 0u, UINT PlaneDimension = 0u, float HeightDisplacement = 0.f);
 	void UpdateCBuffer(const AABB* BBox, UINT* ThreadGroupCount, UINT SentInstanceCount, UINT GrassPerChunk = 0u,
 		UINT PlaneDimension = 0u, float HeightDisplacement = 0.f, float LODDistanceThreshold = 0.f);
 
-	void DispatchShaderImpl(UINT* ThreadGroupCount);
 	void DispatchShaderImplNew(ID3D11ShaderResourceView* TransformsSRV, ID3D11UnorderedAccessView* CulledTransformsUAV,
 		UINT* ThreadGroupCount);
 
@@ -95,24 +85,14 @@ private:
 	ID3D11ComputeShader* m_GrassCullingShader				= nullptr;
 	ID3D11ComputeShader* m_InstanceCountClearShader			= nullptr;
 	ID3D11ComputeShader* m_InstanceCountTransferShader		= nullptr;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_TransformsBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_OffsetsBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledTransformsBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledOffsetsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledGrassDataBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CulledGrassLODDataBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_CBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_StagingBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_InstanceCountBuffer;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_TransformsSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_OffsetsSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledTransformsSRV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledOffsetsSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledGrassDataSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_CulledGrassLODDataSRV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_InstanceCountBufferUAV;
-	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledTransformsUAV;
-	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledOffsetsUAV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledGrassDataUAV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_CulledGrassLODDataUAV;
 
