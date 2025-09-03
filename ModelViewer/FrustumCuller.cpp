@@ -153,29 +153,6 @@ bool FrustumCuller::CreateBuffers()
 	D3D11_BUFFER_DESC Desc = {};
 	ID3D11Device* Device = Graphics::GetSingletonPtr()->GetDevice();
 
-	Desc.Usage = D3D11_USAGE_DYNAMIC;
-	Desc.ByteWidth = (UINT)(sizeof(CullTransformData) * MAX_INSTANCE_COUNT);
-	Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	Desc.StructureByteStride = sizeof(CullTransformData);
-
-	Desc.CPUAccessFlags = 0;
-	Desc.Usage = D3D11_USAGE_DEFAULT;
-	Desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-
-	Desc.Usage = D3D11_USAGE_DYNAMIC;
-	Desc.ByteWidth = (UINT)(sizeof(DirectX::XMFLOAT2) * MAX_GRASS_PER_CHUNK);
-	Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	Desc.StructureByteStride = sizeof(DirectX::XMFLOAT2);
-
-	Desc.CPUAccessFlags = 0;
-	Desc.Usage = D3D11_USAGE_DEFAULT;
-	Desc.ByteWidth = (UINT)(sizeof(DirectX::XMFLOAT2) * MAX_INSTANCE_COUNT);
-	Desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-
 	Desc.Usage = D3D11_USAGE_DEFAULT;
 	Desc.ByteWidth = (UINT)(sizeof(GrassData) * MAX_GRASS_COUNT);
 	Desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
@@ -226,9 +203,7 @@ bool FrustumCuller::CreateBufferViews()
 
 	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
 	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	uavDesc.Buffer.NumElements = (UINT)MAX_INSTANCE_COUNT;
 	uavDesc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
-
 	uavDesc.Buffer.NumElements = (UINT)MAX_GRASS_COUNT;
 
 	HFALSE_IF_FAILED(Device->CreateUnorderedAccessView(m_CulledGrassDataBuffer.Get(), &uavDesc, &m_CulledGrassDataUAV));
@@ -240,10 +215,6 @@ bool FrustumCuller::CreateBufferViews()
 	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
 	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
-	SRVDesc.Buffer.NumElements = (UINT)MAX_INSTANCE_COUNT;
-
-	SRVDesc.Buffer.NumElements = (UINT)MAX_GRASS_PER_CHUNK;
-
 	SRVDesc.Buffer.NumElements = (UINT)MAX_GRASS_COUNT;
 
 	HFALSE_IF_FAILED(Device->CreateShaderResourceView(m_CulledGrassDataBuffer.Get(), &SRVDesc, &m_CulledGrassDataSRV));
